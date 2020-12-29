@@ -45,7 +45,8 @@ func (l *Live) Init() {
 	l.uploadChannel = make(chan string)
 	l.lock = new(sync.Mutex)
 
-	config, _ := config.LoadConfig()
+	c := config.InitConfig()
+	config, _ := c.LoadConfig()
 	for _, v := range config.Live {
 		l.state.Store(v.RoomID, iinit)
 	}

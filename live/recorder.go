@@ -3,6 +3,7 @@ package live
 import (
 	"fmt"
 	"os/exec"
+	"path/filepath"
 	"time"
 
 	"github.com/asmcos/requests"
@@ -46,8 +47,6 @@ func (r *Live) GetLiveURL(roomID string) (string, error) {
 
 // DownloadLive 下载
 func (r *Live) DownloadLive(roomID string) {
-	r.lock.Lock()
-	defer r.lock.Unlock()
 	url, err := r.GetLiveURL(roomID)
 	if err != nil {
 		golog.Error(err)
@@ -56,12 +55,14 @@ func (r *Live) DownloadLive(roomID string) {
 	uname := infs.RoomInfos[roomID].Uname
 	tools.Mkdir(fmt.Sprintf("./recording/%s/tmp", uname))
 	outputName := uname + "_" + fmt.Sprint(time.Now().Format("20060102150405")) + ".flv"
-	r.downloadCmd = exec.Command("ffmpeg", "-i", url, "-c", "copy", fmt.Sprintf("./recording/%s/tmp/%s", uname, outputName))
+	middle, _ := filepath.Abs(fmt.Sprintf("./recording/%s/tmp", uname))
+	outputFile := fmt.Sprint(middle + "\\" + outputName)
+	r.downloadCmd = exec.Command("ffmpeg", "-i", url, "-c", "copy", outputFile)
 	// stdout, _ := r.downloadCmd.StdoutPipe()
 	// r.downloadCmd.Stderr = r.downloadCmd.Stdout
 	if err = r.downloadCmd.Start(); err != nil {
+		golog.Error(err)
 		r.downloadCmd.Process.Kill()
-		golog.Fatal(err)
 	}
 	// tools.LiveOutput(stdout)
 	r.downloadCmd.Wait()
@@ -71,7 +72,8 @@ func (r *Live) DownloadLive(roomID string) {
 }
 
 func (r *Live) run(roomID string) {
-	config, _ := config.LoadConfig()
+	c := config.InitConfig()
+	config, _ := c.LoadConfig()
 	infs := infos.New()
 	for {
 		infs.UpadteFromConfig(roomID, config.Live[roomID])
@@ -88,6 +90,8 @@ func (r *Live) run(roomID string) {
 					golog.Debug(fmt.Sprintf("%s[RoomID: %s] 开始录制", infs.RoomInfos[roomID].Uname, roomID))
 					go r.DownloadLive(roomID)
 					r.compareAndSwapUint32(roomID, start, running)
+				} else {
+					time.Sleep(3 * time.Second)
 				}
 			} else {
 				time.Sleep(3 * time.Second)
@@ -156,7 +160,7 @@ func (r *Live) compareAndSwapUint32(roomID string, old uint32, new uint32) bool 
 		infs := infos.New()
 		infs.RoomInfos[roomID].State = new
 		roomInfo := infs.RoomInfos[roomID]
-		golog.Debug(fmt.Sprintf("%s[RoomID: %s] state changed from %d to %d", roomInfo.Uname, roomInfo.RoomID, old, new))
+		golog.Debug(fmt.Sprintf("%s[RoomID: %s] state changed from %d to %d", roomInfo.Uname, roomID, old, new))
 		return true
 	}
 	return false

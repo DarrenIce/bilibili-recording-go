@@ -71,7 +71,8 @@ var (
 func main() {
 	Init()
 	liver.Init()
-	config, _ := config.LoadConfig()
+	c := config.InitConfig()
+	config, _ := c.LoadConfig()
 	for _, v := range config.Live {
 		liver.AddRoom(v)
 	}

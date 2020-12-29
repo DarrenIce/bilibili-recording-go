@@ -66,7 +66,8 @@ func New() *liveInfos {
 }
 
 func (l *liveInfos) Init() {
-	config, _ := config.LoadConfig()
+	c := config.InitConfig()
+	config, _ := c.LoadConfig()
 	for _, v := range config.Live {
 		l.RoomInfos[v.RoomID] = &roomInfo{}
 	}

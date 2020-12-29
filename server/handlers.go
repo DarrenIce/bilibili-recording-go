@@ -10,7 +10,8 @@ import (
 
 func getAllLives(writer http.ResponseWriter, r *http.Request) {
 	lives := []string{}
-	config, _ := config.LoadConfig()
+	c := config.InitConfig()
+	config, _ := c.LoadConfig()
 	for _, v := range config.Live {
 		lives = append(lives, v.RoomID)
 	}

@@ -2,6 +2,7 @@ package config
 
 import (
 	"io/ioutil"
+	"sync"
 
 	"github.com/kataras/golog"
 	"gopkg.in/yaml.v2"
@@ -21,15 +22,36 @@ type RoomConfigInfo struct {
 }
 
 // Config 配置文件
-type Config struct {
+type config struct {
 	Bili	bili `yaml:"bilibili"`
 	Live	map[string]RoomConfigInfo `yaml:"live"`
 }
 
-var defaultconfig Config
+type Config struct {
+	config	config
+	lock	*sync.Mutex
+}
+
+var defaultconfig config
+
+var (
+    once sync.Once
+
+    instance *Config
+)
+
+func InitConfig() (*Config) {
+	once.Do(func() {
+		instance = &Config{config: config{}, lock: new(sync.Mutex)}
+	})
+
+	return instance
+}
 
 // LoadConfig 加载配置文件
-func LoadConfig() (*Config, error) {
+func (c *Config) LoadConfig() (*config, error) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
 	b, err := ioutil.ReadFile("./config.yml")
 	if err != nil {
 		golog.Fatal(err)
