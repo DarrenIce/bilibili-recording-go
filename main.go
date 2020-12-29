@@ -16,6 +16,7 @@ import (
 
 // Init 初始化函数
 func Init() {
+	tools.Mkdir("./log")
 	logFile, err := os.OpenFile("./log/log.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 	if err != nil {
 		golog.Fatal(err)
