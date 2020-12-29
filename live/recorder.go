@@ -14,21 +14,6 @@ import (
 	"bilibili-recording-go/tools"
 )
 
-const (
-	iinit   uint32 = iota
-	start          // 开始监听
-	running        // 正在录制
-	waiting        // 在unlive中从running转移到waiting，如果不在录制时间段内就跳到waiting
-	decodeWait
-	decoding
-	decodeEnd
-	updateWait
-	updating
-	updateEnd
-	stop
-	// 转码上传完成后，从waiting回到start
-)
-
 // GetInfoByRoom 获取Room info
 func (r *Live) GetInfoByRoom(roomID string) error {
 	url := fmt.Sprintf("https://api.live.bilibili.com/xlive/web-room/v1/index/getInfoByRoom?room_id=%s", roomID)
@@ -80,24 +65,27 @@ func (r *Live) DownloadLive(roomID string) {
 	}
 	// tools.LiveOutput(stdout)
 	r.downloadCmd.Wait()
+	infs.RoomInfos[roomID].RecordEndTime = time.Now().Format("2006-01-02 15:04:05")
+	golog.Debug(fmt.Sprintf("%s[RoomID: %s] 录制结束", infs.RoomInfos[roomID].Uname, roomID))
 	r.unliveChannel <- roomID
 }
 
 func (r *Live) run(roomID string) {
 	config, _ := config.LoadConfig()
 	infs := infos.New()
-	infs.UpadteFromConfig(roomID, config.Live[roomID])
 	for {
+		infs.UpadteFromConfig(roomID, config.Live[roomID])
 		infs.RoomInfos[roomID].St, infs.RoomInfos[roomID].Et = tools.MkDuration(r.rooms[roomID].StartTime, r.rooms[roomID].EndTime)
 		select {
 		case <-r.stop:
 			r.downloadCmd.Process.Kill()
 			return
 		default:
-			if r.judgeLive(roomID) && tools.JudgeInDuration(tools.MkDuration(r.rooms[roomID].StartTime, r.rooms[roomID].EndTime)) {
+			if r.judgeLive(roomID) && tools.JudgeInDuration(tools.MkDuration(r.rooms[roomID].StartTime, r.rooms[roomID].EndTime)) && infs.RoomInfos[roomID].AutoRecord {
 				if st, ok := r.syncMapGetUint32(roomID); ok && st == start {
 					infs.RoomInfos[roomID].RecordStartTime = time.Now().Format("2006-01-02 15:04:05")
 					infs.RoomInfos[roomID].RecordStatus = 1
+					golog.Debug(fmt.Sprintf("%s[RoomID: %s] 开始录制", infs.RoomInfos[roomID].Uname, roomID))
 					go r.DownloadLive(roomID)
 					r.compareAndSwapUint32(roomID, start, running)
 				}
@@ -140,15 +128,13 @@ func (r *Live) recordWorker() {
 		info := <-r.recordChannel
 		roomID := info.RoomID
 		r.rooms[roomID] = info
+		golog.Debug(fmt.Sprintf("房间[RoomID: %s] 开始监听", roomID))
 		go r.start(roomID)
 	}
 }
 
 func (r *Live) start(roomID string) {
-	infs := infos.New()
-	r.state.Store(roomID, start)
-	s, _ := r.state.Load(roomID)
-	infs.RoomInfos[roomID].State, _ = s.(uint32)
+	r.compareAndSwapUint32(roomID, iinit, start)
 	go r.run(roomID)
 	go r.unlive()
 }
@@ -169,6 +155,8 @@ func (r *Live) compareAndSwapUint32(roomID string, old uint32, new uint32) bool 
 		r.state.Store(roomID, new)
 		infs := infos.New()
 		infs.RoomInfos[roomID].State = new
+		roomInfo := infs.RoomInfos[roomID]
+		golog.Debug(fmt.Sprintf("%s[RoomID: %s] state changed from %d to %d", roomInfo.Uname, roomInfo.RoomID, old, new))
 		return true
 	}
 	return false

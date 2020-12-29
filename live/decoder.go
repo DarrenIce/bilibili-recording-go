@@ -20,7 +20,21 @@ import (
 func (l *Live) decodeWorker() {
 	for {
 		roomID := <-l.decodeChannel
-		Decode(roomID)
+		if l.compareAndSwapUint32(roomID, waiting, decoding) {
+			infs := infos.New()
+			infs.RoomInfos[roomID].DecodeStartTime = time.Now().Format("2006-01-02 15:04:05")
+			golog.Debug(fmt.Sprintf("%s[RoomID: %s] 开始转码", infs.RoomInfos[roomID].Uname, roomID))
+			Decode(roomID)
+			golog.Debug(fmt.Sprintf("%s[RoomID: %s] 结束转码", infs.RoomInfos[roomID].Uname, roomID))
+			infs.RoomInfos[roomID].DecodeEndTime = time.Now().Format("2006-01-02 15:04:05")
+			l.compareAndSwapUint32(roomID, decoding, decodeEnd)
+			if infs.RoomInfos[roomID].AutoUpload {
+				l.compareAndSwapUint32(roomID, decodeEnd, updateWait)
+				l.uploadChannel <- roomID
+			} else {
+				l.compareAndSwapUint32(roomID, decodeEnd, start)
+			}
+		}
 	}
 }
 
@@ -60,7 +74,7 @@ func Decode(roomID string) {
 	outputName := fmt.Sprintf("%s_%s", roomInfo.Uname, ftime)
 	pwd, _ := os.Getwd()
 	outputFile := filepath.Join(pwd, "recording", roomInfo.Uname, fmt.Sprintf("%s.mp4", outputName))
-	golog.Info(fmt.Sprintf("%s[RoomID:%s]本次录制文件: %s, 最终上传: %s", roomInfo.Uname, roomInfo.UID, strings.Join(inputFile, " "), uploadName))
+	golog.Info(fmt.Sprintf("%s[RoomID: %s] 本次录制文件: %s, 最终上传: %s", roomInfo.Uname, roomInfo.UID, strings.Join(inputFile, " "), uploadName))
 	var middleLst []string
 	for _, f := range inputFile {
 		middleLst = append(middleLst, strings.Replace(f, ".flv", ".ts", -1))
@@ -127,5 +141,5 @@ func Decode(roomID string) {
 		}
 	}
 
-	golog.Info(fmt.Sprintf("%s[RoomID:%s]转码完成", roomInfo.Uname, roomInfo.UID))
+	golog.Info(fmt.Sprintf("%s[RoomID: %s] 转码完成", roomInfo.Uname, roomInfo.UID))
 }

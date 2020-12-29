@@ -21,6 +21,20 @@ type Live struct {
 	lock          *sync.Mutex
 }
 
+const (
+	iinit   uint32 = iota
+	start          // 开始监听
+	running        // 正在录制
+	waiting        // 在unlive中从running转移到waiting，如果不在录制时间段内就跳到waiting
+	decoding
+	decodeEnd
+	updateWait
+	updating
+	updateEnd
+	stop
+	// 转码上传完成后，从waiting回到start
+)
+
 // Init Live
 func (l *Live) Init() {
 	l.rooms = make(map[string]config.RoomConfigInfo)
@@ -30,6 +44,11 @@ func (l *Live) Init() {
 	l.decodeChannel = make(chan string)
 	l.uploadChannel = make(chan string)
 	l.lock = new(sync.Mutex)
+
+	config, _ := config.LoadConfig()
+	for _, v := range config.Live {
+		l.state.Store(v.RoomID, iinit)
+	}
 
 	go l.recordWorker()
 	go l.decodeWorker()

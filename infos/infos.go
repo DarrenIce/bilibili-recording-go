@@ -26,6 +26,7 @@ type roomInfo struct {
 
 	RecordStatus	int
 	RecordStartTime	string
+	RecordEndTime	string
 	DecodeStatus	int
 	DecodeStartTime	string
 	DecodeEndTime	string
