@@ -22,7 +22,7 @@ type Live struct {
 	unliveChannel chan string
 	decodeChannel chan string
 	uploadChannel chan string
-	downloadCmd   *exec.Cmd
+	downloadCmds  map[string]*exec.Cmd
 	state         sync.Map
 	lock          *sync.Mutex
 }
@@ -67,6 +67,7 @@ func (l *Live) Init() {
 	l.decodeChannel = make(chan string)
 	l.uploadChannel = make(chan string)
 	l.lock = new(sync.Mutex)
+	l.downloadCmds = make(map[string]*exec.Cmd)
 
 	c := config.New()
 	err := c.LoadConfig()

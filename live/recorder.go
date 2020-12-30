@@ -57,15 +57,15 @@ func (r *Live) DownloadLive(roomID string) {
 	outputName := uname + "_" + fmt.Sprint(time.Now().Format("20060102150405")) + ".flv"
 	middle, _ := filepath.Abs(fmt.Sprintf("./recording/%s/tmp", uname))
 	outputFile := fmt.Sprint(middle + "\\" + outputName)
-	r.downloadCmd = exec.Command("ffmpeg", "-i", url, "-c", "copy", outputFile)
+	r.downloadCmds[roomID] = exec.Command("ffmpeg", "-i", url, "-c", "copy", outputFile)
 	// stdout, _ := r.downloadCmd.StdoutPipe()
 	// r.downloadCmd.Stderr = r.downloadCmd.Stdout
-	if err = r.downloadCmd.Start(); err != nil {
+	if err = r.downloadCmds[roomID].Start(); err != nil {
 		golog.Error(err)
-		r.downloadCmd.Process.Kill()
+		r.downloadCmds[roomID].Process.Kill()
 	}
 	// tools.LiveOutput(stdout)
-	r.downloadCmd.Wait()
+	r.downloadCmds[roomID].Wait()
 	infs.RoomInfos[roomID].RecordEndTime = time.Now().Unix()
 	golog.Info(fmt.Sprintf("%s[RoomID: %s] 录制结束", infs.RoomInfos[roomID].Uname, roomID))
 	r.unliveChannel <- roomID
@@ -81,7 +81,7 @@ func (r *Live) run(roomID string) {
 		case rid := <-r.stop:
 			if rid == roomID {
 				if st, ok := r.syncMapGetUint32(roomID); ok && (st == running) {
-					r.downloadCmd.Process.Kill()
+					r.downloadCmds[roomID].Process.Kill()
 				}
 				infs.DeleteRoomInfo(roomID)
 				return
@@ -99,8 +99,13 @@ func (r *Live) run(roomID string) {
 					} else if st == restart {
 						r.compareAndSwapUint32(roomID, restart, running)
 					}
-				} else if st, ok := r.syncMapGetUint32(roomID); ok && st == restart && !tools.JudgeInDuration(tools.MkDuration(r.rooms[roomID].StartTime, r.rooms[roomID].EndTime)) {
-					r.unliveChannel <- roomID
+				} else if !tools.JudgeInDuration(tools.MkDuration(r.rooms[roomID].StartTime, r.rooms[roomID].EndTime)) {
+					if st, ok := r.syncMapGetUint32(roomID); ok && st == restart {
+						r.unliveChannel <- roomID
+					} else if st, ok := r.syncMapGetUint32(roomID); ok && st == running {
+						r.downloadCmds[roomID].Process.Kill()
+						r.unliveChannel <- roomID
+					}
 				} else {
 					time.Sleep(3 * time.Second)
 				}
