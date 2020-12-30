@@ -33,6 +33,7 @@ type RoomInfo struct {
 	UploadStatus    int
 	UploadStartTime string
 	UploadEndTime   string
+	NeedUpload		bool
 	St              time.Time
 	Et              time.Time
 	State           uint32

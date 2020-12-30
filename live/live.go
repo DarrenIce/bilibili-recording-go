@@ -89,9 +89,9 @@ func (l *Live) AddRoom(info config.RoomConfigInfo) {
 	l.recordChannel <- info
 }
 
+// DeleteRoom deleteroom
 func (l *Live) DeleteRoom(roomID string) {
 	l.Stop(roomID)
-	// 需要释放内存，加锁！
 }
 
 // InfoResponse response

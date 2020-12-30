@@ -75,18 +75,21 @@ func main() {
 	for _, v := range c.Conf.Live {
 		liver.AddRoom(v)
 	}
-	server := server.NewServer()
+	server := server.New()
 	server.Start()
-	// live.Decode("22554425")
+
+	// test := make(chan int)
+	// go tools.EveryDayTimer("11:31:30", test)
 	// go func() {
-	// 	t := time.NewTimer(7 * time.Second)
-	// 	<- t.C
-	// 	fmt.Println("stop")
-	// 	for _, v := range recs {
-	// 		v.Stop()
+	// 	for {
+	// 		select {
+	// 		case <-test:
+	// 			fmt.Println("11111")
+	// 		default:
+	// 			continue
+	// 		}
 	// 	}
 	// }()
-
 	for {
 		continue
 	}

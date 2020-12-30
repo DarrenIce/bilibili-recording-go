@@ -1,6 +1,8 @@
 package tools
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -48,6 +50,7 @@ func writeMsg(w http.ResponseWriter, code int, msg string) {
 	_, _ = w.Write([]byte(msg))
 }
 
+// WriteJSON write to resp
 func WriteJSON(w http.ResponseWriter, obj interface{}) {
 	b, err := json.Marshal(obj)
 	if err != nil {
@@ -58,6 +61,7 @@ func WriteJSON(w http.ResponseWriter, obj interface{}) {
 	_, _ = w.Write(b)
 }
 
+// MkDuration make duration
 func MkDuration(startTime string, endTime string) (time.Time, time.Time) {
 	t := time.Now()
 	tt := t.Format("20060102 150405")
@@ -88,6 +92,7 @@ func MkDuration(startTime string, endTime string) (time.Time, time.Time) {
 	}
 }
 
+// JudgeInDuration judge duration
 func JudgeInDuration(startTime time.Time, endTime time.Time) bool {
 	t := time.Now()
 	if t.After(startTime) && t.Before(endTime) {
@@ -96,6 +101,7 @@ func JudgeInDuration(startTime time.Time, endTime time.Time) bool {
 	return false
 }
 
+// ListDir listdir
 func ListDir(dirPath string) (files []string) {
 	dir, err := ioutil.ReadDir(dirPath)
 	if err != nil {
@@ -112,6 +118,7 @@ func ListDir(dirPath string) (files []string) {
 	return files
 }
 
+// GetFileCreateTime get
 func GetFileCreateTime(filePath string) int64 {
 	fileInfo, _ := os.Stat(filePath)
 	fileSys := fileInfo.Sys().(*syscall.Win32FileAttributeData)
@@ -120,6 +127,7 @@ func GetFileCreateTime(filePath string) int64 {
 	return createTime
 }
 
+// GetFileLastModifyTime get
 func GetFileLastModifyTime(filePath string) int64 {
 	fileInfo, _ := os.Stat(filePath)
 	fileSys := fileInfo.Sys().(*syscall.Win32FileAttributeData)
@@ -135,6 +143,7 @@ func GetTimeDeltaFromTimestamp(time1 int64, time2 int64) int {
 	return int(t1.Sub(t2).Seconds())
 }
 
+// LiveOutput output for exec
 func LiveOutput(out io.ReadCloser) {
 	for {
 		tmp := make([]byte, 1024)
@@ -146,7 +155,9 @@ func LiveOutput(out io.ReadCloser) {
 	}
 }
 
+// EveryDayTimer timer
 func EveryDayTimer(t string, c chan int) {
+	golog.Info("EveryDayTimer Start, set time as ", t)
 	timeNow := time.Now()
 	loc, _ := time.LoadLocation("PRC")
 	setTime, _ := time.ParseInLocation("2006-01-02 15:04:05", fmt.Sprint(time.Now().Format("2006-01-02") + " " + t), loc)
@@ -156,9 +167,17 @@ func EveryDayTimer(t string, c chan int) {
 	timer := time.NewTimer(setTime.Sub(timeNow))
 	<- timer.C
 	c <- 1
+	golog.Info("EveryDayTimer Work at ", time.Now().Format("2006-01-02 15:04:05"), " Next work time is ", setTime.AddDate(0,0,1).Format("2006-01-02 15:04:05"))
 	var ticker *time.Ticker = time.NewTicker(24 * time.Hour)
 	ticks := ticker.C
 	for range ticks {
 		c <- 1
+		golog.Info("EveryDayTimer Work at ", time.Now().Format("2006-01-02 15:04:05"), "Next work time is ", time.Now().Format("2006-01-02 15:04:05"))
 	}
+}
+
+func md5V(t string) string {
+	h := md5.New()
+	h.Write([]byte(t))
+	return hex.EncodeToString(h.Sum(nil))
 }

@@ -11,6 +11,7 @@ const (
 	apiRouterPrefix = "/api"
 )
 
+// Server server
 type Server struct {
 	server *http.Server
 }
@@ -27,7 +28,8 @@ func initMux() *mux.Router {
 	return m
 }
 
-func NewServer() *Server {
+// New new
+func New() *Server {
 	httpServer := &http.Server{
 		Addr:    "127.0.0.1:18080",
 		Handler: initMux(),
@@ -36,6 +38,7 @@ func NewServer() *Server {
 	return server
 }
 
+// Start start
 func (s *Server) Start() error {
 	go func() {
 		switch err := s.server.ListenAndServe(); err {

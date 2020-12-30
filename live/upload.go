@@ -9,12 +9,12 @@ import (
 	"github.com/kataras/golog"
 )
 
-
 func (l *Live) uploadWorker() {
 	for {
-		roomID := <- l.uploadChannel
+		roomID := <-l.uploadChannel
 		if l.compareAndSwapUint32(roomID, updateWait, updating) {
 			infs := infos.New()
+			infs.RoomInfos[roomID].NeedUpload = true
 			infs.RoomInfos[roomID].UploadStartTime = time.Now().Format("2006-01-02 15:04:05")
 			golog.Debug(fmt.Sprintf("%s[RoomID: %s] 开始上传", infs.RoomInfos[roomID].Uname, roomID))
 			l.Upload(roomID)

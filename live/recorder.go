@@ -67,7 +67,7 @@ func (r *Live) DownloadLive(roomID string) {
 	// tools.LiveOutput(stdout)
 	r.downloadCmd.Wait()
 	infs.RoomInfos[roomID].RecordEndTime = time.Now().Format("2006-01-02 15:04:05")
-	golog.Debug(fmt.Sprintf("%s[RoomID: %s] 录制结束", infs.RoomInfos[roomID].Uname, roomID))
+	golog.Info(fmt.Sprintf("%s[RoomID: %s] 录制结束", infs.RoomInfos[roomID].Uname, roomID))
 	r.unliveChannel <- roomID
 }
 
@@ -92,7 +92,7 @@ func (r *Live) run(roomID string) {
 				if st, ok := r.syncMapGetUint32(roomID); ok && (st == start || st == restart) {
 					infs.RoomInfos[roomID].RecordStartTime = time.Now().Format("2006-01-02 15:04:05")
 					infs.RoomInfos[roomID].RecordStatus = 1
-					golog.Debug(fmt.Sprintf("%s[RoomID: %s] 开始录制", infs.RoomInfos[roomID].Uname, roomID))
+					golog.Info(fmt.Sprintf("%s[RoomID: %s] 开始录制", infs.RoomInfos[roomID].Uname, roomID))
 					go r.DownloadLive(roomID)
 					if st == start {
 						r.compareAndSwapUint32(roomID, start, running)
@@ -145,7 +145,7 @@ func (r *Live) recordWorker() {
 		info := <-r.recordChannel
 		roomID := info.RoomID
 		r.rooms[roomID] = info
-		golog.Debug(fmt.Sprintf("房间[RoomID: %s] 开始监听", roomID))
+		golog.Info(fmt.Sprintf("房间[RoomID: %s] 开始监听", roomID))
 		go r.start(roomID)
 	}
 }
@@ -155,9 +155,9 @@ func (r *Live) start(roomID string) {
 	go r.run(roomID)
 }
 
-// Stop 现在是所有状态都可以转移到stop，会有点问题
+// Stop 现在是所有状态都可以转移到stop，会有点问题，如果在转码或者上传期间stop，会有roomID取不到值的报错，可以考虑加一个协程判断state，state回归后再delete
 func (r *Live) Stop(roomID string) {
-	golog.Debug(fmt.Sprintf("房间[RoomID: %s] 退出监听", roomID))
+	golog.Info(fmt.Sprintf("房间[RoomID: %s] 退出监听", roomID))
 	infs := infos.New()
 	r.state.Store(roomID, stop)
 	s, _ := r.state.Load(roomID)
