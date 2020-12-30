@@ -20,13 +20,13 @@ func getAllLives(writer http.ResponseWriter, r *http.Request) {
 		lives = append(lives, v.RoomID)
 	}
 	tools.WriteJSON(writer, lives)
-	golog.Info("getAllLives Success!")
+	// golog.Info("getAllLives Success!")
 }
 
 func getAllInfos(writer http.ResponseWriter, r *http.Request) {
 	infs := infos.New()
 	tools.WriteJSON(writer, infs)
-	golog.Info("getAllInfos Success!")
+	// golog.Info("getAllInfos Success!")
 }
 
 func saveConfig(writer http.ResponseWriter, r *http.Request) {

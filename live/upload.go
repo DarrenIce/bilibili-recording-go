@@ -15,11 +15,11 @@ func (l *Live) uploadWorker() {
 		if l.compareAndSwapUint32(roomID, updateWait, updating) {
 			infs := infos.New()
 			infs.RoomInfos[roomID].NeedUpload = true
-			infs.RoomInfos[roomID].UploadStartTime = time.Now().Format("2006-01-02 15:04:05")
+			infs.RoomInfos[roomID].UploadStartTime = time.Now().Unix()
 			golog.Debug(fmt.Sprintf("%s[RoomID: %s] 开始上传", infs.RoomInfos[roomID].Uname, roomID))
 			l.Upload(roomID)
 			golog.Debug(fmt.Sprintf("%s[RoomID: %s] 结束上传", infs.RoomInfos[roomID].Uname, roomID))
-			infs.RoomInfos[roomID].UploadEndTime = time.Now().Format("2006-01-02 15:04:05")
+			infs.RoomInfos[roomID].UploadEndTime = time.Now().Unix()
 			l.compareAndSwapUint32(roomID, updating, updateEnd)
 			l.compareAndSwapUint32(roomID, updateEnd, start)
 		}

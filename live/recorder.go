@@ -66,7 +66,7 @@ func (r *Live) DownloadLive(roomID string) {
 	}
 	// tools.LiveOutput(stdout)
 	r.downloadCmd.Wait()
-	infs.RoomInfos[roomID].RecordEndTime = time.Now().Format("2006-01-02 15:04:05")
+	infs.RoomInfos[roomID].RecordEndTime = time.Now().Unix()
 	golog.Info(fmt.Sprintf("%s[RoomID: %s] 录制结束", infs.RoomInfos[roomID].Uname, roomID))
 	r.unliveChannel <- roomID
 }
@@ -90,7 +90,7 @@ func (r *Live) run(roomID string) {
 		default:
 			if r.judgeLive(roomID) && tools.JudgeInDuration(tools.MkDuration(r.rooms[roomID].StartTime, r.rooms[roomID].EndTime)) && infs.RoomInfos[roomID].AutoRecord {
 				if st, ok := r.syncMapGetUint32(roomID); ok && (st == start || st == restart) {
-					infs.RoomInfos[roomID].RecordStartTime = time.Now().Format("2006-01-02 15:04:05")
+					infs.RoomInfos[roomID].RecordStartTime = time.Now().Unix()
 					infs.RoomInfos[roomID].RecordStatus = 1
 					golog.Info(fmt.Sprintf("%s[RoomID: %s] 开始录制", infs.RoomInfos[roomID].Uname, roomID))
 					go r.DownloadLive(roomID)
