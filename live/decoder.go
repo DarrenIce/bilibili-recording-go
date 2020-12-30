@@ -24,7 +24,7 @@ func (l *Live) decodeWorker() {
 			infs := infos.New()
 			infs.RoomInfos[roomID].DecodeStartTime = time.Now().Unix()
 			golog.Debug(fmt.Sprintf("%s[RoomID: %s] 开始转码", infs.RoomInfos[roomID].Uname, roomID))
-			Decode(roomID)
+			l.Decode(roomID)
 			golog.Debug(fmt.Sprintf("%s[RoomID: %s] 结束转码", infs.RoomInfos[roomID].Uname, roomID))
 			infs.RoomInfos[roomID].DecodeEndTime = time.Now().Unix()
 			l.compareAndSwapUint32(roomID, decoding, decodeEnd)
@@ -39,7 +39,7 @@ func (l *Live) decodeWorker() {
 }
 
 // Decode 转码
-func Decode(roomID string) {
+func (l *Live)Decode(roomID string) {
 	infs := infos.New()
 	roomInfo := infs.RoomInfos[roomID]
 	var fileLst []string
@@ -74,6 +74,8 @@ func Decode(roomID string) {
 	outputName := fmt.Sprintf("%s_%s", roomInfo.Uname, ftime)
 	pwd, _ := os.Getwd()
 	outputFile := filepath.Join(pwd, "recording", roomInfo.Uname, fmt.Sprintf("%s.mp4", outputName))
+	infs.RoomInfos[roomID].UploadName = uploadName
+	infs.RoomInfos[roomID].FilePath = outputFile
 	golog.Info(fmt.Sprintf("%s[RoomID: %s] 本次录制文件: %s, 最终上传: %s", roomInfo.Uname, roomInfo.UID, strings.Join(inputFile, " "), uploadName))
 	var middleLst []string
 	for _, f := range inputFile {

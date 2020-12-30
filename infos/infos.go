@@ -37,6 +37,9 @@ type RoomInfo struct {
 	St              time.Time
 	Et              time.Time
 	State           uint32
+
+	UploadName		string
+	FilePath		string
 }
 
 type biliInfo struct {
