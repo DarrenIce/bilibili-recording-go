@@ -17,7 +17,6 @@ func (l *Live) uploadWorker() {
 		roomID := <-l.uploadChannel
 		if l.compareAndSwapUint32(roomID, updateWait, updating) {
 			infs := infos.New()
-			infs.RoomInfos[roomID].NeedUpload = true
 			infs.RoomInfos[roomID].UploadStartTime = time.Now().Unix()
 			golog.Debug(fmt.Sprintf("%s[RoomID: %s] 开始上传", infs.RoomInfos[roomID].Uname, roomID))
 			l.Upload(roomID)
