@@ -21,6 +21,9 @@ func initMux() *mux.Router {
 	apiRoute.Use(mux.CORSMethodMiddleware(apiRoute))
 	apiRoute.HandleFunc("/lives", getAllLives).Methods("GET")
 	apiRoute.HandleFunc("/infos", getAllInfos).Methods("GET")
+	apiRoute.HandleFunc("/save", saveConfig).Methods("GET")
+	apiRoute.HandleFunc("/add", addRooms).Methods("POST")
+	apiRoute.HandleFunc("/delete", deleteRooms).Methods("POST")
 	return m
 }
 

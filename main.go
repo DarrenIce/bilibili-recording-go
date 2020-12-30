@@ -70,10 +70,9 @@ var (
 
 func main() {
 	Init()
-	liver.Init()
-	c := config.InitConfig()
-	config, _ := c.LoadConfig()
-	for _, v := range config.Live {
+	liver := live.New()
+	c := config.New()
+	for _, v := range c.Conf.Live {
 		liver.AddRoom(v)
 	}
 	server := server.NewServer()

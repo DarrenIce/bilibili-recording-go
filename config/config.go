@@ -4,61 +4,87 @@ import (
 	"io/ioutil"
 	"sync"
 
-	"github.com/kataras/golog"
 	"gopkg.in/yaml.v2"
 )
 
 type bili struct {
-	User		string `yaml:"user"`
-	Password	string `yaml:"password"`
+	User     string `yaml:"user"`
+	Password string `yaml:"password"`
 }
 
+// RoomConfigInfo room config info
 type RoomConfigInfo struct {
-	RoomID		string `yaml:"roomID"`
-	StartTime	string `yaml:"startTime"`
-	EndTime		string `yaml:"endTime"`
-	AutoRecord	bool `yaml:"autorecord"`
-	AutoUpload	bool `yaml:"autoupload"`
+	RoomID     string `yaml:"roomID"`
+	StartTime  string `yaml:"startTime"`
+	EndTime    string `yaml:"endTime"`
+	AutoRecord bool   `yaml:"autorecord"`
+	AutoUpload bool   `yaml:"autoupload"`
 }
 
 // Config 配置文件
 type config struct {
-	Bili	bili `yaml:"bilibili"`
-	Live	map[string]RoomConfigInfo `yaml:"live"`
+	Bili bili                      `yaml:"bilibili"`
+	Live map[string]RoomConfigInfo `yaml:"live"`
 }
 
+// Config out
 type Config struct {
-	config	config
-	lock	*sync.Mutex
+	Conf *config
+	lock *sync.Mutex
 }
-
-var defaultconfig config
 
 var (
-    once sync.Once
+	once sync.Once
 
-    instance *Config
+	instance *Config
 )
 
-func InitConfig() (*Config) {
+// New init
+func New() *Config {
 	once.Do(func() {
-		instance = &Config{config: config{}, lock: new(sync.Mutex)}
+		instance = &Config{Conf: new(config), lock: new(sync.Mutex)}
 	})
 
 	return instance
 }
 
 // LoadConfig 加载配置文件
-func (c *Config) LoadConfig() (*config, error) {
+func (c *Config) LoadConfig() error {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	b, err := ioutil.ReadFile("./config.yml")
 	if err != nil {
-		golog.Fatal(err)
+		return err
 	}
-	config := &defaultconfig
-	if err = yaml.Unmarshal(b, config); err != nil {
-		golog.Fatal(err)
+	if err = yaml.Unmarshal(b, c.Conf); err != nil {
+		return err
 	}
-	return config, nil
+	return nil
+}
+
+// Marshal save
+func (c *Config) Marshal() error {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	b, err := yaml.Marshal(c.Conf)
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile("./config.yml", b, 0777)
+}
+
+// AddRoom add
+func (c *Config) AddRoom(roomID string, roomInfo RoomConfigInfo) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	c.Conf.Live[roomID] = roomInfo
+}
+
+func (c *Config) DeleteRoom(roomID string) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	_, ok := c.Conf.Live[roomID]
+	if ok {
+		delete(c.Conf.Live, roomID)
+	}
 }

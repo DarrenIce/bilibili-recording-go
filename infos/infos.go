@@ -9,71 +9,79 @@ import (
 	"bilibili-recording-go/config"
 )
 
-type roomInfo struct {
-	RoomID			string
-	StartTime		string
-	EndTime			string
-	AutoRecord		bool
-	AutoUpload		bool
+type RoomInfo struct {
+	RoomID     string
+	StartTime  string
+	EndTime    string
+	AutoRecord bool
+	AutoUpload bool
 
-	RealID			string
-	LiveStatus		int
-	LockStatus		int
-	Uname			string
-	UID				string
-	Title			string
-	LiveStartTime	string
+	RealID        string
+	LiveStatus    int
+	LockStatus    int
+	Uname         string
+	UID           string
+	Title         string
+	LiveStartTime string
 
-	RecordStatus	int
-	RecordStartTime	string
-	RecordEndTime	string
-	DecodeStatus	int
-	DecodeStartTime	string
-	DecodeEndTime	string
-	UploadStatus	int
-	UploadStartTime	string
-	UploadEndTime	string
-	St				time.Time
-	Et				time.Time
-	State			uint32
+	RecordStatus    int
+	RecordStartTime string
+	RecordEndTime   string
+	DecodeStatus    int
+	DecodeStartTime string
+	DecodeEndTime   string
+	UploadStatus    int
+	UploadStartTime string
+	UploadEndTime   string
+	St              time.Time
+	Et              time.Time
+	State           uint32
 }
 
 type biliInfo struct {
-	Username	string
-	Password	string
-	Cookies		string
-
+	Username string
+	Password string
+	Cookies  string
 }
 
-type liveInfos struct {
-	BiliInfo	*biliInfo
-	RoomInfos	map[string]*roomInfo
+// LiveInfos liveinfos
+type LiveInfos struct {
+	BiliInfo  *biliInfo
+	RoomInfos map[string]*RoomInfo
+
+	lock *sync.Mutex
 }
 
 var (
-    once sync.Once
+	once sync.Once
 
-    instance *liveInfos
+	instance *LiveInfos
 )
 
-func New() *liveInfos {
+// New new
+func New() *LiveInfos {
 	once.Do(func() {
-		instance = &liveInfos{BiliInfo: &biliInfo{}, RoomInfos: make(map[string]*roomInfo)}
-		instance.Init()
+		instance = new(LiveInfos)
+		instance.init()
 	})
 
 	return instance
 }
 
-func (l *liveInfos) Init() {
-	c := config.InitConfig()
-	config, _ := c.LoadConfig()
-	for _, v := range config.Live {
-		l.RoomInfos[v.RoomID] = &roomInfo{}
+func (l *LiveInfos) init() {
+	c := config.New()
+	l.BiliInfo = new(biliInfo)
+	l.RoomInfos = make(map[string]*RoomInfo)
+	l.lock = new(sync.Mutex)
+	for _, v := range c.Conf.Live {
+		l.RoomInfos[v.RoomID] = new(RoomInfo)
 	}
 }
 
-func (l *liveInfos) UpdateFromGJSON(roomID string, res gjson.Result) {
+// UpdateFromGJSON update
+func (l *LiveInfos) UpdateFromGJSON(roomID string, res gjson.Result) {
+	l.lock.Lock()
+	defer l.lock.Unlock()
 	l.RoomInfos[roomID].RealID = res.Get("room_info").Get("room_id").String()
 	l.RoomInfos[roomID].LiveStatus = int(res.Get("room_info").Get("live_status").Int())
 	l.RoomInfos[roomID].LockStatus = int(res.Get("room_info").Get("lock_status").Int())
@@ -83,10 +91,22 @@ func (l *liveInfos) UpdateFromGJSON(roomID string, res gjson.Result) {
 	l.RoomInfos[roomID].LiveStartTime = res.Get("room_info").Get("live_start_time").String()
 }
 
-func (l *liveInfos) UpadteFromConfig(roomID string, v config.RoomConfigInfo) {
+// UpadteFromConfig update
+func (l *LiveInfos) UpadteFromConfig(roomID string, v config.RoomConfigInfo) {
+	l.lock.Lock()
+	defer l.lock.Unlock()
 	l.RoomInfos[roomID].RoomID = v.RoomID
 	l.RoomInfos[roomID].StartTime = v.StartTime
 	l.RoomInfos[roomID].EndTime = v.EndTime
 	l.RoomInfos[roomID].AutoRecord = v.AutoRecord
 	l.RoomInfos[roomID].AutoUpload = v.AutoUpload
+}
+
+func (l *LiveInfos) DeleteRoomInfo(roomID string) {
+	l.lock.Lock()
+	defer l.lock.Unlock()
+	_, ok := l.RoomInfos[roomID]
+	if ok {
+		delete(l.RoomInfos, roomID)
+	}
 }

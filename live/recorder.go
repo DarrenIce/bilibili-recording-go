@@ -72,24 +72,35 @@ func (r *Live) DownloadLive(roomID string) {
 }
 
 func (r *Live) run(roomID string) {
-	c := config.InitConfig()
-	config, _ := c.LoadConfig()
+	c := config.New()
 	infs := infos.New()
 	for {
-		infs.UpadteFromConfig(roomID, config.Live[roomID])
+		infs.UpadteFromConfig(roomID, c.Conf.Live[roomID])
 		infs.RoomInfos[roomID].St, infs.RoomInfos[roomID].Et = tools.MkDuration(r.rooms[roomID].StartTime, r.rooms[roomID].EndTime)
 		select {
-		case <-r.stop:
-			r.downloadCmd.Process.Kill()
-			return
+		case rid := <-r.stop:
+			if rid == roomID {
+				if st, ok := r.syncMapGetUint32(roomID); ok && (st == running) {
+					r.downloadCmd.Process.Kill()
+				}
+				infs.DeleteRoomInfo(roomID)
+				return
+			}
+			r.stop <- rid
 		default:
 			if r.judgeLive(roomID) && tools.JudgeInDuration(tools.MkDuration(r.rooms[roomID].StartTime, r.rooms[roomID].EndTime)) && infs.RoomInfos[roomID].AutoRecord {
-				if st, ok := r.syncMapGetUint32(roomID); ok && st == start {
+				if st, ok := r.syncMapGetUint32(roomID); ok && (st == start || st == restart) {
 					infs.RoomInfos[roomID].RecordStartTime = time.Now().Format("2006-01-02 15:04:05")
 					infs.RoomInfos[roomID].RecordStatus = 1
 					golog.Debug(fmt.Sprintf("%s[RoomID: %s] 开始录制", infs.RoomInfos[roomID].Uname, roomID))
 					go r.DownloadLive(roomID)
-					r.compareAndSwapUint32(roomID, start, running)
+					if st == start {
+						r.compareAndSwapUint32(roomID, start, running)
+					} else if st == restart {
+						r.compareAndSwapUint32(roomID, restart, running)
+					}
+				} else if st, ok := r.syncMapGetUint32(roomID); ok && st == restart && !tools.JudgeInDuration(tools.MkDuration(r.rooms[roomID].StartTime, r.rooms[roomID].EndTime)) {
+					r.unliveChannel <- roomID
 				} else {
 					time.Sleep(3 * time.Second)
 				}
@@ -118,16 +129,18 @@ func (r *Live) unlive() {
 		select {
 		case roomID := <-r.unliveChannel:
 			if tools.JudgeInDuration(tools.MkDuration(r.rooms[roomID].StartTime, r.rooms[roomID].EndTime)) {
-				r.compareAndSwapUint32(roomID, running, start)
+				r.compareAndSwapUint32(roomID, running, restart)
 			} else {
-				r.compareAndSwapUint32(roomID, running, waiting)
-				r.decodeChannel <- roomID
+				if r.compareAndSwapUint32(roomID, running, waiting) || r.compareAndSwapUint32(roomID, restart, waiting) {
+					r.decodeChannel <- roomID
+				}
 			}
 		}
 	}
 }
 
 func (r *Live) recordWorker() {
+	go r.unlive()
 	for {
 		info := <-r.recordChannel
 		roomID := info.RoomID
@@ -140,16 +153,16 @@ func (r *Live) recordWorker() {
 func (r *Live) start(roomID string) {
 	r.compareAndSwapUint32(roomID, iinit, start)
 	go r.run(roomID)
-	go r.unlive()
 }
 
-// Stop stop
+// Stop 现在是所有状态都可以转移到stop，会有点问题
 func (r *Live) Stop(roomID string) {
+	golog.Debug(fmt.Sprintf("房间[RoomID: %s] 退出监听", roomID))
 	infs := infos.New()
 	r.state.Store(roomID, stop)
 	s, _ := r.state.Load(roomID)
 	infs.RoomInfos[roomID].State, _ = s.(uint32)
-	close(r.stop)
+	r.stop <- roomID
 }
 
 func (r *Live) compareAndSwapUint32(roomID string, old uint32, new uint32) bool {
