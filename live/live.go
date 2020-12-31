@@ -30,9 +30,9 @@ type Live struct {
 const (
 	iinit   uint32 = iota
 	start          // 开始监听
+	restart        // 因各种原因导致重新录制时的状态转移
 	running        // 正在录制
 	waiting        // 在unlive中从running转移到waiting，如果不在录制时间段内就跳到waiting
-	restart        // 因各种原因导致重新录制时的状态转移
 	decoding
 	decodeEnd
 	updateWait

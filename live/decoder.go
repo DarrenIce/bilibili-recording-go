@@ -143,5 +143,8 @@ func (l *Live)Decode(roomID string) {
 		}
 	}
 
+	cmd = exec.Command("ffmpeg", "-i", strings.Replace(outputFile, ".mp4", ".m4a", -1), "-f", "mp3", "-y", strings.Replace(outputFile, ".mp4", ".mp3", -1))
+	cmd.Run()
+
 	golog.Info(fmt.Sprintf("%s[RoomID: %s] 转码完成", roomInfo.Uname, roomInfo.UID))
 }

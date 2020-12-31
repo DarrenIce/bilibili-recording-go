@@ -47,20 +47,21 @@ func (r *Live) GetLiveURL(roomID string) (string, error) {
 
 // DownloadLive 下载
 func (r *Live) DownloadLive(roomID string) {
-	url, err := r.GetLiveURL(roomID)
-	if err != nil {
-		golog.Error(err)
-	}
+	// url, err := r.GetLiveURL(roomID)
+	// if err != nil {
+	// 	golog.Error(err)
+	// }
 	infs := infos.New()
 	uname := infs.RoomInfos[roomID].Uname
 	tools.Mkdir(fmt.Sprintf("./recording/%s/tmp", uname))
 	outputName := uname + "_" + fmt.Sprint(time.Now().Format("20060102150405")) + ".flv"
 	middle, _ := filepath.Abs(fmt.Sprintf("./recording/%s/tmp", uname))
 	outputFile := fmt.Sprint(middle + "\\" + outputName)
-	r.downloadCmds[roomID] = exec.Command("ffmpeg", "-i", url, "-c", "copy", outputFile)
+	url := fmt.Sprint("https://live.bilibili.com/", roomID)
+	r.downloadCmds[roomID] = exec.Command("streamlink", "-f", "-o", outputFile, url, "best" )
 	// stdout, _ := r.downloadCmd.StdoutPipe()
 	// r.downloadCmd.Stderr = r.downloadCmd.Stdout
-	if err = r.downloadCmds[roomID].Start(); err != nil {
+	if err := r.downloadCmds[roomID].Start(); err != nil {
 		golog.Error(err)
 		r.downloadCmds[roomID].Process.Kill()
 	}
@@ -99,18 +100,18 @@ func (r *Live) run(roomID string) {
 					} else if st == restart {
 						r.compareAndSwapUint32(roomID, restart, running)
 					}
-				} else if !tools.JudgeInDuration(tools.MkDuration(r.rooms[roomID].StartTime, r.rooms[roomID].EndTime)) {
-					if st, ok := r.syncMapGetUint32(roomID); ok && st == restart {
-						r.unliveChannel <- roomID
-					} else if st, ok := r.syncMapGetUint32(roomID); ok && st == running {
-						r.downloadCmds[roomID].Process.Kill()
-						r.unliveChannel <- roomID
-					}
 				} else {
-					time.Sleep(3 * time.Second)
+					time.Sleep(5 * time.Second)
+				}
+			} else if !tools.JudgeInDuration(tools.MkDuration(r.rooms[roomID].StartTime, r.rooms[roomID].EndTime)) {
+				if st, ok := r.syncMapGetUint32(roomID); ok && st == restart {
+					r.unliveChannel <- roomID
+				} else if st, ok := r.syncMapGetUint32(roomID); ok && st == running {
+					r.downloadCmds[roomID].Process.Kill()
+					r.unliveChannel <- roomID
 				}
 			} else {
-				time.Sleep(3 * time.Second)
+				time.Sleep(5 * time.Second)
 			}
 		}
 	}
@@ -134,6 +135,7 @@ func (r *Live) unlive() {
 		select {
 		case roomID := <-r.unliveChannel:
 			if tools.JudgeInDuration(tools.MkDuration(r.rooms[roomID].StartTime, r.rooms[roomID].EndTime)) {
+				time.Sleep(10 * time.Second)
 				r.compareAndSwapUint32(roomID, running, restart)
 			} else {
 				if r.compareAndSwapUint32(roomID, running, waiting) || r.compareAndSwapUint32(roomID, restart, waiting) {

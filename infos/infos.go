@@ -23,6 +23,7 @@ type RoomInfo struct {
 	UID           string
 	Title         string
 	LiveStartTime int64
+	AreaName	  string
 
 	RecordStatus    int
 	RecordStartTime int64
@@ -93,6 +94,7 @@ func (l *LiveInfos) UpdateFromGJSON(roomID string, res gjson.Result) {
 	l.RoomInfos[roomID].UID = res.Get("room_info").Get("uid").String()
 	l.RoomInfos[roomID].Title = res.Get("room_info").Get("title").String()
 	l.RoomInfos[roomID].LiveStartTime = res.Get("room_info").Get("live_start_time").Int()
+	l.RoomInfos[roomID].AreaName = res.Get("room_info").Get("area_name").String()
 }
 
 // UpadteFromConfig update
@@ -106,6 +108,7 @@ func (l *LiveInfos) UpadteFromConfig(roomID string, v config.RoomConfigInfo) {
 	l.RoomInfos[roomID].AutoUpload = v.AutoUpload
 }
 
+// DeleteRoomInfo delete
 func (l *LiveInfos) DeleteRoomInfo(roomID string) {
 	l.lock.Lock()
 	defer l.lock.Unlock()
