@@ -5,6 +5,7 @@ import (
 	"os"
 	"runtime"
 	"strings"
+	"time"
 
 	"github.com/kataras/golog"
 
@@ -79,11 +80,11 @@ func main() {
 	server := server.New()
 	server.Start()
 
-	// time.Sleep(10 * time.Second)
-	// liver.Decode("493")
+	time.Sleep(10 * time.Second)
+	tools.Upload2BaiduPCS()
 
 	upload2baidu := make(chan int)
-	go tools.EveryDayTimer("03:30:00", upload2baidu)
+	go tools.EveryDayTimer("07:00:00", upload2baidu)
 	go func() {
 		for {
 			select {
