@@ -9,11 +9,15 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"os/exec"
 	"strings"
 	"syscall"
 	"time"
 
 	"github.com/kataras/golog"
+
+	"bilibili-recording-go/config"
+	"bilibili-recording-go/infos"
 )
 
 const (
@@ -161,8 +165,8 @@ func EveryDayTimer(t string, c chan int) {
 	timeNow := time.Now()
 	loc, _ := time.LoadLocation("PRC")
 	setTime, _ := time.ParseInLocation("2006-01-02 15:04:05", fmt.Sprint(time.Now().Format("2006-01-02") + " " + t), loc)
-	if setTime.After(timeNow) {
-		setTime.AddDate(0,0,1)
+	if setTime.Before(timeNow) {
+		setTime = setTime.AddDate(0,0,1)
 	}
 	timer := time.NewTimer(setTime.Sub(timeNow))
 	<- timer.C
@@ -180,4 +184,39 @@ func md5V(t string) string {
 	h := md5.New()
 	h.Write([]byte(t))
 	return hex.EncodeToString(h.Sum(nil))
+}
+
+func Upload2BaiduPCS() {
+	c := config.New()
+	i := infos.New()
+	for _, v := range c.Conf.Live {
+		uname := i.RoomInfos[v.RoomID].Uname
+		localBasePath := fmt.Sprint("./recording/", uname)
+		if !Exists(localBasePath) {
+			continue
+		}
+		pcsBasePath := fmt.Sprint("/录播/", uname)
+		cmd := exec.Command("./BaiduPCS-Go.exe", "mkdir", pcsBasePath)
+		stdout, _ := cmd.StdoutPipe()
+		cmd.Stderr = cmd.Stdout
+		cmd.Start()
+		LiveOutput(stdout)
+		for _, f := range ListDir(localBasePath) {
+			if o, _ := os.Stat(f); !o.IsDir() {
+				s1 := strings.Split(f, "\\")
+				filename := s1[len(s1)-1]
+				s2 := strings.Split(filename, "_")
+				d := s2[len(s2)-1]
+				s3 := strings.Split(d, ".")[0]
+				fmt.Println(s3)
+				if time.Now().AddDate(0, 0, -1).Format("20060102") == s3 {
+					cmd = exec.Command("./BaiduPCS-Go.exe", "upload", f, pcsBasePath)
+					stdout, _ := cmd.StdoutPipe()
+					cmd.Stderr = cmd.Stdout
+					cmd.Start()
+					LiveOutput(stdout)
+				}
+			}
+		}
+	}
 }

@@ -29,7 +29,7 @@ func (l *Live) decodeWorker() {
 			infs.RoomInfos[roomID].DecodeEndTime = time.Now().Unix()
 			l.compareAndSwapUint32(roomID, decoding, decodeEnd)
 			if infs.RoomInfos[roomID].AutoUpload {
-				l.compareAndSwapUint32(roomID, decodeEnd, updateWait)
+				l.compareAndSwapUint32(roomID, decodeEnd, uploadWait)
 				l.uploadChannel <- roomID
 			} else {
 				l.compareAndSwapUint32(roomID, decodeEnd, start)
@@ -39,7 +39,7 @@ func (l *Live) decodeWorker() {
 }
 
 // Decode 转码
-func (l *Live)Decode(roomID string) {
+func (l *Live) Decode(roomID string) {
 	infs := infos.New()
 	roomInfo := infs.RoomInfos[roomID]
 	var fileLst []string
@@ -142,9 +142,6 @@ func (l *Live)Decode(roomID string) {
 			golog.Info(f, "has been removed")
 		}
 	}
-
-	cmd = exec.Command("ffmpeg", "-i", strings.Replace(outputFile, ".mp4", ".m4a", -1), "-f", "mp3", "-y", strings.Replace(outputFile, ".mp4", ".mp3", -1))
-	cmd.Run()
 
 	golog.Info(fmt.Sprintf("%s[RoomID: %s] 转码完成", roomInfo.Uname, roomInfo.UID))
 }

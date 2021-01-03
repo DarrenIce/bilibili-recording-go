@@ -22,6 +22,7 @@ func Init() {
 		golog.Fatal(err)
 	}
 	golog.SetLevel("debug")
+	golog.SetTimeFormat("2006/01/02 15:04:05")
 	golog.Handle(func(l *golog.Log) bool {
 		prefix := golog.GetTextForLevel(l.Level, false)
 		file := "???"
@@ -78,18 +79,21 @@ func main() {
 	server := server.New()
 	server.Start()
 
-	// test := make(chan int)
-	// go tools.EveryDayTimer("11:31:30", test)
-	// go func() {
-	// 	for {
-	// 		select {
-	// 		case <-test:
-	// 			fmt.Println("11111")
-	// 		default:
-	// 			continue
-	// 		}
-	// 	}
-	// }()
+	// time.Sleep(10 * time.Second)
+	// liver.Decode("493")
+
+	upload2baidu := make(chan int)
+	go tools.EveryDayTimer("03:30:00", upload2baidu)
+	go func() {
+		for {
+			select {
+			case <-upload2baidu:
+				tools.Upload2BaiduPCS()
+			default:
+				continue
+			}
+		}
+	}()
 	for {
 		continue
 	}

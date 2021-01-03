@@ -5,9 +5,9 @@ import (
 	"os/exec"
 	"time"
 
+	"bilibili-recording-go/config"
 	"bilibili-recording-go/infos"
 	"bilibili-recording-go/tools"
-	"bilibili-recording-go/config"
 
 	"github.com/kataras/golog"
 )
@@ -15,15 +15,15 @@ import (
 func (l *Live) uploadWorker() {
 	for {
 		roomID := <-l.uploadChannel
-		if l.compareAndSwapUint32(roomID, updateWait, updating) {
+		if l.compareAndSwapUint32(roomID, uploadWait, uploading) {
 			infs := infos.New()
 			infs.RoomInfos[roomID].UploadStartTime = time.Now().Unix()
 			golog.Debug(fmt.Sprintf("%s[RoomID: %s] 开始上传", infs.RoomInfos[roomID].Uname, roomID))
 			l.Upload(roomID)
 			golog.Debug(fmt.Sprintf("%s[RoomID: %s] 结束上传", infs.RoomInfos[roomID].Uname, roomID))
 			infs.RoomInfos[roomID].UploadEndTime = time.Now().Unix()
-			l.compareAndSwapUint32(roomID, updating, updateEnd)
-			l.compareAndSwapUint32(roomID, updateEnd, start)
+			l.compareAndSwapUint32(roomID, uploading, uploadEnd)
+			l.compareAndSwapUint32(roomID, uploadEnd, start)
 		}
 	}
 }

@@ -35,9 +35,9 @@ const (
 	waiting        // 在unlive中从running转移到waiting，如果不在录制时间段内就跳到waiting
 	decoding
 	decodeEnd
-	updateWait
-	updating
-	updateEnd
+	uploadWait
+	uploading
+	uploadEnd
 	stop
 	// 转码上传完成后，从waiting回到start
 )
@@ -80,6 +80,7 @@ func (l *Live) Init() {
 
 	go l.recordWorker()
 	go l.decodeWorker()
+	go l.uploadWorker()
 
 }
 

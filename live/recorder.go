@@ -1,7 +1,9 @@
 package live
 
 import (
+	"crypto/rand"
 	"fmt"
+	"math/big"
 	"os/exec"
 	"path/filepath"
 	"time"
@@ -17,14 +19,20 @@ import (
 
 // GetInfoByRoom 获取Room info
 func (r *Live) GetInfoByRoom(roomID string) error {
+	n, _ := rand.Int(rand.Reader, big.NewInt(4))
+	time.Sleep((time.Duration(n.Int64()) + 1) * time.Second)
 	url := fmt.Sprintf("https://api.live.bilibili.com/xlive/web-room/v1/index/getInfoByRoom?room_id=%s", roomID)
-	resp, err := requests.Get(url)
+	req := requests.Requests()
+	req.Proxy("http://127.0.0.1:1081")
+	resp, err := req.Get(url)
 	if err != nil {
 		return err
 	}
 	data := gjson.Get(resp.Text(), "data")
 	infs := infos.New()
-	infs.UpdateFromGJSON(roomID, data)
+	if resp.R.StatusCode == 200 {
+		infs.UpdateFromGJSON(roomID, data)
+	}
 	return nil
 }
 
@@ -89,7 +97,9 @@ func (r *Live) run(roomID string) {
 			}
 			r.stop <- rid
 		default:
-			if r.judgeLive(roomID) && tools.JudgeInDuration(tools.MkDuration(r.rooms[roomID].StartTime, r.rooms[roomID].EndTime)) && infs.RoomInfos[roomID].AutoRecord {
+			if st, ok := r.syncMapGetUint32(roomID); ok && st == running {
+				time.Sleep(5 * time.Second)
+			} else if r.judgeLive(roomID) && tools.JudgeInDuration(tools.MkDuration(r.rooms[roomID].StartTime, r.rooms[roomID].EndTime)) && infs.RoomInfos[roomID].AutoRecord {
 				if st, ok := r.syncMapGetUint32(roomID); ok && (st == start || st == restart) {
 					infs.RoomInfos[roomID].RecordStartTime = time.Now().Unix()
 					infs.RoomInfos[roomID].RecordStatus = 1
@@ -109,6 +119,8 @@ func (r *Live) run(roomID string) {
 				} else if st, ok := r.syncMapGetUint32(roomID); ok && st == running {
 					r.downloadCmds[roomID].Process.Kill()
 					r.unliveChannel <- roomID
+				} else {
+					time.Sleep(5 * time.Second)
 				}
 			} else {
 				time.Sleep(5 * time.Second)
