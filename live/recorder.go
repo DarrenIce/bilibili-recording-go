@@ -32,6 +32,8 @@ func (r *Live) GetInfoByRoom(roomID string) error {
 	infs := infos.New()
 	if resp.R.StatusCode == 200 {
 		infs.UpdateFromGJSON(roomID, data)
+	} else {
+		fmt.Println("412啦, 快换代理")
 	}
 	return nil
 }
