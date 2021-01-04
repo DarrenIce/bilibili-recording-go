@@ -26,7 +26,7 @@ func (r *Live) GetInfoByRoom(roomID string) {
 	req := requests.Requests()
 	req.Proxy("socks5://127.0.0.1:1080")
 	headers := requests.Header{
-		"User-Agent":	"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36 Edg/87.0.664.66",
+		"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36 Edg/87.0.664.66",
 		// "accept":	"application/json, text/javascript, */*; q=0.01",
 		// "accept-encoding":	"gzip, deflate, br",
 		// "accept-language":	"zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6,zh-TW;q=0.5",
@@ -77,7 +77,7 @@ func (r *Live) DownloadLive(roomID string) {
 	middle, _ := filepath.Abs(fmt.Sprintf("./recording/%s/tmp", uname))
 	outputFile := fmt.Sprint(middle + "\\" + outputName)
 	url := fmt.Sprint("https://live.bilibili.com/", roomID)
-	r.downloadCmds[roomID] = exec.Command("streamlink", "-f", "-o", outputFile, url, "best" )
+	r.downloadCmds[roomID] = exec.Command("streamlink", "-f", "-o", outputFile, url, "best")
 	// stdout, _ := r.downloadCmd.StdoutPipe()
 	// r.downloadCmd.Stderr = r.downloadCmd.Stdout
 	if err := r.downloadCmds[roomID].Start(); err != nil {
@@ -150,33 +150,33 @@ func (r *Live) judgeLive(roomID string) bool {
 }
 
 func (r *Live) flushLiveStatus() {
-	delay := make(map[string]int)
+	// delay := make(map[string]int)
 	for {
 		infs := infos.New()
 		for roomID := range infs.RoomInfos {
-			if _, ok := delay[roomID]; !ok {
-				r.GetInfoByRoom(roomID)
-				time.Sleep(2 * time.Second)
-			}
+			// if _, ok := delay[roomID]; !ok {
+			r.GetInfoByRoom(roomID)
+			time.Sleep(5 * time.Second)
+			// }
 		}
-		time.Sleep(1 * time.Second)
-		for k := range delay {
-			delay[k]--
-		}
-		for _, v := range infs.RoomInfos {
-			if _, ok := delay[v.RoomID]; v.LiveStatus != 1 && !ok {
-				delay[v.RoomID] = 5
-			}
-		}
-		deleteLst := []string{}
-		for k, v := range delay {
-			if v <=0 {
-				deleteLst = append(deleteLst, k)
-			}
-		}
-		for _, v := range deleteLst {
-			delete(delay, v)
-		}
+		// time.Sleep(1 * time.Second)
+		// for k := range delay {
+		// 	delay[k]--
+		// }
+		// for _, v := range infs.RoomInfos {
+		// 	if _, ok := delay[v.RoomID]; v.LiveStatus != 1 && !ok {
+		// 		delay[v.RoomID] = 5
+		// 	}
+		// }
+		// deleteLst := []string{}
+		// for k, v := range delay {
+		// 	if v <=0 {
+		// 		deleteLst = append(deleteLst, k)
+		// 	}
+		// }
+		// for _, v := range deleteLst {
+		// 	delete(delay, v)
+		// }
 	}
 }
 
