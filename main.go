@@ -5,7 +5,6 @@ import (
 	"os"
 	"runtime"
 	"strings"
-	"time"
 
 	"github.com/kataras/golog"
 
@@ -79,9 +78,6 @@ func main() {
 	}
 	server := server.New()
 	server.Start()
-
-	time.Sleep(10 * time.Second)
-	tools.Upload2BaiduPCS()
 
 	upload2baidu := make(chan int)
 	go tools.EveryDayTimer("07:00:00", upload2baidu)

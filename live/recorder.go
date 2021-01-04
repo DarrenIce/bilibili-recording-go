@@ -24,7 +24,15 @@ func (r *Live) GetInfoByRoom(roomID string) error {
 	url := fmt.Sprintf("https://api.live.bilibili.com/xlive/web-room/v1/index/getInfoByRoom?room_id=%s", roomID)
 	req := requests.Requests()
 	req.Proxy("http://127.0.0.1:1081")
-	resp, err := req.Get(url)
+	headers := requests.Header{
+		"User-Agent":	"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36 Edg/86.0.622.69",
+		"accept":	"application/json, text/plain, */*",
+		"accept-encoding":	"gzip, deflate, br",
+		"accept-language":	"zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6,zh-TW;q=0.5",
+		"referer":	"https://live.bilibili.com/",
+		"origin":	"https://live.bilibili.com",
+	}
+	resp, err := req.Get(url, headers)
 	if err != nil {
 		return err
 	}
