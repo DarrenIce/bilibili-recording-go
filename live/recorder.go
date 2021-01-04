@@ -159,6 +159,7 @@ func (r *Live) flushLiveStatus() {
 				time.Sleep(2 * time.Second)
 			}
 		}
+		time.Sleep(1 * time.Second)
 		for k := range delay {
 			delay[k]--
 		}
