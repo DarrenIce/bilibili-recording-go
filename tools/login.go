@@ -1,6 +1,7 @@
 package tools
 
 import (
+	"bilibili-recording-go/infos"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
@@ -8,6 +9,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"net/http"
 	"net/url"
 	"time"
 
@@ -113,5 +115,10 @@ func LoginByPassword(username string, password string) (map[string]string, error
 		})
 		return cookies, nil
 	}
+	infs := infos.New()
+	for k, v := range cookies {
+		infs.BiliInfo.Cookies = append(infs.BiliInfo.Cookies, &http.Cookie{Name:k, Value:v})
+	}
+
 	return cookies, errors.New("Login Error")
 }

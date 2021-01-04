@@ -1,9 +1,9 @@
 package live
 
 import (
-	"crypto/rand"
+	// "crypto/rand"
 	"fmt"
-	"math/big"
+	// "math/big"
 	"os/exec"
 	"path/filepath"
 	"time"
@@ -18,32 +18,33 @@ import (
 )
 
 // GetInfoByRoom 获取Room info
-func (r *Live) GetInfoByRoom(roomID string) error {
-	n, _ := rand.Int(rand.Reader, big.NewInt(4))
-	time.Sleep((time.Duration(n.Int64()) + 1) * time.Second)
+func (r *Live) GetInfoByRoom(roomID string) {
+	// n, _ := rand.Int(rand.Reader, big.NewInt(4))
+	// time.Sleep((time.Duration(n.Int64()) + 1) * time.Second)
+	// time.Sleep(1000 * time.Microsecond)
 	url := fmt.Sprintf("https://api.live.bilibili.com/xlive/web-room/v1/index/getInfoByRoom?room_id=%s", roomID)
 	req := requests.Requests()
 	req.Proxy("socks5://127.0.0.1:1080")
 	headers := requests.Header{
-		"User-Agent":	"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36 Edg/86.0.622.69",
-		"accept":	"application/json, text/plain, */*",
-		"accept-encoding":	"gzip, deflate, br",
-		"accept-language":	"zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6,zh-TW;q=0.5",
-		"referer":	"https://live.bilibili.com/",
-		"origin":	"https://live.bilibili.com",
+		"User-Agent":	"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36 Edg/87.0.664.66",
+		// "accept":	"application/json, text/javascript, */*; q=0.01",
+		// "accept-encoding":	"gzip, deflate, br",
+		// "accept-language":	"zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6,zh-TW;q=0.5",
+		// "referer":	"https://live.bilibili.com/",
 	}
+	infs := infos.New()
+	// req.Cookies = infs.BiliInfo.Cookies
 	resp, err := req.Get(url, headers)
 	if err != nil {
-		return err
+		golog.Error(err)
 	}
 	data := gjson.Get(resp.Text(), "data")
-	infs := infos.New()
 	if resp.R.StatusCode == 200 {
 		infs.UpdateFromGJSON(roomID, data)
+		golog.Debug("Get Room Info ", roomID)
 	} else {
-		fmt.Println("412啦, 快换代理")
+		fmt.Println(time.Now().Format("2006-01-02 15:04:05"), " 412啦, 快换代理")
 	}
-	return nil
 }
 
 // GetLiveURL 获取Room live url
@@ -140,16 +141,42 @@ func (r *Live) run(roomID string) {
 }
 
 func (r *Live) judgeLive(roomID string) bool {
-	err := r.GetInfoByRoom(roomID)
-	if err != nil {
-		golog.Error(err)
-	}
 	infs := infos.New()
 	liveStatus := infs.RoomInfos[roomID].LiveStatus
 	if liveStatus != 1 {
 		return false
 	}
 	return true
+}
+
+func (r *Live) flushLiveStatus() {
+	delay := make(map[string]int)
+	for {
+		infs := infos.New()
+		for roomID := range infs.RoomInfos {
+			if _, ok := delay[roomID]; !ok {
+				r.GetInfoByRoom(roomID)
+				time.Sleep(2 * time.Second)
+			}
+		}
+		for k := range delay {
+			delay[k]--
+		}
+		for _, v := range infs.RoomInfos {
+			if _, ok := delay[v.RoomID]; v.LiveStatus != 1 && !ok {
+				delay[v.RoomID] = 5
+			}
+		}
+		deleteLst := []string{}
+		for k, v := range delay {
+			if v <=0 {
+				deleteLst = append(deleteLst, k)
+			}
+		}
+		for _, v := range deleteLst {
+			delete(delay, v)
+		}
+	}
 }
 
 func (r *Live) unlive() {

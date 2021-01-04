@@ -3,6 +3,7 @@ package infos
 import (
 	"sync"
 	"time"
+	"net/http"
 
 	"github.com/tidwall/gjson"
 
@@ -46,7 +47,7 @@ type RoomInfo struct {
 type biliInfo struct {
 	Username string
 	Password string
-	Cookies  string
+	Cookies  []*http.Cookie
 }
 
 // LiveInfos liveinfos

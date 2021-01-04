@@ -17,14 +17,14 @@ import (
 type Live struct {
 	rooms map[string]config.RoomConfigInfo
 
-	stop          chan string
-	recordChannel chan config.RoomConfigInfo
-	unliveChannel chan string
-	decodeChannel chan string
-	uploadChannel chan string
-	downloadCmds  map[string]*exec.Cmd
-	state         sync.Map
-	lock          *sync.Mutex
+	stop          		chan string
+	recordChannel 		chan config.RoomConfigInfo
+	unliveChannel 		chan string
+	decodeChannel 		chan string
+	uploadChannel 		chan string
+	downloadCmds  		map[string]*exec.Cmd
+	state         		sync.Map
+	lock          		*sync.Mutex
 }
 
 const (
@@ -81,7 +81,7 @@ func (l *Live) Init() {
 	go l.recordWorker()
 	go l.decodeWorker()
 	go l.uploadWorker()
-
+	go l.flushLiveStatus()
 }
 
 // AddRoom ADD
