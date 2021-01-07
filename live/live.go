@@ -2,7 +2,9 @@ package live
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"sync"
 
 	"bilibili-recording-go/config"
@@ -124,4 +126,17 @@ func GetRoomInfoForResp(info config.RoomConfigInfo) (InfoResponse, error) {
 	inf.Uname = data.Get("anchor_info").Get("base_info").Get("uname").String()
 	inf.Title = data.Get("room_info").Get("title").String()
 	return inf, nil
+}
+
+func (l *Live) ManualUpload() {
+	rooms := []string{"13328782", "22600427"}
+	// rooms := []string{"21478000"}
+	for _, v := range rooms {
+		l.CompareAndSwapUint32(v, start, uploadWait)
+		infs := infos.New()
+		infs.RoomInfos[v].UploadName = fmt.Sprintf("%s%s", infs.RoomInfos[v].Uname, "20210104")
+		pwd, _ := os.Getwd()
+		infs.RoomInfos[v].FilePath = filepath.Join(pwd, "recording", infs.RoomInfos[v].Uname, fmt.Sprintf("%s_%s.mp4", infs.RoomInfos[v].Uname, "20210104"))
+		l.uploadChannel <- v
+	}
 }

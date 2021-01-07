@@ -41,7 +41,7 @@ func (r *Live) GetInfoByRoom(roomID string) {
 	data := gjson.Get(resp.Text(), "data")
 	if resp.R.StatusCode == 200 {
 		infs.UpdateFromGJSON(roomID, data)
-		golog.Debug("Get Room Info ", roomID)
+		// golog.Debug("Get Room Info ", roomID)
 	} else {
 		fmt.Println(time.Now().Format("2006-01-02 15:04:05"), " 412啦, 快换代理")
 	}
@@ -108,7 +108,7 @@ func (r *Live) run(roomID string) {
 			}
 			r.stop <- rid
 		default:
-			if st, ok := r.syncMapGetUint32(roomID); ok && st == running {
+			if st, ok := r.syncMapGetUint32(roomID); ok && st == running && tools.JudgeInDuration(tools.MkDuration(r.rooms[roomID].StartTime, r.rooms[roomID].EndTime)) {
 				time.Sleep(5 * time.Second)
 			} else if r.judgeLive(roomID) && tools.JudgeInDuration(tools.MkDuration(r.rooms[roomID].StartTime, r.rooms[roomID].EndTime)) && infs.RoomInfos[roomID].AutoRecord {
 				if st, ok := r.syncMapGetUint32(roomID); ok && (st == start || st == restart) {
@@ -117,9 +117,9 @@ func (r *Live) run(roomID string) {
 					golog.Info(fmt.Sprintf("%s[RoomID: %s] 开始录制", infs.RoomInfos[roomID].Uname, roomID))
 					go r.DownloadLive(roomID)
 					if st == start {
-						r.compareAndSwapUint32(roomID, start, running)
+						r.CompareAndSwapUint32(roomID, start, running)
 					} else if st == restart {
-						r.compareAndSwapUint32(roomID, restart, running)
+						r.CompareAndSwapUint32(roomID, restart, running)
 					}
 				} else {
 					time.Sleep(5 * time.Second)
@@ -156,7 +156,7 @@ func (r *Live) flushLiveStatus() {
 		for roomID := range infs.RoomInfos {
 			// if _, ok := delay[roomID]; !ok {
 			r.GetInfoByRoom(roomID)
-			time.Sleep(5 * time.Second)
+			time.Sleep(3 * time.Second)
 			// }
 		}
 		// time.Sleep(1 * time.Second)
@@ -186,9 +186,9 @@ func (r *Live) unlive() {
 		case roomID := <-r.unliveChannel:
 			if tools.JudgeInDuration(tools.MkDuration(r.rooms[roomID].StartTime, r.rooms[roomID].EndTime)) {
 				time.Sleep(10 * time.Second)
-				r.compareAndSwapUint32(roomID, running, restart)
+				r.CompareAndSwapUint32(roomID, running, restart)
 			} else {
-				if r.compareAndSwapUint32(roomID, running, waiting) || r.compareAndSwapUint32(roomID, restart, waiting) {
+				if r.CompareAndSwapUint32(roomID, running, waiting) || r.CompareAndSwapUint32(roomID, restart, waiting) {
 					r.decodeChannel <- roomID
 				}
 			}
@@ -208,7 +208,7 @@ func (r *Live) recordWorker() {
 }
 
 func (r *Live) start(roomID string) {
-	r.compareAndSwapUint32(roomID, iinit, start)
+	r.CompareAndSwapUint32(roomID, iinit, start)
 	go r.run(roomID)
 }
 
@@ -222,7 +222,7 @@ func (r *Live) Stop(roomID string) {
 	r.stop <- roomID
 }
 
-func (r *Live) compareAndSwapUint32(roomID string, old uint32, new uint32) bool {
+func (r *Live) CompareAndSwapUint32(roomID string, old uint32, new uint32) bool {
 	s, _ := r.state.Load(roomID)
 	st, _ := s.(uint32)
 	if st == old {

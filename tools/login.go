@@ -106,6 +106,7 @@ func LoginByPassword(username string, password string) (map[string]string, error
 	resp, _ := req.Post(urls, paras, header)
 
 	cookies := make(map[string]string)
+	fmt.Println(resp.Text())
 
 	if gjson.Get(resp.Text(), "code").Int() == 0 && gjson.Get(resp.Text(), "data").Get("status").Int() == 0 {
 		data := gjson.Get(resp.Text(), "data").Get("cookie_info").Get("cookies")

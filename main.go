@@ -79,6 +79,9 @@ func main() {
 	server := server.New()
 	server.Start()
 
+	// time.Sleep(60 * time.Second)
+	// liver.ManualUpload()
+
 	upload2baidu := make(chan int)
 	go tools.EveryDayTimer("07:00:00", upload2baidu)
 	go func() {

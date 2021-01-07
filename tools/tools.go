@@ -203,19 +203,19 @@ func Upload2BaiduPCS() {
 		LiveOutput(stdout)
 		for _, f := range ListDir(localBasePath) {
 			if o, _ := os.Stat(f); !o.IsDir() {
-				s1 := strings.Split(f, "\\")
-				filename := s1[len(s1)-1]
-				s2 := strings.Split(filename, "_")
-				d := s2[len(s2)-1]
-				s3 := strings.Split(d, ".")[0]
-				fmt.Println(s3)
-				if time.Now().AddDate(0, 0, -1).Format("20060102") == s3 {
-					cmd = exec.Command("./BaiduPCS-Go.exe", "upload", f, pcsBasePath)
-					stdout, _ := cmd.StdoutPipe()
-					cmd.Stderr = cmd.Stdout
-					cmd.Start()
-					LiveOutput(stdout)
-				}
+				// s1 := strings.Split(f, "\\")
+				// filename := s1[len(s1)-1]
+				// s2 := strings.Split(filename, "_")
+				// d := s2[len(s2)-1]
+				// s3 := strings.Split(d, ".")[0]
+				// fmt.Println(s3)
+				// if time.Now().AddDate(0, 0, -1).Format("20060102") == s3 {
+				cmd = exec.Command("./BaiduPCS-Go.exe", "upload", f, pcsBasePath)
+				stdout, _ := cmd.StdoutPipe()
+				cmd.Stderr = cmd.Stdout
+				cmd.Start()
+				LiveOutput(stdout)
+				// }
 			}
 		}
 	}

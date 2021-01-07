@@ -10,6 +10,7 @@ import (
 type bili struct {
 	User     string `yaml:"user"`
 	Password string `yaml:"password"`
+	Cookies  map[string]string	`yaml:"cookies"`
 }
 
 // RoomConfigInfo room config info

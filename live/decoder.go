@@ -20,19 +20,19 @@ import (
 func (l *Live) decodeWorker() {
 	for {
 		roomID := <-l.decodeChannel
-		if l.compareAndSwapUint32(roomID, waiting, decoding) {
+		if l.CompareAndSwapUint32(roomID, waiting, decoding) {
 			infs := infos.New()
 			infs.RoomInfos[roomID].DecodeStartTime = time.Now().Unix()
 			golog.Debug(fmt.Sprintf("%s[RoomID: %s] 开始转码", infs.RoomInfos[roomID].Uname, roomID))
 			l.Decode(roomID)
 			golog.Debug(fmt.Sprintf("%s[RoomID: %s] 结束转码", infs.RoomInfos[roomID].Uname, roomID))
 			infs.RoomInfos[roomID].DecodeEndTime = time.Now().Unix()
-			l.compareAndSwapUint32(roomID, decoding, decodeEnd)
+			l.CompareAndSwapUint32(roomID, decoding, decodeEnd)
 			if infs.RoomInfos[roomID].AutoUpload {
-				l.compareAndSwapUint32(roomID, decodeEnd, uploadWait)
+				l.CompareAndSwapUint32(roomID, decodeEnd, uploadWait)
 				l.uploadChannel <- roomID
 			} else {
-				l.compareAndSwapUint32(roomID, decodeEnd, start)
+				l.CompareAndSwapUint32(roomID, decodeEnd, start)
 			}
 		}
 	}

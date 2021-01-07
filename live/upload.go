@@ -5,7 +5,6 @@ import (
 	"os/exec"
 	"time"
 
-	"bilibili-recording-go/config"
 	"bilibili-recording-go/infos"
 	"bilibili-recording-go/tools"
 
@@ -15,15 +14,15 @@ import (
 func (l *Live) uploadWorker() {
 	for {
 		roomID := <-l.uploadChannel
-		if l.compareAndSwapUint32(roomID, uploadWait, uploading) {
+		if l.CompareAndSwapUint32(roomID, uploadWait, uploading) {
 			infs := infos.New()
 			infs.RoomInfos[roomID].UploadStartTime = time.Now().Unix()
 			golog.Debug(fmt.Sprintf("%s[RoomID: %s] 开始上传", infs.RoomInfos[roomID].Uname, roomID))
 			l.Upload(roomID)
 			golog.Debug(fmt.Sprintf("%s[RoomID: %s] 结束上传", infs.RoomInfos[roomID].Uname, roomID))
 			infs.RoomInfos[roomID].UploadEndTime = time.Now().Unix()
-			l.compareAndSwapUint32(roomID, uploading, uploadEnd)
-			l.compareAndSwapUint32(roomID, uploadEnd, start)
+			l.CompareAndSwapUint32(roomID, uploading, uploadEnd)
+			l.CompareAndSwapUint32(roomID, uploadEnd, start)
 		}
 	}
 }
@@ -34,14 +33,7 @@ func (l *Live) Upload(roomID string) {
 	uname := infs.RoomInfos[roomID].Uname
 	uploadName := infs.RoomInfos[roomID].UploadName
 	filePath := infs.RoomInfos[roomID].FilePath
-	c := config.New()
-	cookies, _ := tools.LoginByPassword(c.Conf.Bili.User, c.Conf.Bili.Password)
-	DedeUserID := cookies["DedeUserID"]
-	DedeUserID__ckMd5 := cookies["DedeUserID__ckMd5"]
-	SESSDATA := cookies["SESSDATA"]
-	bili_jct := cookies["bili_jct"]
-	sid := cookies["sid"]
-	cmd := exec.Command("python", "./live/upload.py", uname, roomID, uploadName, filePath, DedeUserID, DedeUserID__ckMd5, SESSDATA, bili_jct, sid)
+	cmd := exec.Command("python", "./live/upload.py", uname, roomID, uploadName, filePath)
 	stdout, _ := cmd.StdoutPipe()
 	cmd.Stderr = cmd.Stdout
 	cmd.Start()

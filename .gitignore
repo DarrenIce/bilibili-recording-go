@@ -2,3 +2,4 @@ recording/
 config.yml
 log/
 config_test.yml
+*.pyc
