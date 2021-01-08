@@ -1,9 +1,9 @@
 package infos
 
 import (
+	"net/http"
 	"sync"
 	"time"
-	"net/http"
 
 	"github.com/tidwall/gjson"
 
@@ -24,7 +24,7 @@ type RoomInfo struct {
 	UID           string
 	Title         string
 	LiveStartTime int64
-	AreaName	  string
+	AreaName      string
 
 	RecordStatus    int
 	RecordStartTime int64
@@ -35,13 +35,13 @@ type RoomInfo struct {
 	UploadStatus    int
 	UploadStartTime int64
 	UploadEndTime   int64
-	NeedUpload		bool
+	NeedUpload      bool
 	St              time.Time
 	Et              time.Time
 	State           uint32
 
-	UploadName		string
-	FilePath		string
+	UploadName string
+	FilePath   string
 }
 
 type biliInfo struct {
@@ -88,25 +88,31 @@ func (l *LiveInfos) init() {
 func (l *LiveInfos) UpdateFromGJSON(roomID string, res gjson.Result) {
 	l.lock.Lock()
 	defer l.lock.Unlock()
-	l.RoomInfos[roomID].RealID = res.Get("room_info").Get("room_id").String()
-	l.RoomInfos[roomID].LiveStatus = int(res.Get("room_info").Get("live_status").Int())
-	l.RoomInfos[roomID].LockStatus = int(res.Get("room_info").Get("lock_status").Int())
-	l.RoomInfos[roomID].Uname = res.Get("anchor_info").Get("base_info").Get("uname").String()
-	l.RoomInfos[roomID].UID = res.Get("room_info").Get("uid").String()
-	l.RoomInfos[roomID].Title = res.Get("room_info").Get("title").String()
-	l.RoomInfos[roomID].LiveStartTime = res.Get("room_info").Get("live_start_time").Int()
-	l.RoomInfos[roomID].AreaName = res.Get("room_info").Get("area_name").String()
+	_, ok := l.RoomInfos[roomID]
+	if ok {
+		l.RoomInfos[roomID].RealID = res.Get("room_info").Get("room_id").String()
+		l.RoomInfos[roomID].LiveStatus = int(res.Get("room_info").Get("live_status").Int())
+		l.RoomInfos[roomID].LockStatus = int(res.Get("room_info").Get("lock_status").Int())
+		l.RoomInfos[roomID].Uname = res.Get("anchor_info").Get("base_info").Get("uname").String()
+		l.RoomInfos[roomID].UID = res.Get("room_info").Get("uid").String()
+		l.RoomInfos[roomID].Title = res.Get("room_info").Get("title").String()
+		l.RoomInfos[roomID].LiveStartTime = res.Get("room_info").Get("live_start_time").Int()
+		l.RoomInfos[roomID].AreaName = res.Get("room_info").Get("area_name").String()
+	}
 }
 
 // UpadteFromConfig update
 func (l *LiveInfos) UpadteFromConfig(roomID string, v config.RoomConfigInfo) {
 	l.lock.Lock()
 	defer l.lock.Unlock()
-	l.RoomInfos[roomID].RoomID = v.RoomID
-	l.RoomInfos[roomID].StartTime = v.StartTime
-	l.RoomInfos[roomID].EndTime = v.EndTime
-	l.RoomInfos[roomID].AutoRecord = v.AutoRecord
-	l.RoomInfos[roomID].AutoUpload = v.AutoUpload
+	_, ok := l.RoomInfos[roomID]
+	if ok {
+		l.RoomInfos[roomID].RoomID = v.RoomID
+		l.RoomInfos[roomID].StartTime = v.StartTime
+		l.RoomInfos[roomID].EndTime = v.EndTime
+		l.RoomInfos[roomID].AutoRecord = v.AutoRecord
+		l.RoomInfos[roomID].AutoUpload = v.AutoUpload
+	}
 }
 
 // DeleteRoomInfo delete

@@ -1,0 +1,23 @@
+bilibili:
+  user: "你的账号"
+  password: "你的密码"
+  cookies: {}
+live:
+  "2603963":              # 房间号
+    roomID: "2603963"     # 房间号
+    startTime: "230000"   # 开始录制时间
+    endTime: "020000"     # 停止录制时间
+    autorecord: true      # 是否自动录制
+    autoupload: false     # 是否自动上传
+  "13328782":
+    roomID: "13328782"
+    startTime: "0"
+    endTime: "0"
+    autorecord: true
+    autoupload: false
+  "22554425":
+    roomID: "22554425"
+    startTime: "0"
+    endTime: "0"
+    autorecord: true
+    autoupload: false
