@@ -22,6 +22,12 @@ func (r *Live) GetInfoByRoom(roomID string) {
 	// n, _ := rand.Int(rand.Reader, big.NewInt(4))
 	// time.Sleep((time.Duration(n.Int64()) + 1) * time.Second)
 	// time.Sleep(1000 * time.Microsecond)
+	defer func(){
+		if v:=recover(); v!= nil {
+			golog.Error("捕获了一个恐慌: ", v)
+			return
+		}
+	}
 	url := fmt.Sprintf("https://api.live.bilibili.com/xlive/web-room/v1/index/getInfoByRoom?room_id=%s", roomID)
 	req := requests.Requests()
 	req.Proxy("socks5://127.0.0.1:1080")
