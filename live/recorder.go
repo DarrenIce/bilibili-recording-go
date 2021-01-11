@@ -43,6 +43,7 @@ func (r *Live) GetInfoByRoom(roomID string) {
 	resp, err := req.Get(url, headers)
 	if err != nil {
 		golog.Error(err)
+		return
 	}
 	data := gjson.Get(resp.Text(), "data")
 	if resp.R.StatusCode == 200 {
