@@ -2,9 +2,7 @@ package live
 
 import (
 	"fmt"
-	"os"
 	"os/exec"
-	"path/filepath"
 	"sync"
 
 	"bilibili-recording-go/config"
@@ -19,14 +17,14 @@ import (
 type Live struct {
 	rooms map[string]config.RoomConfigInfo
 
-	stop          		chan string
-	recordChannel 		chan config.RoomConfigInfo
-	unliveChannel 		chan string
-	decodeChannel 		chan string
-	uploadChannel 		chan string
-	downloadCmds  		map[string]*exec.Cmd
-	state         		sync.Map
-	lock          		*sync.Mutex
+	stop          chan string
+	recordChannel chan config.RoomConfigInfo
+	unliveChannel chan string
+	decodeChannel chan string
+	uploadChannel chan string
+	downloadCmds  map[string]*exec.Cmd
+	state         sync.Map
+	lock          *sync.Mutex
 }
 
 const (
@@ -128,15 +126,46 @@ func GetRoomInfoForResp(info config.RoomConfigInfo) (InfoResponse, error) {
 	return inf, nil
 }
 
-func (l *Live) ManualUpload() {
-	rooms := []string{"13328782", "22600427"}
-	// rooms := []string{"21478000"}
-	for _, v := range rooms {
-		l.CompareAndSwapUint32(v, start, uploadWait)
-		infs := infos.New()
-		infs.RoomInfos[v].UploadName = fmt.Sprintf("%s%s", infs.RoomInfos[v].Uname, "20210104")
-		pwd, _ := os.Getwd()
-		infs.RoomInfos[v].FilePath = filepath.Join(pwd, "recording", infs.RoomInfos[v].Uname, fmt.Sprintf("%s_%s.mp4", infs.RoomInfos[v].Uname, "20210104"))
-		l.uploadChannel <- v
+func (l *Live) ManualUpload(roomID string) bool {
+	s, _ := l.state.Load(roomID)
+	st, _ := s.(uint32)
+	if l.CompareAndSwapUint32(roomID, start, uploadWait) || st == uploadWait {
+		l.uploadChannel <- roomID
+		return true
 	}
+	return false
+}
+
+func (l *Live) ManualDecode(roomID string) bool {
+	if l.CompareAndSwapUint32(roomID, start, waiting) {
+		l.decodeChannel <- roomID
+		return true
+	}
+	return false
+}
+
+func (l *Live) CompareAndSwapUint32(roomID string, old uint32, new uint32) bool {
+	s, _ := l.state.Load(roomID)
+	st, _ := s.(uint32)
+	if st == old {
+		l.state.Store(roomID, new)
+		infs := infos.New()
+		infs.RoomInfos[roomID].State = new
+		roomInfo := infs.RoomInfos[roomID]
+		golog.Debug(fmt.Sprintf("%s[RoomID: %s] state changed from %d to %d", roomInfo.Uname, roomID, old, new))
+		return true
+	}
+	return false
+}
+
+func (l *Live) syncMapGetUint32(roomID string) (uint32, bool) {
+	s, ok := l.state.Load(roomID)
+	if !ok {
+		return 0, ok
+	}
+	st, ok := s.(uint32)
+	if !ok {
+		return 0, ok
+	}
+	return st, true
 }

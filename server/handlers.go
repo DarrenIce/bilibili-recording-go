@@ -83,3 +83,33 @@ func deleteRooms(writer http.ResponseWriter, r *http.Request) {
 	status["info"] = "deleteRooms Success"
 	tools.WriteJSON(writer, status)
 }
+
+func manualDecode(writer http.ResponseWriter, r *http.Request) {
+	b, _ := ioutil.ReadAll(r.Body)
+	liver := live.New()
+	gjson.ParseBytes(b).ForEach(func(key, value gjson.Result) bool {
+		if liver.ManualDecode(value.String()) {
+			return true
+		}
+		return false
+	})
+	status := make(map[string]string)
+	golog.Info("manualDecode Success!")
+	status["info"] = "manualDecode Success"
+	tools.WriteJSON(writer, status)
+}
+
+func manualUpload(writer http.ResponseWriter, r *http.Request) {
+	b, _ := ioutil.ReadAll(r.Body)
+	liver := live.New()
+	gjson.ParseBytes(b).ForEach(func(key, value gjson.Result) bool {
+		if liver.ManualUpload(value.String()) {
+			return true
+		}
+		return false
+	})
+	status := make(map[string]string)
+	golog.Info("manualUpload Success!")
+	status["info"] = "manualUpload Success"
+	tools.WriteJSON(writer, status)
+}

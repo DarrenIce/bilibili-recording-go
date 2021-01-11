@@ -25,6 +25,8 @@ func initMux() *mux.Router {
 	apiRoute.HandleFunc("/save", saveConfig).Methods("GET")
 	apiRoute.HandleFunc("/add", addRooms).Methods("POST")
 	apiRoute.HandleFunc("/delete", deleteRooms).Methods("POST")
+	apiRoute.HandleFunc("/decode", manualDecode).Methods("POST")
+	apiRoute.HandleFunc("/upload", manualUpload).Methods("POST")
 	return m
 }
 

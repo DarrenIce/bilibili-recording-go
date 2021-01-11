@@ -124,3 +124,4 @@ func (l *LiveInfos) DeleteRoomInfo(roomID string) {
 		delete(l.RoomInfos, roomID)
 	}
 }
+

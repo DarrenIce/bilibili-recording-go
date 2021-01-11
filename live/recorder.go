@@ -22,12 +22,12 @@ func (r *Live) GetInfoByRoom(roomID string) {
 	// n, _ := rand.Int(rand.Reader, big.NewInt(4))
 	// time.Sleep((time.Duration(n.Int64()) + 1) * time.Second)
 	// time.Sleep(1000 * time.Microsecond)
-	defer func(){
-		if v:=recover(); v!= nil {
+	defer func() {
+		if v := recover(); v != nil {
 			golog.Error("捕获了一个恐慌: ", v)
 			return
 		}
-	}
+	}()
 	url := fmt.Sprintf("https://api.live.bilibili.com/xlive/web-room/v1/index/getInfoByRoom?room_id=%s", roomID)
 	req := requests.Requests()
 	req.Proxy("socks5://127.0.0.1:1080")
@@ -229,28 +229,4 @@ func (r *Live) Stop(roomID string) {
 	r.stop <- roomID
 }
 
-func (r *Live) CompareAndSwapUint32(roomID string, old uint32, new uint32) bool {
-	s, _ := r.state.Load(roomID)
-	st, _ := s.(uint32)
-	if st == old {
-		r.state.Store(roomID, new)
-		infs := infos.New()
-		infs.RoomInfos[roomID].State = new
-		roomInfo := infs.RoomInfos[roomID]
-		golog.Debug(fmt.Sprintf("%s[RoomID: %s] state changed from %d to %d", roomInfo.Uname, roomID, old, new))
-		return true
-	}
-	return false
-}
 
-func (r *Live) syncMapGetUint32(roomID string) (uint32, bool) {
-	s, ok := r.state.Load(roomID)
-	if !ok {
-		return 0, ok
-	}
-	st, ok := s.(uint32)
-	if !ok {
-		return 0, ok
-	}
-	return st, true
-}
