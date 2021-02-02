@@ -163,7 +163,7 @@ func (r *Live) flushLiveStatus() {
 		for roomID := range infs.RoomInfos {
 			// if _, ok := delay[roomID]; !ok {
 			r.GetInfoByRoom(roomID)
-			time.Sleep(3 * time.Second)
+			time.Sleep(10 * time.Second)
 			// }
 		}
 		// time.Sleep(1 * time.Second)
@@ -216,6 +216,7 @@ func (r *Live) recordWorker() {
 
 func (r *Live) start(roomID string) {
 	r.CompareAndSwapUint32(roomID, iinit, start)
+	r.GetInfoByRoom(roomID)
 	go r.run(roomID)
 }
 
@@ -228,5 +229,3 @@ func (r *Live) Stop(roomID string) {
 	infs.RoomInfos[roomID].State, _ = s.(uint32)
 	r.stop <- roomID
 }
-
-

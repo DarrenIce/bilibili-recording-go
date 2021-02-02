@@ -83,7 +83,7 @@ func main() {
 	// liver.ManualUpload()
 
 	upload2baidu := make(chan int)
-	go tools.EveryDayTimer("07:00:00", upload2baidu)
+	go tools.EveryDayTimer("05:00:00", upload2baidu)
 	go func() {
 		for {
 			select {
