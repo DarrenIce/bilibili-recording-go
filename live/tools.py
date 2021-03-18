@@ -159,6 +159,7 @@ class Bilibili:
 def login():
     f = open(os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'config.yml'), 'r')
     y = yaml.load(f, Loader=yaml.FullLoader)
+    print(y['bilibili']['cookies'])
     if y['bilibili']['cookies'] != {}:
         return y['bilibili']['cookies']
     bili = Bilibili(username=y['bilibili']['user'], password=y['bilibili']['password'])
@@ -170,7 +171,4 @@ def login():
 
 
 if __name__ == '__main__':
-    f = open(os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'config.yml'), 'r')
-    y = yaml.load(f, Loader=yaml.FullLoader)
-    bili = Bilibili(username=y['bilibili']['user'], password=y['bilibili']['password'])
-    bili.login()
+    login()
