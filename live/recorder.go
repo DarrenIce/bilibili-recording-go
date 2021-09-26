@@ -30,7 +30,7 @@ func (r *Live) GetInfoByRoom(roomID string) {
 	}()
 	url := fmt.Sprintf("https://api.live.bilibili.com/xlive/web-room/v1/index/getInfoByRoom?room_id=%s", roomID)
 	req := requests.Requests()
-	req.Proxy("socks5://127.0.0.1:1080")
+	req.Proxy("socks5://127.0.0.1:1083")
 	headers := requests.Header{
 		"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36 Edg/87.0.664.66",
 		// "accept":	"application/json, text/javascript, */*; q=0.01",
