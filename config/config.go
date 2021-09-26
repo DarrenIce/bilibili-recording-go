@@ -8,9 +8,14 @@ import (
 )
 
 type bili struct {
-	User     string `yaml:"user"`
-	Password string `yaml:"password"`
-	Cookies  map[string]string	`yaml:"cookies"`
+	User     string            `yaml:"user"`
+	Password string            `yaml:"password"`
+	Cookies  map[string]string `yaml:"cookies"`
+}
+
+type RecordConfig struct {
+	NeedProxy bool   `yaml:"needProxy"`
+	Proxy     string `yaml:"proxy"`
 }
 
 // RoomConfigInfo room config info
@@ -24,8 +29,9 @@ type RoomConfigInfo struct {
 
 // Config 配置文件
 type config struct {
-	Bili bili                      `yaml:"bilibili"`
-	Live map[string]RoomConfigInfo `yaml:"live"`
+	Bili     bili                      `yaml:"bilibili"`
+	RcConfig RecordConfig              `yaml:"record"`
+	Live     map[string]RoomConfigInfo `yaml:"live"`
 }
 
 // Config out
