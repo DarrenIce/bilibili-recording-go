@@ -14,8 +14,9 @@ type bili struct {
 }
 
 type RecordConfig struct {
-	NeedProxy bool   `yaml:"needProxy"`
-	Proxy     string `yaml:"proxy"`
+	NeedProxy 	bool	`yaml:"needProxy"`
+	Proxy     	string	`yaml:"proxy"`
+	NeedBdPan	bool	`yaml:"needBdPan"`
 }
 
 // RoomConfigInfo room config info

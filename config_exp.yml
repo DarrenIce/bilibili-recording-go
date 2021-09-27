@@ -5,6 +5,7 @@ bilibili:
 record:
   needProxy: true
   proxy: "socks5://127.0.0.1:1080"
+  needBdPan: false
 live:
   "2603963":              # 房间号
     roomID: "2603963"     # 房间号

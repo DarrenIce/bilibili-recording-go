@@ -81,19 +81,21 @@ func main() {
 
 	// time.Sleep(60 * time.Second)
 	// liver.ManualUpload()
-
-	upload2baidu := make(chan int)
-	go tools.EveryDayTimer("05:00:00", upload2baidu)
-	go func() {
-		for {
-			select {
-			case <-upload2baidu:
-				tools.Upload2BaiduPCS()
-			default:
-				continue
+	if c.Conf.RcConfig.NeedBdPan {
+		upload2baidu := make(chan int)
+		go tools.EveryDayTimer("05:00:00", upload2baidu)
+		go func() {
+			for {
+				select {
+				case <-upload2baidu:
+					tools.Upload2BaiduPCS()
+				default:
+					continue
+				}
 			}
-		}
-	}()
+		}()
+	}
+	
 	for {
 		continue
 	}

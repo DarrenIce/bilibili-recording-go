@@ -9,7 +9,7 @@
 
 ## 依赖
 - [ffmpeg](https://www.gyan.dev/ffmpeg/builds/), 请将ffmpeg放在环境变量里
-- [BaiduPCS-Go](https://github.com/qjfoidnh/BaiduPCS-Go)，请提前登录好
+- (可选)[BaiduPCS-Go](https://github.com/qjfoidnh/BaiduPCS-Go)，请提前登录好
 - [streamlink](https://streamlink.github.io/)，建议用[Chocolatey](https://chocolatey.org/packages/streamlink)安装: ```choco install streamlink```
 - 推荐有一个代理可以切Ip，虽然频率已经拉的很低了，但还是以防万一。
 
@@ -21,6 +21,12 @@ pip install -r requirements.txt
 go run main.go
 ```
 `服务运行在18080端口`
+
+## TODO
+
+- 录制名字可以一定程度自定义
+- beego页面
+- 解决线程安全问题
 
 ## API
 
