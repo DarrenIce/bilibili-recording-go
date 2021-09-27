@@ -3,3 +3,4 @@ config.yml
 log/
 config_test.yml
 *.pyc
+BaiduPCS-Go_export_*.txt

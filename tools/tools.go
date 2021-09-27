@@ -218,5 +218,10 @@ func Upload2BaiduPCS() {
 				// }
 			}
 		}
+		cmd = exec.Command("./BaiduPCS-Go.exe", "export", pcsBasePath, "--link")
+		stdout, _ = cmd.StdoutPipe()
+		cmd.Stderr = cmd.Stdout
+		cmd.Start()
+		LiveOutput(stdout)
 	}
 }
