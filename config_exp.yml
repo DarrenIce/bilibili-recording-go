@@ -7,6 +7,7 @@ record:
   proxy: "socks5://127.0.0.1:1080"
   needBdPan: false
   uploadTime: "05:00:00"
+  apiAddr: "127.0.0.1:18080"
 live:
   "2603963":              # 房间号
     roomID: "2603963"     # 房间号

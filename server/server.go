@@ -1,6 +1,7 @@
 package server
 
 import (
+	"bilibili-recording-go/config"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -32,8 +33,9 @@ func initMux() *mux.Router {
 
 // New new
 func New() *Server {
+	c := config.New()
 	httpServer := &http.Server{
-		Addr:    "127.0.0.1:18080",
+		Addr:    c.Conf.RcConfig.ApiAddr,
 		Handler: initMux(),
 	}
 	server := &Server{server: httpServer}

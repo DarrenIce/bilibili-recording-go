@@ -7,11 +7,13 @@ import (
 	"strings"
 
 	"github.com/kataras/golog"
-
+	beego "github.com/beego/beego/v2/server/web"
+	
 	"bilibili-recording-go/config"
 	"bilibili-recording-go/live"
 	"bilibili-recording-go/server"
 	"bilibili-recording-go/tools"
+	_ "bilibili-recording-go/routers"
 )
 
 // Init 初始化函数
@@ -95,7 +97,5 @@ func main() {
 		}()
 	}
 	
-	for {
-		continue
-	}
+	beego.Run()
 }
