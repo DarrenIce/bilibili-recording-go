@@ -69,13 +69,11 @@ var (
 	Lives	map[string]*Live
 	LmapLock	*sync.Mutex
 
-	fetchInfoChan	chan string
 	decodeChan		chan string
 	uploadChan		chan string
 )
 
 func init() {
-	fetchInfoChan = make(chan string, 20)
 	decodeChan = make(chan string)
 	uploadChan = make(chan string)
 	Lives = make(map[string]*Live)
