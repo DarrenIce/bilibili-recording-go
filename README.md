@@ -1,15 +1,17 @@
 # bilibili-recording-go
-录播服务端，无界面
+录播后台+简单的后台页面管理
 
 ## 功能
-- 定时录制，录制完成自动上传
-- 配合BaiduPCS-GO，可以定时上传到百度云 (请提前手动登录BaiduPCS-GO)
+- 定时录制，<del>录制完成自动上传</del>(自动上传功能后面再维护吧，目前不考虑了)
+- 配合BaiduPCS-GO，可以定时上传到百度云并导出秒链方便分享 (请提前手动登录BaiduPCS-GO)
 - Http Rest API
+- 简单的后台管理，不用搭配那个python界面了
 
 ## 依赖
 - [ffmpeg](https://www.gyan.dev/ffmpeg/builds/), 请将ffmpeg放在环境变量里
-- [BaiduPCS-Go]https://github.com/qjfoidnh/BaiduPCS-Go
-- 还需要你有一个代理，因为里面的连接都走了socks5，端口为1080，这是为了防止登录出验证码，或者触发了B站反爬可以及时切ip
+- [BaiduPCS-Go](https://github.com/qjfoidnh/BaiduPCS-Go)，请提前登录好
+- [streamlink](https://streamlink.github.io/)，建议用[Chocolatey](https://chocolatey.org/packages/streamlink)安装: ```choco install streamlink```
+- 推荐有一个代理可以切Ip，虽然频率已经拉的很低了，但还是以防万一。
 
 ## 运行
 ```

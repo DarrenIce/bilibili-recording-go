@@ -11,11 +11,7 @@ import (
 )
 
 type RoomInfo struct {
-	RoomID     string
-	StartTime  string
-	EndTime    string
-	AutoRecord bool
-	AutoUpload bool
+	config.RoomConfigInfo
 
 	RealID        string
 	LiveStatus    int
