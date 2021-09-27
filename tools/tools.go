@@ -14,10 +14,11 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/asmcos/requests"
 	"github.com/kataras/golog"
+	"github.com/tidwall/gjson"
 
 	"bilibili-recording-go/config"
-	"bilibili-recording-go/infos"
 )
 
 const (
@@ -188,9 +189,11 @@ func md5V(t string) string {
 
 func Upload2BaiduPCS() {
 	c := config.New()
-	i := infos.New()
 	for _, v := range c.Conf.Live {
-		uname := i.RoomInfos[v.RoomID].Uname
+		uname, err := GetUname(v.RoomID)
+		if err != nil {
+			continue
+		}
 		localBasePath := fmt.Sprint("./recording/", uname)
 		if !Exists(localBasePath) {
 			continue
@@ -224,4 +227,16 @@ func Upload2BaiduPCS() {
 		cmd.Start()
 		LiveOutput(stdout)
 	}
+}
+
+// GetUname
+func GetUname(roomID string) (string, error) {
+	url := fmt.Sprintf("https://api.live.bilibili.com/xlive/web-room/v1/index/getInfoByRoom?room_id=%s", roomID)
+	resp, err := requests.Get(url)
+	if err != nil {
+		return "", err
+	}
+	data := gjson.Get(resp.Text(), "data")
+	uname := data.Get("anchor_info").Get("base_info").Get("uname").String()
+	return uname, nil
 }

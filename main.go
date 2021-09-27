@@ -65,16 +65,15 @@ func Init() {
 	tools.Mkdir("./recording")
 }
 
-var (
-	liver = live.Live{}
-)
-
 func main() {
 	Init()
-	liver := live.New()
 	c := config.New()
+	err := c.LoadConfig()
+	if err != nil {
+		golog.Fatal(err)
+	}
 	for _, v := range c.Conf.Live {
-		liver.AddRoom(v)
+		live.AddRoom(v.RoomID)
 	}
 	server := server.New()
 	server.Start()
@@ -83,7 +82,7 @@ func main() {
 	// liver.ManualUpload()
 	if c.Conf.RcConfig.NeedBdPan {
 		upload2baidu := make(chan int)
-		go tools.EveryDayTimer("05:00:00", upload2baidu)
+		go tools.EveryDayTimer(c.Conf.RcConfig.UploadTime, upload2baidu)
 		go func() {
 			for {
 				select {

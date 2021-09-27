@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"bilibili-recording-go/config"
-	"bilibili-recording-go/infos"
 	"bilibili-recording-go/live"
 	"bilibili-recording-go/tools"
 
@@ -24,8 +23,7 @@ func getAllLives(writer http.ResponseWriter, r *http.Request) {
 }
 
 func getAllInfos(writer http.ResponseWriter, r *http.Request) {
-	infs := infos.New()
-	tools.WriteJSON(writer, infs)
+	tools.WriteJSON(writer, live.Lives)
 	// golog.Info("getAllInfos Success!")
 }
 
@@ -46,7 +44,6 @@ func saveConfig(writer http.ResponseWriter, r *http.Request) {
 func addRooms(writer http.ResponseWriter, r *http.Request) {
 	b, _ := ioutil.ReadAll(r.Body)
 	resps := []live.InfoResponse{}
-	liver := live.New()
 	c := config.New()
 	gjson.ParseBytes(b).ForEach(func(key, value gjson.Result) bool {
 		roomConfigInfo := config.RoomConfigInfo{}
@@ -55,8 +52,8 @@ func addRooms(writer http.ResponseWriter, r *http.Request) {
 		roomConfigInfo.EndTime = value.Get("EndTime").String()
 		roomConfigInfo.AutoRecord = value.Get("AutoRecord").Bool()
 		roomConfigInfo.AutoUpload = value.Get("AutoUpload").Bool()
-		c.AddRoom(roomConfigInfo.RoomID, roomConfigInfo)
-		liver.AddRoom(roomConfigInfo)
+		c.AddRoom(roomConfigInfo)
+		live.AddRoom(roomConfigInfo.RoomID)
 		resp, err := live.GetRoomInfoForResp(roomConfigInfo)
 		if err != nil {
 			return false
@@ -71,10 +68,9 @@ func addRooms(writer http.ResponseWriter, r *http.Request) {
 func deleteRooms(writer http.ResponseWriter, r *http.Request) {
 	b, _ := ioutil.ReadAll(r.Body)
 	c := config.New()
-	liver := live.New()
 	gjson.ParseBytes(b).ForEach(func(key, value gjson.Result) bool {
 		c.DeleteRoom(value.String())
-		liver.DeleteRoom(value.String())
+		live.DeleteRoom(value.String())
 		return true
 	})
 	c.Marshal()
@@ -86,9 +82,8 @@ func deleteRooms(writer http.ResponseWriter, r *http.Request) {
 
 func manualDecode(writer http.ResponseWriter, r *http.Request) {
 	b, _ := ioutil.ReadAll(r.Body)
-	liver := live.New()
 	gjson.ParseBytes(b).ForEach(func(key, value gjson.Result) bool {
-		if liver.ManualDecode(value.String()) {
+		if live.ManualDecode(value.String()) {
 			return true
 		}
 		return false
@@ -101,9 +96,8 @@ func manualDecode(writer http.ResponseWriter, r *http.Request) {
 
 func manualUpload(writer http.ResponseWriter, r *http.Request) {
 	b, _ := ioutil.ReadAll(r.Body)
-	liver := live.New()
 	gjson.ParseBytes(b).ForEach(func(key, value gjson.Result) bool {
-		if liver.ManualUpload(value.String()) {
+		if live.ManualUpload(value.String()) {
 			return true
 		}
 		return false

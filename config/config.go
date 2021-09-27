@@ -17,6 +17,7 @@ type RecordConfig struct {
 	NeedProxy 	bool	`yaml:"needProxy"`
 	Proxy     	string	`yaml:"proxy"`
 	NeedBdPan	bool	`yaml:"needBdPan"`
+	UploadTime	string	`yaml:"uploadTime"`
 }
 
 // RoomConfigInfo room config info
@@ -82,10 +83,10 @@ func (c *Config) Marshal() error {
 }
 
 // AddRoom add
-func (c *Config) AddRoom(roomID string, roomInfo RoomConfigInfo) {
+func (c *Config) AddRoom(roomInfo RoomConfigInfo) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
-	c.Conf.Live[roomID] = roomInfo
+	c.Conf.Live[roomInfo.RoomID] = roomInfo
 }
 
 func (c *Config) DeleteRoom(roomID string) {

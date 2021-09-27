@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"os/exec"
 	"sync"
+	"sync/atomic"
+	"time"
 
 	"bilibili-recording-go/config"
-	"bilibili-recording-go/infos"
+	"bilibili-recording-go/tools"
 
 	"github.com/asmcos/requests"
 	"github.com/kataras/golog"
@@ -15,16 +17,37 @@ import (
 
 // Live 主类
 type Live struct {
-	rooms map[string]config.RoomConfigInfo
+	config.RoomConfigInfo
+	downloadCmd		*exec.Cmd
+	lock			*sync.Mutex
+	State           uint32
+	stop			chan struct{}
 
-	stop          chan string
-	recordChannel chan config.RoomConfigInfo
-	unliveChannel chan string
-	decodeChannel chan string
-	uploadChannel chan string
-	downloadCmds  map[string]*exec.Cmd
-	state         sync.Map
-	lock          *sync.Mutex
+	RealID        string
+	LiveStatus    int
+	LockStatus    int
+	Uname         string
+	UID           string
+	Title         string
+	LiveStartTime int64
+	AreaName      string
+
+	RecordStatus    int
+	RecordStartTime int64
+	RecordEndTime   int64
+	DecodeStatus    int
+	DecodeStartTime int64
+	DecodeEndTime   int64
+	UploadStatus    int
+	UploadStartTime int64
+	UploadEndTime   int64
+	NeedUpload      bool
+	St              time.Time
+	Et              time.Time
+
+	UploadName string
+	FilePath   string
+
 }
 
 const (
@@ -43,57 +66,65 @@ const (
 )
 
 var (
-	once sync.Once
+	Lives	map[string]*Live
+	LmapLock	*sync.Mutex
 
-	instance *Live
+	fetchInfoChan	chan string
+	decodeChan		chan string
+	uploadChan		chan string
 )
 
-// New new
-func New() *Live {
-	once.Do(func() {
-		instance = new(Live)
-		instance.Init()
-	})
+func init() {
+	fetchInfoChan = make(chan string, 20)
+	decodeChan = make(chan string)
+	uploadChan = make(chan string)
+	Lives = make(map[string]*Live)
 
-	return instance
+	LmapLock = new(sync.Mutex)
+	go flushLiveStatus()
+	go uploadWorker()
+	go decodeWorker()
 }
 
 // Init Live
-func (l *Live) Init() {
-	l.rooms = make(map[string]config.RoomConfigInfo)
-	l.stop = make(chan string)
-	l.recordChannel = make(chan config.RoomConfigInfo)
-	l.unliveChannel = make(chan string)
-	l.decodeChannel = make(chan string)
-	l.uploadChannel = make(chan string)
+func (l *Live) Init(roomID string) {
 	l.lock = new(sync.Mutex)
-	l.downloadCmds = make(map[string]*exec.Cmd)
+	l.downloadCmd = new(exec.Cmd)
+	l.State = iinit
+	l.stop = make(chan struct{})
 
 	c := config.New()
-	err := c.LoadConfig()
-	if err != nil {
-		golog.Fatal(err)
-	}
-	for _, v := range c.Conf.Live {
-		l.state.Store(v.RoomID, iinit)
-	}
 
-	go l.recordWorker()
-	go l.decodeWorker()
-	go l.uploadWorker()
-	go l.flushLiveStatus()
+	if _, ok := c.Conf.Live[roomID]; !ok {
+		golog.Error(fmt.Sprintf("Room %s Init ERROR", roomID))
+	}
+	// 读的时候暂时没加锁
+	l.RoomConfigInfo = c.Conf.Live[roomID]
+	l.St, l.Et = tools.MkDuration(l.StartTime, l.EndTime)
 }
 
 // AddRoom ADD
-func (l *Live) AddRoom(info config.RoomConfigInfo) {
-	infs := infos.New()
-	infs.RoomInfos[info.RoomID] = new(infos.RoomInfo)
-	l.recordChannel <- info
+func AddRoom(roomID string) {
+	live := new(Live)
+	live.Init((roomID))
+	LmapLock.Lock()
+	Lives[roomID] = live
+	LmapLock.Unlock()
+	go live.start()
 }
 
 // DeleteRoom deleteroom
-func (l *Live) DeleteRoom(roomID string) {
-	l.Stop(roomID)
+func DeleteRoom(roomID string) {
+	LmapLock.Lock()
+	defer LmapLock.Unlock()
+	live := new(Live)
+	if _, ok := Lives[roomID]; ok {
+		live = Lives[roomID]
+		delete(Lives, roomID)
+	}
+	live.stop <- struct{}{}
+	// 如何释放？
+	// State == start || State == restart
 }
 
 // InfoResponse response
@@ -126,46 +157,76 @@ func GetRoomInfoForResp(info config.RoomConfigInfo) (InfoResponse, error) {
 	return inf, nil
 }
 
-func (l *Live) ManualUpload(roomID string) bool {
-	s, _ := l.state.Load(roomID)
-	st, _ := s.(uint32)
-	if l.CompareAndSwapUint32(roomID, start, uploadWait) || st == uploadWait {
-		l.uploadChannel <- roomID
-		return true
+func ManualUpload(roomID string) bool {
+	LmapLock.Lock()
+	defer LmapLock.Unlock()
+	if _, ok := Lives[roomID]; ok {
+		if atomic.CompareAndSwapUint32(&Lives[roomID].State, start, uploadWait) || Lives[roomID].State == uploadWait {
+			uploadChan <- roomID
+			return true
+		}
 	}
 	return false
 }
 
-func (l *Live) ManualDecode(roomID string) bool {
-	if l.CompareAndSwapUint32(roomID, start, waiting) {
-		l.decodeChannel <- roomID
-		return true
+func ManualDecode(roomID string) bool {
+	LmapLock.Lock()
+	defer LmapLock.Unlock()
+	if _, ok := Lives[roomID]; ok {
+		if atomic.CompareAndSwapUint32(&Lives[roomID].State, start, waiting) {
+			decodeChan <- roomID
+			return true
+		}
 	}
 	return false
 }
 
-func (l *Live) CompareAndSwapUint32(roomID string, old uint32, new uint32) bool {
-	s, _ := l.state.Load(roomID)
-	st, _ := s.(uint32)
-	if st == old {
-		l.state.Store(roomID, new)
-		infs := infos.New()
-		infs.RoomInfos[roomID].State = new
-		roomInfo := infs.RoomInfos[roomID]
-		golog.Debug(fmt.Sprintf("%s[RoomID: %s] state changed from %d to %d", roomInfo.Uname, roomID, old, new))
-		return true
-	}
-	return false
+// UpdateFromGJSON update
+func (l *Live) UpdateFromGJSON(res gjson.Result) {
+	l.lock.Lock()
+	LmapLock.Lock()
+	defer LmapLock.Unlock()
+	defer l.lock.Unlock()
+	l.RealID = res.Get("room_info").Get("room_id").String()
+	l.LiveStatus = int(res.Get("room_info").Get("live_status").Int())
+	l.LockStatus = int(res.Get("room_info").Get("lock_status").Int())
+	l.Uname = res.Get("anchor_info").Get("base_info").Get("uname").String()
+	l.UID = res.Get("room_info").Get("uid").String()
+	l.Title = res.Get("room_info").Get("title").String()
+	l.LiveStartTime = res.Get("room_info").Get("live_start_time").Int()
+	l.AreaName = res.Get("room_info").Get("area_name").String()
 }
 
-func (l *Live) syncMapGetUint32(roomID string) (uint32, bool) {
-	s, ok := l.state.Load(roomID)
-	if !ok {
-		return 0, ok
+// UpadteFromConfig update
+func (l *Live) UpadteFromConfig(v config.RoomConfigInfo) {
+	l.lock.Lock()
+	LmapLock.Lock()
+	defer LmapLock.Unlock()
+	defer l.lock.Unlock()
+	l.RoomID = v.RoomID
+	l.StartTime = v.StartTime
+	l.EndTime = v.EndTime
+	l.AutoRecord = v.AutoRecord
+	l.AutoUpload = v.AutoUpload
+}
+
+func flushLiveStatus() {
+	for {
+		lst := make([]string, len(Lives))
+		LmapLock.Lock()
+		for k := range Lives {
+			lst = append(lst, k)
+		}
+		LmapLock.Unlock()
+		for _, v := range lst {
+			if _, ok := Lives[v]; !ok {
+				continue
+			}
+			LmapLock.Lock()
+			live := Lives[v]
+			LmapLock.Unlock()
+			live.GetInfoByRoom()
+			time.Sleep(10 * time.Second)
+		}
 	}
-	st, ok := s.(uint32)
-	if !ok {
-		return 0, ok
-	}
-	return st, true
 }
