@@ -1,8 +1,6 @@
 package controllers
 
 import (
-	"fmt"
-
 	"bilibili-recording-go/live"
 
 	beego "github.com/beego/beego/v2/server/web"
@@ -14,7 +12,12 @@ type MainController struct {
 }
 
 func (c *MainController) Get() {
-	c.Data["Lives"] = live.Lives
-	c.TplName = "index.tpl"
-	golog.Info("Http Get Lives")
+	golog.Info("Http Get at index.html")
+	c.TplName = "index.html"
+}
+
+func (c *MainController) Post() {
+	golog.Info("Http Post at index.html")
+	c.Data["json"] = live.Lives
+	c.ServeJSON()
 }

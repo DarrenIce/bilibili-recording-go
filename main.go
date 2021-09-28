@@ -2,18 +2,22 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"os"
+	"path"
 	"runtime"
 	"strings"
 
-	"github.com/kataras/golog"
 	beego "github.com/beego/beego/v2/server/web"
-	
+	"github.com/beego/beego/v2/server/web/context"
+	"github.com/beego/beego/v2/server/web/filter/cors"
+	"github.com/kataras/golog"
+
 	"bilibili-recording-go/config"
 	"bilibili-recording-go/live"
+	_ "bilibili-recording-go/routers"
 	"bilibili-recording-go/server"
 	"bilibili-recording-go/tools"
-	_ "bilibili-recording-go/routers"
 )
 
 // Init 初始化函数
@@ -67,7 +71,43 @@ func Init() {
 	tools.Mkdir("./recording")
 }
 
+func beegoInit() {
+	beego.SetViewsPath("static")
+	beego.InsertFilter("/", beego.BeforeRouter, WebServerFilter)
+	beego.InsertFilter("/*", beego.BeforeRouter, WebServerFilter)
+	beego.InsertFilter("/*", beego.BeforeRouter, cors.Allow(&cors.Options{
+		AllowOrigins:     []string{"*"},
+		AllowMethods:     []string{"*"},
+		AllowHeaders:     []string{"*"},
+		AllowCredentials: true,
+	}))
+}
+
+//静态文件后缀
+const staticFileExt = ".js|.css|.png|.jpg|.jpeg|.ico|.otf"
+
+//web 服务过滤器,实现静态文件发布
+func WebServerFilter(ctx *context.Context) {
+	urlPath := ctx.Request.URL.Path
+	golog.Info(urlPath)
+	// if urlPath == "" || urlPath == "/" {
+	// 	urlPath = "index.html"
+	// }
+    
+    
+	ext := path.Ext(urlPath)
+	if ext == "" {
+		return
+	}
+	index := strings.Index(staticFileExt, ext)
+	if index >= 0 {
+		http.ServeFile(ctx.ResponseWriter, ctx.Request, "static/"+urlPath)
+	}
+}
+
+
 func main() {
+	beegoInit()
 	Init()
 	c := config.New()
 	err := c.LoadConfig()
