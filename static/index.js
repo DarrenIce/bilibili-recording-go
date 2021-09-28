@@ -2,9 +2,19 @@ const { defineComponent, ref } = Vue;
 
 var Main = {
   data() {
-    const tableData = Array(0)
     return {
-      tableData,
+      tableData: [],
+      tabs: [
+        {
+          'id': 'overview',
+          'name': '总览',
+        },
+        {
+          'id': 'rooms',
+          'name': '房间管理',
+        },
+      ],
+      currentTab: 'overview'
     }
   },
   mounted() {
@@ -12,6 +22,11 @@ var Main = {
   },
   beforeDestory() {
     clearInterval(this.timer);
+  },
+  computed: {
+    currentView() {
+      return 'view-' + this.currentTab
+    }
   }
 };
 
@@ -71,3 +86,36 @@ function getTimeMiuns(st, et) {
 }
 
 getData()
+
+app.component('view-overview', {
+  template: `<el-main>
+  <el-table :data="tableData">
+      <el-table-column prop="RoomID" label="房间ID" width="140">
+      </el-table-column>
+      <el-table-column prop="Uname" label="主播" width="120">
+      </el-table-column>
+      <el-table-column prop="AreaName" label="分区">
+      </el-table-column>
+      <el-table-column prop="Title" label="直播标题">
+      </el-table-column>
+      <el-table-column prop="LiveStatus" label="直播状态">
+      </el-table-column>
+      <el-table-column prop="LiveStartTime" label="开播时间">
+      </el-table-column>
+      <el-table-column prop="LiveTime" label="开播时长">
+      </el-table-column>
+      <el-table-column prop="RecordTime" label="录制时间">
+      </el-table-column>
+      <el-table-column prop="DecodeTime" label="转码用时">
+      </el-table-column>
+      <el-table-column prop="UploadTime" label="上传用时">
+      </el-table-column>
+      <el-table-column prop="State" label="当前状态">
+      </el-table-column>
+  </el-table>
+</el-main>`
+})
+
+app.component('view-rooms', {
+  template: ``
+})

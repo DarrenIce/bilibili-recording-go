@@ -89,7 +89,7 @@ const staticFileExt = ".js|.css|.png|.jpg|.jpeg|.ico|.otf"
 //web 服务过滤器,实现静态文件发布
 func WebServerFilter(ctx *context.Context) {
 	urlPath := ctx.Request.URL.Path
-	golog.Info(urlPath)
+	// golog.Info(urlPath)
 	// if urlPath == "" || urlPath == "/" {
 	// 	urlPath = "index.html"
 	// }

@@ -101,6 +101,7 @@ func (r *Live) run() {
 			}
 			return
 		default:
+			r.St, r.Et = tools.MkDuration(r.StartTime, r.EndTime)
 			if r.State == running && tools.JudgeInDuration(r.St, r.Et) {
 				time.Sleep(5 * time.Second)
 			} else if r.judgeLive() && tools.JudgeInDuration(r.St, r.Et) && r.AutoRecord {

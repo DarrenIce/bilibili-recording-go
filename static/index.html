@@ -26,55 +26,22 @@
                     <el-sub-menu index="1">
                         <template #title><i class="el-icon-menu"></i>录播管理</template>
                         <el-menu-item-group>
-                            <el-menu-item index="1-1">总览</el-menu-item>
-                            <el-menu-item index="1-2">房间管理</el-menu-item>
+                            <el-menu-item v-for="tab in tabs" :key="tab.id" :class="[{ active: currentTab === tab }]" @click="currentTab = tab">{{ tab.name }}</el-menu-item>
+                            <!-- <el-menu-item index="1-2" :key="rooms">>房间管理</el-menu-item> -->
                         </el-menu-item-group>
                     </el-sub-menu>
                 </el-menu>
             </el-aside>
-
+ 
             <el-container>
                 <el-header style="text-align: right; font-size: 12px">
                     Title
-                    <!-- <el-dropdown>
-                        <i class="el-icon-setting" style="margin-right: 15px"></i>
-                        <template #dropdown>
-                            <el-dropdown-menu>
-                                <el-dropdown-item>View</el-dropdown-item>
-                                <el-dropdown-item>Add</el-dropdown-item>
-                                <el-dropdown-item>Delete</el-dropdown-item>
-                            </el-dropdown-menu>
-                        </template>
-                    </el-dropdown>
-                    <span>Tom</span> -->
                 </el-header>
+                <keep-alive>
+                    <component :is="currentView">
 
-                <el-main>
-                    <el-table :data="tableData">
-                        <el-table-column prop="RoomID" label="房间ID" width="140">
-                        </el-table-column>
-                        <el-table-column prop="Uname" label="主播" width="120">
-                        </el-table-column>
-                        <el-table-column prop="AreaName" label="分区">
-                        </el-table-column>
-                        <el-table-column prop="Title" label="直播标题">
-                        </el-table-column>
-                        <el-table-column prop="LiveStatus" label="直播状态">
-                        </el-table-column>
-                        <el-table-column prop="LiveStartTime" label="开播时间">
-                        </el-table-column>
-                        <el-table-column prop="LiveTime" label="开播时长">
-                        </el-table-column>
-                        <el-table-column prop="RecordTime" label="录制时间">
-                        </el-table-column>
-                        <el-table-column prop="DecodeTime" label="转码用时">
-                        </el-table-column>
-                        <el-table-column prop="UploadTime" label="上传用时">
-                        </el-table-column>
-                        <el-table-column prop="State" label="当前状态">
-                        </el-table-column>
-                    </el-table>
-                </el-main>
+                    </component>
+                </keep-alive>
             </el-container>
         </el-container>
     </div>
