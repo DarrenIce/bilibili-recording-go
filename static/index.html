@@ -7,41 +7,128 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <link rel="stylesheet" href="./index.css">
     <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.js"></script>
-    <!-- <link href="https://cdn.bootcdn.net/ajax/libs/element-ui/2.15.3/theme-chalk/index.css" rel="stylesheet"> -->
-    <!-- <script src="//unpkg.com/vue/dist/vue.js"></script> -->
-    <!-- <script src="https://cdn.bootcdn.net/ajax/libs/vue/3.2.0-beta.7/vue.cjs.js"></script>
-    <script src="https://cdn.bootcdn.net/ajax/libs/element-ui/2.15.3/index.js"></script> -->
     <link rel="stylesheet" href="//unpkg.com/element-plus/dist/index.css" />
     <script src="//unpkg.com/vue@next"></script>
     <script src="//unpkg.com/element-plus"></script>
 </head>
 
 <body>
-    <!-- <script src="//unpkg.com/vue/dist/vue.js"></script> -->
-    <!-- <script src="//unpkg.com/element-ui@2.15.6/lib/index.js"></script> -->
     <div id="app">
-        <el-container style="height: auto; border: 1px solid #eee">
-            <el-aside width="200px" style="background-color: rgb(238, 241, 246)">
-                <el-menu :default-openeds="['1', '2']">
-                    <el-sub-menu index="1">
-                        <template #title><i class="el-icon-menu"></i>录播管理</template>
-                        <el-menu-item-group>
-                            <el-menu-item v-for="tab in tabs" :key="tab.id" :class="[{ active: currentTab === tab }]" @click="currentTab = tab">{{ tab.name }}</el-menu-item>
-                            <!-- <el-menu-item index="1-2" :key="rooms">>房间管理</el-menu-item> -->
-                        </el-menu-item-group>
-                    </el-sub-menu>
-                </el-menu>
-            </el-aside>
- 
+        <el-container style="height: auto; border: 1px solid #eee;">
+            <el-menu default-active="1" class="el-menu-vertical-demo" :collapse="true">
+                <el-menu-item index="1">
+                    <i class="el-icon-menu"></i>
+                    <template #title>总览</template>
+                </el-menu-item>
+                <el-menu-item index="2">
+                    <i class="el-icon-setting"></i>
+                    <template #title>房间管理</template>
+                </el-menu-item>
+            </el-menu>
             <el-container>
-                <el-header style="text-align: right; font-size: 12px">
-                    Title
-                </el-header>
-                <keep-alive>
-                    <component :is="currentView">
-
-                    </component>
-                </keep-alive>
+                <el-main>
+                    <el-space wrap>
+                        <div class="radius info-radius"
+                            style="border-radius: var(--el-border-radius-base); box-shadow: var(--el-box-shadow-base);">
+                            <div class="radius-title">
+                                录制状态
+                                <i class="el-icon-warning-outline"></i>
+                            </div>
+                            <el-space wrap>
+                                <el-card class="box-card">
+                                    <template #header>
+                                        <div class="card-header">
+                                            <span>监听房间数</span>
+                                        </div>
+                                    </template>
+                                    <div class="text item">{{ tableData.length }}</div>
+                                </el-card>
+                                <el-card class="box-card">
+                                    <template #header>
+                                        <div class="card-header">
+                                            <span>正在录制</span>
+                                        </div>
+                                    </template>
+                                    <div class="text item">{{ recordCount }}</div>
+                                </el-card>
+                            </el-space>
+                        </div>
+                        <div class="radius info-radius"
+                            style="border-radius: var(--el-border-radius-base); box-shadow: var(--el-box-shadow-base);">
+                            <div class="radius-title">
+                                设备状态
+                                <i class="el-icon-warning-outline"></i>
+                            </div>
+                            <el-space wrap>
+                                <el-card class="box-card">
+                                    <template #header>
+                                        <div class="card-header">
+                                            <span>CPU</span>
+                                        </div>
+                                    </template>
+                                    <div class="text item">{{ cpu }}</div>
+                                </el-card>
+                                <el-card class="box-card">
+                                    <template #header>
+                                        <div class="card-header">
+                                            <span>内存</span>
+                                        </div>
+                                    </template>
+                                    <div class="text item">{{ memoryUsage }}/{{ memoryTotal }}</div>
+                                </el-card>
+                                <el-card class="box-card">
+                                    <template #header>
+                                        <div class="card-header">
+                                            <span>网络</span>
+                                        </div>
+                                    </template>
+                                    <div class="text item">{{ uploadSpeed }}</div>
+                                    <div class="text item">{{ downloadSpeed }}</div>
+                                </el-card>
+                                <el-card class="box-card">
+                                    <template #header>
+                                        <div class="card-header">
+                                            <span>硬盘</span>
+                                        </div>
+                                    </template>
+                                    <div class="text item">{{ diskUsage }} / {{ diskTotal }}</div>
+                                </el-card>
+                            </el-space>
+                        </div>
+                    </el-space>
+                    <!-- <div class="radius live-radius"
+                        style="border-radius: var(--el-border-radius-base); box-shadow: var(--el-box-shadow-base);"> -->
+                        <el-table :data="tableData" :row-style="tableRowColor"
+                            :default-sort="{prop: 'LiveStatus', order: 'descending'}">
+                            <el-table-column prop="RoomID" label="房间ID">
+                            </el-table-column>
+                            <el-table-column prop="Uname" label="主播">
+                            </el-table-column>
+                            <el-table-column prop="AreaName" label="分区">
+                            </el-table-column>
+                            <el-table-column prop="Title" label="直播标题">
+                            </el-table-column>
+                            <el-table-column prop="LiveStatus" label="直播状态" :sortable="true" :sort-method="liveSort">
+                            </el-table-column>
+                            <el-table-column prop="LiveStartTime" label="开播时间">
+                            </el-table-column>
+                            <el-table-column prop="LiveTime" label="开播时长">
+                            </el-table-column>
+                            <el-table-column prop="RecordTime" label="录制时间">
+                            </el-table-column>
+                            <el-table-column prop="DecodeTime" label="转码用时">
+                            </el-table-column>
+                            <el-table-column prop="UploadTime" label="上传用时">
+                            </el-table-column>
+                            <el-table-column prop="State" label="当前状态">
+                                <template #default="scope">
+                                    <el-tag :type="state2Type(scope.row.State)">{{ state2Name(scope.row.State) }}
+                                    </el-tag>
+                                </template>
+                            </el-table-column>
+                        </el-table>
+                    <!-- </div> -->
+                </el-main>
             </el-container>
         </el-container>
     </div>

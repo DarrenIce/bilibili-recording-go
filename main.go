@@ -72,7 +72,7 @@ func Init() {
 }
 
 func beegoInit() {
-	beego.SetViewsPath("static")
+	// beego.SetViewsPath("static")
 	beego.InsertFilter("/", beego.BeforeRouter, WebServerFilter)
 	beego.InsertFilter("/*", beego.BeforeRouter, WebServerFilter)
 	beego.InsertFilter("/*", beego.BeforeRouter, cors.Allow(&cors.Options{
@@ -84,15 +84,15 @@ func beegoInit() {
 }
 
 //静态文件后缀
-const staticFileExt = ".js|.css|.png|.jpg|.jpeg|.ico|.otf"
+const staticFileExt = ".html|.js|.css|.png|.jpg|.jpeg|.ico|.otf"
 
 //web 服务过滤器,实现静态文件发布
 func WebServerFilter(ctx *context.Context) {
 	urlPath := ctx.Request.URL.Path
 	// golog.Info(urlPath)
-	// if urlPath == "" || urlPath == "/" {
-	// 	urlPath = "index.html"
-	// }
+	if urlPath == "" || urlPath == "/" {
+		urlPath = "index.html"
+	}
     
     
 	ext := path.Ext(urlPath)
