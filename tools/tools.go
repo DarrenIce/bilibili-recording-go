@@ -165,14 +165,14 @@ func EveryDayTimer(t string, c chan int) {
 	golog.Info("EveryDayTimer Start, set time as ", t)
 	timeNow := time.Now()
 	loc, _ := time.LoadLocation("PRC")
-	setTime, _ := time.ParseInLocation("2006-01-02 15:04:05", fmt.Sprint(time.Now().Format("2006-01-02") + " " + t), loc)
+	setTime, _ := time.ParseInLocation("2006-01-02 15:04:05", fmt.Sprint(time.Now().Format("2006-01-02")+" "+t), loc)
 	if setTime.Before(timeNow) {
-		setTime = setTime.AddDate(0,0,1)
+		setTime = setTime.AddDate(0, 0, 1)
 	}
 	timer := time.NewTimer(setTime.Sub(timeNow))
-	<- timer.C
+	<-timer.C
 	c <- 1
-	golog.Info("EveryDayTimer Work at ", time.Now().Format("2006-01-02 15:04:05"), " Next work time is ", setTime.AddDate(0,0,1).Format("2006-01-02 15:04:05"))
+	golog.Info("EveryDayTimer Work at ", time.Now().Format("2006-01-02 15:04:05"), " Next work time is ", setTime.AddDate(0, 0, 1).Format("2006-01-02 15:04:05"))
 	var ticker *time.Ticker = time.NewTicker(24 * time.Hour)
 	ticks := ticker.C
 	for range ticks {
@@ -229,7 +229,7 @@ func Upload2BaiduPCS() {
 	}
 }
 
-// GetUname
+// GetUname, 感觉可以加个缓存，不然频繁调用容易触发风控
 func GetUname(roomID string) (string, error) {
 	url := fmt.Sprintf("https://api.live.bilibili.com/xlive/web-room/v1/index/getInfoByRoom?room_id=%s", roomID)
 	resp, err := requests.Get(url)
@@ -239,4 +239,43 @@ func GetUname(roomID string) (string, error) {
 	data := gjson.Get(resp.Text(), "data")
 	uname := data.Get("anchor_info").Get("base_info").Get("uname").String()
 	return uname, nil
+}
+
+func DirSize(dirPath string, dirSize int64) int64 {
+	flist, err := ioutil.ReadDir(dirPath)
+	if err != nil {
+		golog.Error(err)
+		return 0
+	}
+	for _, f := range flist {
+		if f.IsDir() {
+			dirSize = DirSize(dirPath+"/"+f.Name(), dirSize)
+		} else {
+			dirSize = f.Size() + dirSize
+		}
+	}
+	return dirSize
+}
+
+func CacRecordingFileNum() int64 {
+	fileNum := 0
+	flist, err := ioutil.ReadDir("./recording/")
+	if err != nil {
+		golog.Error(err)
+		return 0
+	}
+	for _, d := range flist {
+		if d.IsDir() {
+			localBasePath := fmt.Sprint("./recording/", d.Name(), "/tmp")
+			if !Exists(localBasePath) {
+				continue
+			}
+			for _, f := range ListDir(localBasePath) {
+				if o, _ := os.Stat(f); !o.IsDir() && strings.HasSuffix(o.Name(), "flv") {
+					fileNum++
+				}
+			}
+		}
+	}
+	return int64(fileNum)
 }

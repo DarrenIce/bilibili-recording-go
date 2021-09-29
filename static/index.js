@@ -13,8 +13,8 @@ let Main = {
       downloadSpeed: '1.3M/s↓',
       diskUsage: '234G',
       diskTotal: '500G',
-      totalDownload: '43.36G',
-      fileNum: 336,
+      totalDownload: '',
+      fileNum: 0,
       editFormVisible: false,
       form: {
         RoomID: '123',
@@ -30,10 +30,12 @@ let Main = {
   mounted() {
     this.timer1 = setInterval(getLowFrqData, 5000);
     this.timer2 = setInterval(flushData, 1000);
+    this.timer3 = setInterval(getHighFrqData, 1000);
   },
   beforeDestory() {
     clearInterval(this.timer1);
     clearInterval(this.timer2);
+    clearInterval(this.timer3);
   },
   methods: {
     tableRowColor({ row, rowIndex }) {
@@ -184,7 +186,8 @@ function getHighFrqData() {
     url: "/base-info",
     data: {},
     success: function(msg) {
-      
+      vm.totalDownload = getReadableFileSizeString(msg.TotalDownload)
+      vm.fileNum = msg.FileNum
     }
   })
 }
@@ -209,5 +212,16 @@ function getTimeMiuns(st, et) {
   let second = nTime % 60;
   return `${day}天 ${hour}时 ${minute}分 ${second} 秒`
 }
+
+function getReadableFileSizeString(fileSizeInBytes) {
+  var i = -1;
+  var byteUnits = [' kB', ' MB', ' GB', ' TB', 'PB', 'EB', 'ZB', 'YB'];
+  do {
+      fileSizeInBytes = fileSizeInBytes / 1024;
+      i++;
+  } while (fileSizeInBytes > 1024);
+
+  return Math.max(fileSizeInBytes, 0.1).toFixed(2) + byteUnits[i];
+};
 
 getLowFrqData()
