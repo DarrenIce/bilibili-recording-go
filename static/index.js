@@ -1,6 +1,7 @@
 const { defineComponent, ref } = Vue;
+const { ElNotification } = ElementPlus;
 
-var Main = {
+let Main = {
   data() {
     return {
       tableData: [],
@@ -8,17 +9,31 @@ var Main = {
       cpu: '10%',
       memoryUsage: '7.9G',
       memoryTotal: '16G',
-      uploadSpeed: '15.6kb/s↑',
-      downloadSpeed: '1.3Mb/s↓',
+      uploadSpeed: '15.6K/s↑',
+      downloadSpeed: '1.3M/s↓',
       diskUsage: '234G',
-      diskTotal: '500G'
+      diskTotal: '500G',
+      totalDownload: '43.36G',
+      fileNum: 336,
+      editFormVisible: false,
+      form: {
+        RoomID: '123',
+        RecordMode: false,
+        StartTime: new Date(),
+        EndTime: new Date(),
+        AutoRecord: true,
+        AutoUpload: false,
+      },
+      disabledRecord: false,
     }
   },
   mounted() {
-    this.timer = setInterval(getData, 1000);
+    this.timer1 = setInterval(getLowFrqData, 5000);
+    this.timer2 = setInterval(flushData, 1000);
   },
   beforeDestory() {
-    clearInterval(this.timer);
+    clearInterval(this.timer1);
+    clearInterval(this.timer2);
   },
   methods: {
     tableRowColor({ row, rowIndex }) {
@@ -66,6 +81,34 @@ var Main = {
       } else if (state == 10) {
         return '停止监听'
       }
+    },
+    handleDelete(index, row) {
+      console.log(row)
+      ElNotification({
+        title: '成功',
+        message: '删除房间成功',
+        type: 'success'
+      })
+    },
+    handleEdit(index, row) {
+      vm.editFormVisible = true
+      vm.form = {
+        RoomID: row.RoomID,
+        RecordMode: false,
+        StartTime: new Date(2021,9,29,row.StartTime.slice(0,2), row.StartTime.slice(2,4), row.StartTime.slice(4,6)),
+        EndTime: new Date(2021,9,29,row.EndTime.slice(0,2), row.EndTime.slice(2,4), row.EndTime.slice(4,6)),
+        AutoRecord: row.AutoRecord,
+        AutoUpload: row.AutoUpload,
+      }
+      console.log(vm.form)
+    },
+    onSubmit() {
+      this.editFormVisible = false
+      console.log('submit!')
+      // TODO: Ajax回传给go处理
+    },
+    changeRecordTimeText(recordMode) {
+      this.disabledRecord = recordMode
     }
   }
 };
@@ -75,29 +118,41 @@ app.use(ElementPlus);
 
 const vm = app.mount("#app");
 
-function getData() {
-  var data = Array(0)
+// 获取低频数据
+function getLowFrqData() {
+  let data = Array(0)
   $.ajax({
     type: "POST",
-    url: "/live",
+    url: "/live-info",
     data: {},
     success: function (msg) {
       // console.log(vm.tableData)
+      // TODO: 扩展接口，获取其他信息
       let recording = 0;
-      for (var key in msg) {
+      for (let key in msg) {
         let date = new Date(parseInt(msg[key].LiveStartTime) * 1000);
-        var item = {
+        let item = {
           RoomID: msg[key].RoomID,
           Uname: msg[key].Uname,
           AreaName: msg[key].AreaName,
           Title: msg[key].Title,
           LiveStatus: msg[key].LiveStatus,
           LiveStartTime: `${date.getFullYear()}-${stillTwo(date.getMonth() + 1)}-${stillTwo(date.getDate())} ${stillTwo(date.getHours())}:${stillTwo(date.getMinutes())}:${stillTwo(date.getSeconds())}`,
-          LiveTime: getTimeMiuns(msg[key].LiveStartTime, 0),
-          RecordTime: getTimeMiuns(msg[key].RecordStartTime, msg[key].RecordEndTime),
-          DecodeTime: getTimeMiuns(msg[key].DecodeStartTime, msg[key].DecodeEndTime),
-          UploadTime: getTimeMiuns(msg[key].UploadStartTime, msg[key].UploadEndTime),
-          State: msg[key].State
+          LiveStartTime2: msg[key].LiveStartTime,
+          // LiveTime: getTimeMiuns(msg[key].LiveStartTime, 0),
+          // RecordTime: getTimeMiuns(msg[key].RecordStartTime, msg[key].RecordEndTime),
+          // DecodeTime: getTimeMiuns(msg[key].DecodeStartTime, msg[key].DecodeEndTime),
+          // UploadTime: getTimeMiuns(msg[key].UploadStartTime, msg[key].UploadEndTime),
+          State: msg[key].State,
+          StartTime: msg[key].StartTime,
+          EndTime: msg[key].EndTime,
+          RecordMode: false,
+          RecordStartTime: msg[key].RecordStartTime,
+          RecordEndTime: msg[key].RecordEndTime,
+          DecodeStartTime: msg[key].DecodeStartTime,
+          DecodeEndTime: msg[key].DecodeEndTime,
+          UploadStartTime: msg[key].UploadStartTime,
+          UploadEndTime: msg[key].UploadEndTime,
         }
         if (item.State == 3) {
           recording++
@@ -106,6 +161,30 @@ function getData() {
       }
       vm.tableData = data
       vm.recordCount = recording
+      flushData()
+    }
+  })
+}
+
+// 实时刷新
+function flushData() {
+  for (let key in vm.tableData) {
+    vm.tableData[key].LiveTime = getTimeMiuns(vm.tableData[key].LiveStartTime2, 0)
+    vm.tableData[key].RecordTime = getTimeMiuns(vm.tableData[key].RecordStartTime, vm.tableData[key].RecordEndTime)
+    vm.tableData[key].DecodeTime = getTimeMiuns(vm.tableData[key].DecodeStartTime, vm.tableData[key].DecodeEndTime)
+    vm.tableData[key].UploadTime = getTimeMiuns(vm.tableData[key].UploadStartTime, vm.tableData[key].UploadEndTime)
+  }
+}
+
+// 获取低频数据
+function getHighFrqData() {
+  let data = Array(0)
+  $.ajax({
+    type: "POST",
+    url: "/base-info",
+    data: {},
+    success: function(msg) {
+      
     }
   })
 }
@@ -131,4 +210,4 @@ function getTimeMiuns(st, et) {
   return `${day}天 ${hour}时 ${minute}分 ${second} 秒`
 }
 
-getData()
+getLowFrqData()
