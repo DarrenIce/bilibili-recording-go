@@ -140,6 +140,7 @@
                         style="border-radius: var(--el-border-radius-base); box-shadow: var(--el-box-shadow-base);"> -->
                     <el-table :data="tableData" :row-style="tableRowColor"
                         :default-sort="{prop: 'LiveStatus', order: 'descending'}">
+                        <!--TODO: 房间ID加一个动态变色的链接，可以跳转到直播间-->
                         <el-table-column prop="RoomID" label="房间ID">
                         </el-table-column>
                         <el-table-column prop="Uname" label="主播">
@@ -180,7 +181,47 @@
                     </el-table>
                     <!-- </div> -->
                 </el-main>
-                <el-drawer v-model="editFormVisible" title="编辑房间信息">
+                <el-drawer v-model="editFormVisible" title="房间信息" size='35%'>
+                    <el-descriptions class="margin-top" :column="1" :data="room" border>
+                        <el-descriptions-item>
+                            <template #label>
+                                <i class="el-icon-user"></i>
+                                房间ID
+                            </template>
+                            {{ room.RoomID }}
+                        </el-descriptions-item>
+                        <el-descriptions-item>
+                            <template #label>
+                                <i class="el-icon-mobile-phone"></i>
+                                主播
+                            </template>
+                            {{ room.Uname }}
+                        </el-descriptions-item>
+                        <el-descriptions-item>
+                            <template #label>
+                                <i class="el-icon-location-outline"></i>
+                                分区
+                            </template>
+                            {{ room.AreaName }}
+                        </el-descriptions-item>
+                        <el-descriptions-item>
+                            <template #label>
+                                <i class="el-icon-tickets"></i>
+                                直播标题
+                            </template>
+                            {{ room.Title }}
+                        </el-descriptions-item>
+                        <el-descriptions-item>
+                            <template #label>
+                                <i class="el-icon-office-building"></i>
+                                直播状态
+                            </template>
+                            <el-tag size="small">{{ room.LiveStatus }} </el-tag>
+                        </el-descriptions-item>
+                    </el-descriptions>
+                    <el-divider>
+                        <span>编辑房间信息</span>
+                    </el-divider>
                     <el-form :model="form">
                         <el-form-item label="房间ID" label-width="120px">
                             <el-input v-model="form.RoomID" autocomplete="off"></el-input>
@@ -206,13 +247,14 @@
                         </el-form-item>
                     </el-form>
                     <div class="drawer-footer">
+                        <!-- <template #default="scope"> -->
                         <el-button-group>
-                            <el-button type="danger" icon="el-icon-delete"
-                                @click="handleDelete(scope.$index, scope.row)">删除
+                            <el-button type="danger" icon="el-icon-delete" @click="handleDelete(form)">删除
                             </el-button>
                             <el-button icon="el-icon-circle-close" @click="editFormVisible = false">取消</el-button>
                             <el-button icon="el-icon-circle-check" type="primary" @click="onSubmit">确定</el-button>
                         </el-button-group>
+                        <!-- </template> -->
                     </div>
                 </el-drawer>
             </el-container>

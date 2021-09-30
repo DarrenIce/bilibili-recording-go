@@ -13,6 +13,7 @@ import (
 	"strings"
 	"syscall"
 	"time"
+	"unsafe"
 
 	"github.com/asmcos/requests"
 	"github.com/kataras/golog"
@@ -320,4 +321,8 @@ func GetDeviceInfo() (deviceInfo DeviceInfo) {
 	deviceInfo.DiskUsage = disk.Used
 	deviceInfo.DiskTotal = disk.Total
 	return deviceInfo
+}
+
+func BytesToStringFast(b []byte) string {
+    return *(*string)(unsafe.Pointer(&b))
 }
