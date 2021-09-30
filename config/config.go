@@ -23,11 +23,19 @@ type RecordConfig struct {
 
 // RoomConfigInfo room config info
 type RoomConfigInfo struct {
-	RoomID     string `yaml:"roomID"`
-	StartTime  string `yaml:"startTime"`
-	EndTime    string `yaml:"endTime"`
-	AutoRecord bool   `yaml:"autorecord"`
-	AutoUpload bool   `yaml:"autoupload"`
+	RoomID     		string	`yaml:"roomID"`
+	RecordMode		bool	`yaml:"recordMode"`
+	StartTime  		string	`yaml:"startTime"`
+	EndTime    		string	`yaml:"endTime"`
+	AutoRecord 		bool	`yaml:"autorecord"`
+	AutoUpload 		bool	`yaml:"autoupload"`
+	NeedM4a			bool	`yaml:"needM4a"`
+	Mp4Compress		bool	`yaml:"mp4Compress"`
+	DivideByTitle	bool	`yaml:"divideByTitle"`
+	CleanUpRegular	bool	`yaml:"cleanUpRegular"`
+	SaveDuration	string	`yaml:"saveDuration"`
+	AreaLock		bool	`yaml:"areaLock"`
+	AreaLimit		string	`yaml:"areaLimit"`
 }
 
 // Config 配置文件

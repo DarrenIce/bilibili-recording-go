@@ -24,6 +24,10 @@
                     <i class="el-icon-setting"></i>
                     <template #title>房间管理</template>
                 </el-menu-item>
+                <el-menu-item index="3" @click="addRoom">
+                    <i class="el-icon-circle-plus"></i>
+                    <template #title>添加房间</template>
+                </el-menu-item>
             </el-menu>
             <el-container>
                 <el-main>
@@ -116,10 +120,9 @@
                                             <span>硬盘</span>
                                         </div>
                                     </template>
-                                    <div class="text item">{{ diskName }}</div>
                                     <el-progress :text-inside="true" :stroke-width="20" :percentage="diskPct"
                                         :color="colors">
-                                        <span>{{ diskUsage }} / {{ diskTotal }}</span>
+                                        <span>{{ diskName }} {{ diskUsage }} / {{ diskTotal }}</span>
                                     </el-progress>
                                 </el-card>
                                 <el-card class="box-card">
@@ -140,8 +143,13 @@
                         style="border-radius: var(--el-border-radius-base); box-shadow: var(--el-box-shadow-base);"> -->
                     <el-table :data="tableData" :row-style="tableRowColor"
                         :default-sort="{prop: 'LiveStatus', order: 'descending'}">
-                        <!--TODO: 房间ID加一个动态变色的链接，可以跳转到直播间-->
+                        <!--TODO: config扩展后，界面还没改-->
                         <el-table-column prop="RoomID" label="房间ID">
+                            <template #default="scope">
+                                <el-link :type="status2Type(scope.row.LiveStatus)" :href="roomID2Url(scope.row.RoomID)">
+                                    {{ scope.row.RoomID }}
+                                </el-link>
+                            </template>
                         </el-table-column>
                         <el-table-column prop="Uname" label="主播">
                         </el-table-column>
@@ -188,7 +196,9 @@
                                 <i class="el-icon-user"></i>
                                 房间ID
                             </template>
-                            {{ room.RoomID }}
+                            <el-link :type="status2Type(room.LiveStatus)" :href="roomID2Url(room.RoomID)">
+                                {{ room.RoomID }}
+                            </el-link>
                         </el-descriptions-item>
                         <el-descriptions-item>
                             <template #label>
@@ -255,6 +265,38 @@
                             <el-button icon="el-icon-circle-check" type="primary" @click="onSubmit">确定</el-button>
                         </el-button-group>
                         <!-- </template> -->
+                    </div>
+                </el-drawer>
+                <el-drawer v-model="addFormVisible" title="房间信息" size='35%'>
+                    <el-form :model="addForm">
+                        <el-form-item label="房间ID" label-width="120px">
+                            <el-input v-model="addForm.RoomID" autocomplete="off"></el-input>
+                        </el-form-item>
+                        <el-form-item>
+                            <el-switch v-model="addForm.RecordMode" active-color="#13ce66" inactive-color="#ff4949"
+                                active-text="24小时录制" inactive-text="仅在设定时间录制"
+                                @change="changeAddRecordTimeText(addForm.RecordMode)" />
+                        </el-form-item>
+                        <el-form-item label="录制开始时间" label-width="120px">
+                            <el-time-picker v-model="addForm.StartTime" :disabled="disableAddRecord">
+                        </el-form-item>
+                        <el-form-item label="录制结束时间" label-width="120px">
+                            <el-time-picker v-model="addForm.EndTime" :disabled="disableAddRecord">
+                        </el-form-item>
+                        <el-form-item>
+                            <el-switch v-model="addForm.AutoRecord" active-color="#13ce66" inactive-color="#ff4949"
+                                active-text="自动录制" inactive-text="仅监控" />
+                        </el-form-item>
+                        <el-form-item>
+                            <el-switch v-model="addForm.AutoUpload" disabled active-color="#13ce66"
+                                inactive-color="#ff4949" active-text="自动上传" inactive-text="禁止上传" />
+                        </el-form-item>
+                    </el-form>
+                    <div class="drawer-footer">
+                        <el-button-group>
+                            <el-button icon="el-icon-circle-close" @click="addFormVisible = false">取消</el-button>
+                            <el-button icon="el-icon-circle-check" type="primary" @click="addOnSubmit">确定</el-button>
+                        </el-button-group>
                     </div>
                 </el-drawer>
             </el-container>

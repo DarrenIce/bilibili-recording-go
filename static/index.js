@@ -1,6 +1,38 @@
 const { defineComponent, ref, toRefs, reactive } = Vue;
 const { ElNotification } = ElementPlus;
 
+function RoomConfigInfo(room) {
+  if (typeof room == "string") {
+    this.RoomID = room
+    this.RecordMode = false
+    this.StartTime = new Date()
+    this.EndTime = new Date()
+    this.AutoRecord = true
+    this.AutoUpload = false
+    this.NeedM4a = true
+    this.Mp4Compress = true
+    this.DivideByTitle = false
+    this.CleanUpRegular = false
+    this.SaveDuration = "7d"
+    this.AreaLock = false
+    this.AreaLimit = "放松电台"
+  } else {
+    this.RoomID = room.RoomID
+    this.RecordMode = room.RecordMode
+    this.StartTime = date2string(room.StartTime)
+    this.EndTime = date2string(room.EndTime)
+    this.AutoRecord = room.AutoRecord
+    this.AutoUpload = room.AutoUpload
+    this.NeedM4a = room.NeedM4a
+    this.Mp4Compress = room.Mp4Compress
+    this.DivideByTitle = room.DivideByTitle
+    this.CleanUpRegular = room.CleanUpRegular
+    this.SaveDuration = room.SaveDuration
+    this.AreaLock = room.AreaLock
+    this.AreaLimit = room.AreaLimit
+  }
+}
+
 let Main = {
   setup() {
     const state = reactive({
@@ -31,15 +63,11 @@ let Main = {
       totalDownload: '',
       fileNum: 0,
       editFormVisible: false,
-      form: {
-        RoomID: '123',
-        RecordMode: false,
-        StartTime: new Date(),
-        EndTime: new Date(),
-        AutoRecord: true,
-        AutoUpload: false,
-      },
       disabledRecord: false,
+      addFormVisible: false,
+      disableAddRecord: false,
+      form: new RoomConfigInfo(""),
+      addForm: new RoomConfigInfo(""),
     }
   },
   mounted() {
@@ -118,27 +146,35 @@ let Main = {
       }
     },
     handleDelete(row) {
-      console.log(row)
       ElNotification({
         title: '成功',
         message: '删除房间成功',
         type: 'success'
       })
       console.log('Delete!')
+      console.log(row)
       $.ajax({
         type: "POST",
         url: "/room-handle",
         dataType: "json",
         data: JSON.stringify({
           handle: "delete",
-          data: {
-            RoomID: vm.form.RoomID,
-            RecordMode: vm.form.RecordMode,
-            StartTime: date2string(vm.form.StartTime),
-            EndTime: date2string(vm.form.EndTime),
-            AutoRecord: row.AutoRecord == 'true' ? true : false,
-            AutoUpload: row.AutoUpload == 'true' ? true : false,
-          },
+          data: new RoomConfigInfo(vm.form)
+          // data: {
+          //   RoomID: vm.form.RoomID,
+          //   RecordMode: vm.form.RecordMode,
+          //   StartTime: date2string(vm.form.StartTime),
+          //   EndTime: date2string(vm.form.EndTime),
+          //   AutoRecord: vm.form.AutoRecord,
+          //   AutoUpload: vm.form.AutoUpload,
+          //   NeedM4a: vm.form.NeedM4a,
+          //   Mp4Compress: vm.form.Mp4Compress,
+          //   DivideByTitle: vm.form.DivideByTitle,
+          //   CleanUpRegular: vm.form.CleanUpRegular,
+          //   SaveDuration: vm.form.SaveDuration,
+          //   AreaLock: vm.form.AreaLock,
+          //   AreaLimit: vm.form.AreaLimit
+          // },
         }),
         headers: {
           "Content-Type": "application/json"
@@ -154,11 +190,18 @@ let Main = {
       vm.editFormVisible = true
       vm.form = {
         RoomID: row.RoomID,
-        RecordMode: false,
+        RecordMode: row.RecordMode,
         StartTime: new Date(2021, 9, 29, row.StartTime.slice(0, 2), row.StartTime.slice(2, 4), row.StartTime.slice(4, 6)),
         EndTime: new Date(2021, 9, 29, row.EndTime.slice(0, 2), row.EndTime.slice(2, 4), row.EndTime.slice(4, 6)),
-        AutoRecord: row.AutoRecord == 'true' ? true : false,
-        AutoUpload: row.AutoUpload == 'true' ? true : false,
+        AutoRecord: row.AutoRecord,
+        AutoUpload: row.AutoUpload,
+        NeedM4a: row.NeedM4a,
+        Mp4Compress: row.Mp4Compress,
+        DivideByTitle: row.DivideByTitle,
+        CleanUpRegular: row.CleanUpRegular,
+        SaveDuration: row.SaveDuration,
+        AreaLock: row.AreaLock,
+        AreaLimit: row.AreaLimit
       }
       let r = {}
       for (let key in vm.tableData) {
@@ -178,7 +221,7 @@ let Main = {
         State: r.State,
         StartTime: r.StartTime,
         EndTime: r.EndTime,
-        RecordMode: false,
+        RecordMode: r.RecordMode,
         RecordStartTime: r.RecordStartTime,
         RecordEndTime: r.RecordEndTime,
         DecodeStartTime: r.DecodeStartTime,
@@ -189,32 +232,51 @@ let Main = {
         RecordTime: getTimeMiuns(r.RecordStartTime, r.RecordEndTime),
         DecodeTime: getTimeMiuns(r.DecodeStartTime, r.DecodeEndTime),
         UploadTime: getTimeMiuns(r.UploadStartTime, r.UploadEndTime),
+        NeedM4a: r.NeedM4a,
+        Mp4Compress: r.Mp4Compress,
+        DivideByTitle: r.DivideByTitle,
+        CleanUpRegular: r.CleanUpRegular,
+        SaveDuration: r.SaveDuration,
+        AreaLock: r.AreaLock,
+        AreaLimit: r.AreaLimit
       }
       console.log(vm.room)
     },
     onSubmit() {
       this.editFormVisible = false
-      console.log(vm.form)
       ElNotification({
         title: '成功',
         message: '编辑房间成功',
         type: 'success'
       })
       console.log('submit!')
+      console.log(vm.form)
       // TODO: Ajax回传给go处理
       $.ajax({
         type: "POST",
         url: "/room-handle",
-        data: {
+        dataType: "json",
+        data: JSON.stringify({
           handle: "edit",
-          data: {
-            RoomID: vm.form.RoomID,
-            RecordMode: vm.form.RecordMode,
-            StartTime: date2string(vm.form.StartTime),
-            EndTime: date2string(vm.form.EndTime),
-            AutoRecord: row.AutoRecord == 'true' ? true : false,
-            AutoUpload: row.AutoUpload == 'true' ? true : false,
-          },
+          data: new RoomConfigInfo(vm.form)
+          // data: {
+          //   RoomID: vm.form.RoomID,
+          //   RecordMode: vm.form.RecordMode,
+          //   StartTime: date2string(vm.form.StartTime),
+          //   EndTime: date2string(vm.form.EndTime),
+          //   AutoRecord: vm.form.AutoRecord,
+          //   AutoUpload: vm.form.AutoUpload,
+          //   NeedM4a: vm.form.NeedM4a,
+          //   Mp4Compress: vm.form.Mp4Compress,
+          //   DivideByTitle: vm.form.DivideByTitle,
+          //   CleanUpRegular: vm.form.CleanUpRegular,
+          //   SaveDuration: vm.form.SaveDuration,
+          //   AreaLock: vm.form.AreaLock,
+          //   AreaLimit: vm.form.AreaLimit
+          // },
+        }),
+        headers: {
+          "Content-Type": "application/json"
         },
         success: function (msg) {
           console.log(msg)
@@ -223,6 +285,74 @@ let Main = {
     },
     changeRecordTimeText(recordMode) {
       this.disabledRecord = recordMode
+    },
+    changeAddRecordTimeText(recordMode) {
+      this.disableAddRecord = recordMode
+    },
+    addRoom() {
+      console.log('addRoom')
+      this.addFormVisible = true
+    },
+    roomID2Url(roomID) {
+      return "https://live.bilibili.com/" + roomID
+    },
+    addOnSubmit() {
+      this.addFormVisible = false
+      ElNotification({
+        title: '成功',
+        message: '添加房间成功',
+        type: 'success'
+      })
+      console.log('addSubmit!')
+      console.log(
+        new RoomConfigInfo(vm.addForm)
+      //   {
+      //   RoomID: vm.addForm.RoomID,
+      //   RecordMode: vm.addForm.RecordMode,
+      //   StartTime: date2string(vm.addForm.StartTime),
+      //   EndTime: date2string(vm.addForm.EndTime),
+      //   AutoRecord: vm.addForm.AutoRecord,
+      //   AutoUpload: vm.addForm.AutoUpload,
+      //   NeedM4a: vm.addForm.NeedM4a,
+      //   Mp4Compress: vm.addForm.Mp4Compress,
+      //   DivideByTitle: vm.addForm.DivideByTitle,
+      //   CleanUpRegular: vm.addForm.CleanUpRegular,
+      //   SaveDuration: vm.addForm.SaveDuration,
+      //   AreaLock: vm.addForm.AreaLock,
+      //   AreaLimit: vm.addForm.AreaLimit
+      // }
+      )
+      // TODO: Ajax回传给go处理
+      $.ajax({
+        type: "POST",
+        url: "/room-handle",
+        dataType: "json",
+        data: JSON.stringify({
+          handle: "add",
+          data: new RoomConfigInfo(vm.addForm),
+          // data: {
+          //   RoomID: vm.addForm.RoomID,
+          //   RecordMode: vm.addForm.RecordMode,
+          //   StartTime: date2string(vm.addForm.StartTime),
+          //   EndTime: date2string(vm.addForm.EndTime),
+          //   AutoRecord: vm.addForm.AutoRecord,
+          //   AutoUpload: vm.addForm.AutoUpload,
+          //   NeedM4a: vm.addForm.NeedM4a,
+          //   Mp4Compress: vm.addForm.Mp4Compress,
+          //   DivideByTitle: vm.addForm.DivideByTitle,
+          //   CleanUpRegular: vm.addForm.CleanUpRegular,
+          //   SaveDuration: vm.addForm.SaveDuration,
+          //   AreaLock: vm.addForm.AreaLock,
+          //   AreaLimit: vm.addForm.AreaLimit
+          // },
+        }),
+        headers: {
+          "Content-Type": "application/json"
+        },
+        success: function (msg) {
+          console.log(msg)
+        }
+      })
     },
     test(scope) {
       console.log(scope)
@@ -243,7 +373,7 @@ function getLowFrqData() {
     url: "/live-info",
     data: {},
     success: function (msg) {
-      // console.log(vm.tableData)
+      console.log(msg)
       // TODO: 扩展接口，获取其他信息
       let recording = 0;
       for (let key in msg) {
@@ -259,13 +389,22 @@ function getLowFrqData() {
           State: msg[key].State,
           StartTime: msg[key].StartTime,
           EndTime: msg[key].EndTime,
-          RecordMode: false,
+          RecordMode: msg[key].RecordMode,
+          AutoRecord: msg[key].AutoRecord,
+          AutoUpload: msg[key].AutoUpload,
           RecordStartTime: msg[key].RecordStartTime,
           RecordEndTime: msg[key].RecordEndTime,
           DecodeStartTime: msg[key].DecodeStartTime,
           DecodeEndTime: msg[key].DecodeEndTime,
           UploadStartTime: msg[key].UploadStartTime,
           UploadEndTime: msg[key].UploadEndTime,
+          NeedM4a: msg[key].NeedM4a,
+          Mp4Compress: msg[key].Mp4Compress,
+          DivideByTitle: msg[key].DivideByTitle,
+          CleanUpRegular: msg[key].CleanUpRegular,
+          SaveDuration: msg[key].SaveDuration,
+          AreaLock: msg[key].AreaLock,
+          AreaLimit: msg[key].AreaLimit,
         }
         if (item.State == 3) {
           recording++

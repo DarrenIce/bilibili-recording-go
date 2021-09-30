@@ -11,19 +11,15 @@ record:
 live:
   "2603963":              # 房间号
     roomID: "2603963"     # 房间号
+    recordMode: false     # 录制模式 false时只在指定时间段录制，true则全天都会监控录制
     startTime: "230000"   # 开始录制时间
     endTime: "020000"     # 停止录制时间
     autorecord: true      # 是否自动录制
     autoupload: false     # 是否自动上传
-  "13328782":
-    roomID: "13328782"
-    startTime: "0"
-    endTime: "0"
-    autorecord: true
-    autoupload: false
-  "22554425":
-    roomID: "22554425"
-    startTime: "0"
-    endTime: "0"
-    autorecord: true
-    autoupload: false
+    needM4a: true         # 是否导出音轨
+    mp4Compress: true     # 录像质量是否压缩
+    divideByTitle: false  # 当天录像是否按标题分P
+    cleanUpRegular: false # 是否定期清理(tmp目录和录像)
+    saveDuration: 7d      # 保留时间(h - hour, d - day)
+    areaLock: false       # 分区锁定，是否只录制某个分区下的直播
+    areaLimit: "放松电台" # 锁定的分区，请确保分区名准确无误 
