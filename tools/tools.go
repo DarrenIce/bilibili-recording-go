@@ -17,6 +17,10 @@ import (
 	"github.com/asmcos/requests"
 	"github.com/kataras/golog"
 	"github.com/tidwall/gjson"
+	"github.com/shirou/gopsutil/cpu"
+	"github.com/shirou/gopsutil/disk"
+	"github.com/shirou/gopsutil/mem"
+	"github.com/shirou/gopsutil/net"
 
 	"bilibili-recording-go/config"
 )
@@ -24,6 +28,11 @@ import (
 const (
 	contentType     = "Content-Type"
 	contentTypeJSON = "application/json"
+)
+
+var (
+	lastBytesSent uint64 = 0
+	lastBytesRecv uint64 = 0
 )
 
 // Exists 检测文件或文件夹是否存在
@@ -278,4 +287,37 @@ func CacRecordingFileNum() int64 {
 		}
 	}
 	return int64(fileNum)
+}
+
+type DeviceInfo struct {
+	TotalCpuUsage	float64
+	PerCpuUsage		[]float64
+	MemUsage		uint64
+	MemTotal		uint64
+	DiskName		string
+	DiskUsage		uint64
+	DiskTotal		uint64
+	NetUpPerSec		uint64
+	NetDownPerSec	uint64
+}
+
+func GetDeviceInfo() (deviceInfo DeviceInfo) {
+	percent, _ := cpu.Percent(time.Second, true)
+	deviceInfo.PerCpuUsage = percent
+	percent, _ = cpu.Percent(time.Second, false)
+	deviceInfo.TotalCpuUsage = percent[0]
+	mem, _ := mem.VirtualMemory()
+	deviceInfo.MemUsage = mem.Used
+	deviceInfo.MemTotal = mem.Total
+	nett, _ := net.IOCounters(false)
+	deviceInfo.NetUpPerSec = nett[0].BytesSent - lastBytesSent
+	lastBytesSent = nett[0].BytesSent
+	deviceInfo.NetDownPerSec = nett[0].BytesRecv - lastBytesRecv
+	lastBytesRecv = nett[0].BytesRecv
+	pwd, _ := os.Getwd()
+	disk, _ := disk.Usage(fmt.Sprint(strings.Split(pwd, "\\")[0], "\\"))
+	deviceInfo.DiskName = strings.Split(pwd, "\\")[0]
+	deviceInfo.DiskUsage = disk.Used
+	deviceInfo.DiskTotal = disk.Total
+	return deviceInfo
 }

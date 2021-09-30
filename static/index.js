@@ -1,18 +1,33 @@
-const { defineComponent, ref } = Vue;
+const { defineComponent, ref, toRefs, reactive } = Vue;
 const { ElNotification } = ElementPlus;
 
 let Main = {
+  setup(){
+    const state = reactive({
+      colors: [
+        { color: '#5cb87a', percentage: 20 },
+        { color: '#1989fa', percentage: 40 },
+        { color: '#6f7ad3', percentage: 60 },
+        { color: '#e6a23c', percentage: 80 },
+        { color: '#f56c6c', percentage: 100 },
+      ],
+    })
+    return toRefs(state)
+  },
   data() {
     return {
       tableData: [],
       recordCount: 0,
-      cpu: '10%',
-      memoryUsage: '7.9G',
-      memoryTotal: '16G',
+      cpuPct: 0.0,
+      memoryUsage: 0.0,
+      memoryTotal: 0.0,
+      memoryPct: 0.0,
       uploadSpeed: '15.6K/s↑',
       downloadSpeed: '1.3M/s↓',
-      diskUsage: '234G',
-      diskTotal: '500G',
+      diskName: '',
+      diskUsage: 0.0,
+      diskTotal: 0.0,
+      diskPct: 0.0,
       totalDownload: '',
       fileNum: 0,
       editFormVisible: false,
@@ -84,6 +99,24 @@ let Main = {
         return '停止监听'
       }
     },
+    status2Type(status) {
+      if (status == 0) {
+        return
+      } else if (status == 1) {
+        return 'success'
+      } else if (status == 2) {
+        return 'warning'
+      }
+    },
+    status2Name(status) {
+      if (status == 0) {
+        return '未开播'
+      } else if (status == 1) {
+        return '直播中'
+      } else if (status == 2) {
+        return '录播中'
+      }
+    },
     handleDelete(index, row) {
       console.log(row)
       ElNotification({
@@ -104,13 +137,33 @@ let Main = {
       }
       console.log(vm.form)
     },
+    handleOpen(index, row) {
+      console.log(row)
+      vm.editFormVisible = true
+      vm.form = {
+        RoomID: row.RoomID,
+        RecordMode: false,
+        StartTime: new Date(2021,9,29,row.StartTime.slice(0,2), row.StartTime.slice(2,4), row.StartTime.slice(4,6)),
+        EndTime: new Date(2021,9,29,row.EndTime.slice(0,2), row.EndTime.slice(2,4), row.EndTime.slice(4,6)),
+        AutoRecord: row.AutoRecord,
+        AutoUpload: row.AutoUpload,
+      }
+    },
     onSubmit() {
       this.editFormVisible = false
+      ElNotification({
+        title: '成功',
+        message: '编辑房间成功',
+        type: 'success'
+      })
       console.log('submit!')
       // TODO: Ajax回传给go处理
     },
     changeRecordTimeText(recordMode) {
       this.disabledRecord = recordMode
+    },
+    test(scope) {
+      console.log(scope)
     }
   }
 };
@@ -186,8 +239,18 @@ function getHighFrqData() {
     url: "/base-info",
     data: {},
     success: function(msg) {
-      vm.totalDownload = getReadableFileSizeString(msg.TotalDownload)
+      vm.totalDownload = getReadableSizeString(msg.TotalDownload)
       vm.fileNum = msg.FileNum
+      vm.cpuPct = parseFloat(msg.DeviceInfo.TotalCpuUsage.toFixed(2))
+      vm.memoryUsage = getReadableSizeString(msg.DeviceInfo.MemUsage)
+      vm.memoryTotal = getReadableSizeString(msg.DeviceInfo.MemTotal)
+      vm.memoryPct = parseFloat((msg.DeviceInfo.MemUsage * 100 / msg.DeviceInfo.MemTotal).toFixed(2))
+      vm.diskUsage = getReadableSizeString(msg.DeviceInfo.DiskUsage)
+      vm.diskTotal = getReadableSizeString(msg.DeviceInfo.DiskTotal)
+      vm.diskName = msg.DeviceInfo.DiskName
+      vm.diskPct = parseFloat((msg.DeviceInfo.DiskUsage * 100 / msg.DeviceInfo.DiskTotal).toFixed(2))
+      vm.uploadSpeed = getReadableSizeString(msg.DeviceInfo.NetUpPerSec) + "/s👆"
+      vm.downloadSpeed = getReadableSizeString(msg.DeviceInfo.NetDownPerSec) + "/s👇"
     }
   })
 }
@@ -213,15 +276,16 @@ function getTimeMiuns(st, et) {
   return `${day}天 ${hour}时 ${minute}分 ${second} 秒`
 }
 
-function getReadableFileSizeString(fileSizeInBytes) {
+function getReadableSizeString(fileSizeInBytes) {
   var i = -1;
-  var byteUnits = [' kB', ' MB', ' GB', ' TB', 'PB', 'EB', 'ZB', 'YB'];
+  var byteUnits = [' K', ' M', ' G', ' T', 'P', 'E', 'Z', 'Y'];
   do {
       fileSizeInBytes = fileSizeInBytes / 1024;
       i++;
   } while (fileSizeInBytes > 1024);
 
-  return Math.max(fileSizeInBytes, 0.1).toFixed(2) + byteUnits[i];
+  return Math.max(fileSizeInBytes, 0.1).toFixed(1) + byteUnits[i];
 };
 
 getLowFrqData()
+getHighFrqData()

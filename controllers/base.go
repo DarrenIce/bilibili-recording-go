@@ -17,10 +17,11 @@ func (c *BaseController) Post() {
 	c.Data["json"] = struct {
 		TotalDownload	int64
 		FileNum			int64
-
+		DeviceInfo		tools.DeviceInfo
 	} {
 		tools.DirSize("./recording", 0),
 		tools.CacRecordingFileNum(),
+		tools.GetDeviceInfo(),
 	}
 	c.ServeJSON()
 }
