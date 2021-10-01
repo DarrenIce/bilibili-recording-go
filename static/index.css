@@ -39,11 +39,6 @@
 
 .warning-row {
     background-color: #faecd8;
-    /* background-color: #f56c6c;
-    background-color: #e6a23c;
-    background-color: #5cb87a;
-    background-color: #1989fa;
-    background-color: #6f7ad3; */
 }
 
 .info-radius {
@@ -57,7 +52,6 @@
 
 .el-drawer__body {
     overflow: auto;
-    /* overflow-x: auto; */
 }
  
 .el-drawer__container ::-webkit-scrollbar{

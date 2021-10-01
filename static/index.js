@@ -54,8 +54,8 @@ let Main = {
       memoryUsage: 0.0,
       memoryTotal: 0.0,
       memoryPct: 0.0,
-      uploadSpeed: '0K/s👆',
-      downloadSpeed: '0K/s👇',
+      uploadSpeed: '上行👆: 0K/s',
+      downloadSpeed: '下行👇: 0K/s',
       diskName: '',
       diskUsage: 0.0,
       diskTotal: 0.0,
@@ -160,21 +160,6 @@ let Main = {
         data: JSON.stringify({
           handle: "delete",
           data: new RoomConfigInfo(vm.form)
-          // data: {
-          //   RoomID: vm.form.RoomID,
-          //   RecordMode: vm.form.RecordMode,
-          //   StartTime: date2string(vm.form.StartTime),
-          //   EndTime: date2string(vm.form.EndTime),
-          //   AutoRecord: vm.form.AutoRecord,
-          //   AutoUpload: vm.form.AutoUpload,
-          //   NeedM4a: vm.form.NeedM4a,
-          //   Mp4Compress: vm.form.Mp4Compress,
-          //   DivideByTitle: vm.form.DivideByTitle,
-          //   CleanUpRegular: vm.form.CleanUpRegular,
-          //   SaveDuration: vm.form.SaveDuration,
-          //   AreaLock: vm.form.AreaLock,
-          //   AreaLimit: vm.form.AreaLimit
-          // },
         }),
         headers: {
           "Content-Type": "application/json"
@@ -259,21 +244,6 @@ let Main = {
         data: JSON.stringify({
           handle: "edit",
           data: new RoomConfigInfo(vm.form)
-          // data: {
-          //   RoomID: vm.form.RoomID,
-          //   RecordMode: vm.form.RecordMode,
-          //   StartTime: date2string(vm.form.StartTime),
-          //   EndTime: date2string(vm.form.EndTime),
-          //   AutoRecord: vm.form.AutoRecord,
-          //   AutoUpload: vm.form.AutoUpload,
-          //   NeedM4a: vm.form.NeedM4a,
-          //   Mp4Compress: vm.form.Mp4Compress,
-          //   DivideByTitle: vm.form.DivideByTitle,
-          //   CleanUpRegular: vm.form.CleanUpRegular,
-          //   SaveDuration: vm.form.SaveDuration,
-          //   AreaLock: vm.form.AreaLock,
-          //   AreaLimit: vm.form.AreaLimit
-          // },
         }),
         headers: {
           "Content-Type": "application/json"
@@ -306,21 +276,6 @@ let Main = {
       console.log('addSubmit!')
       console.log(
         new RoomConfigInfo(vm.addForm)
-      //   {
-      //   RoomID: vm.addForm.RoomID,
-      //   RecordMode: vm.addForm.RecordMode,
-      //   StartTime: date2string(vm.addForm.StartTime),
-      //   EndTime: date2string(vm.addForm.EndTime),
-      //   AutoRecord: vm.addForm.AutoRecord,
-      //   AutoUpload: vm.addForm.AutoUpload,
-      //   NeedM4a: vm.addForm.NeedM4a,
-      //   Mp4Compress: vm.addForm.Mp4Compress,
-      //   DivideByTitle: vm.addForm.DivideByTitle,
-      //   CleanUpRegular: vm.addForm.CleanUpRegular,
-      //   SaveDuration: vm.addForm.SaveDuration,
-      //   AreaLock: vm.addForm.AreaLock,
-      //   AreaLimit: vm.addForm.AreaLimit
-      // }
       )
       // TODO: Ajax回传给go处理
       $.ajax({
@@ -330,21 +285,6 @@ let Main = {
         data: JSON.stringify({
           handle: "add",
           data: new RoomConfigInfo(vm.addForm),
-          // data: {
-          //   RoomID: vm.addForm.RoomID,
-          //   RecordMode: vm.addForm.RecordMode,
-          //   StartTime: date2string(vm.addForm.StartTime),
-          //   EndTime: date2string(vm.addForm.EndTime),
-          //   AutoRecord: vm.addForm.AutoRecord,
-          //   AutoUpload: vm.addForm.AutoUpload,
-          //   NeedM4a: vm.addForm.NeedM4a,
-          //   Mp4Compress: vm.addForm.Mp4Compress,
-          //   DivideByTitle: vm.addForm.DivideByTitle,
-          //   CleanUpRegular: vm.addForm.CleanUpRegular,
-          //   SaveDuration: vm.addForm.SaveDuration,
-          //   AreaLock: vm.addForm.AreaLock,
-          //   AreaLimit: vm.addForm.AreaLimit
-          // },
         }),
         headers: {
           "Content-Type": "application/json"
@@ -373,8 +313,7 @@ function getLowFrqData() {
     url: "/live-info",
     data: {},
     success: function (msg) {
-      console.log(msg)
-      // TODO: 扩展接口，获取其他信息
+      // console.log(msg)
       let recording = 0;
       for (let key in msg) {
         let date = new Date(parseInt(msg[key].LiveStartTime) * 1000);
@@ -446,8 +385,8 @@ function getHighFrqData() {
       vm.diskTotal = getReadableSizeString(msg.DeviceInfo.DiskTotal)
       vm.diskName = msg.DeviceInfo.DiskName
       vm.diskPct = parseFloat((msg.DeviceInfo.DiskUsage * 100 / msg.DeviceInfo.DiskTotal).toFixed(2))
-      vm.uploadSpeed = getReadableSizeString(msg.DeviceInfo.NetUpPerSec) + "/s👆"
-      vm.downloadSpeed = getReadableSizeString(msg.DeviceInfo.NetDownPerSec) + "/s👇"
+      vm.uploadSpeed = '上行👆: ' + getReadableSizeString(msg.DeviceInfo.NetUpPerSec) + "/s"
+      vm.downloadSpeed = '下行👇: ' + getReadableSizeString(msg.DeviceInfo.NetDownPerSec) + "/s"
     }
   })
 }
