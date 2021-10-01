@@ -16,7 +16,6 @@ import (
 	"bilibili-recording-go/config"
 	"bilibili-recording-go/live"
 	_ "bilibili-recording-go/routers"
-	"bilibili-recording-go/server"
 	"bilibili-recording-go/tools"
 )
 
@@ -117,8 +116,6 @@ func main() {
 	for _, v := range c.Conf.Live {
 		live.AddRoom(v.RoomID)
 	}
-	server := server.New()
-	server.Start()
 
 	// time.Sleep(60 * time.Second)
 	// liver.ManualUpload()

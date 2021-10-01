@@ -18,7 +18,6 @@ type RecordConfig struct {
 	Proxy     	string	`yaml:"proxy"`
 	NeedBdPan	bool	`yaml:"needBdPan"`
 	UploadTime	string	`yaml:"uploadTime"`
-	ApiAddr		string	`yaml:"apiAddr"`
 }
 
 // RoomConfigInfo room config info
