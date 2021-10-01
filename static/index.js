@@ -146,11 +146,6 @@ let Main = {
       }
     },
     handleDelete(row) {
-      ElNotification({
-        title: '成功',
-        message: '删除房间成功',
-        type: 'success'
-      })
       console.log('Delete!')
       console.log(row)
       $.ajax({
@@ -165,7 +160,26 @@ let Main = {
           "Content-Type": "application/json"
         },
         success: function (msg) {
-          console.log(msg)
+          if (msg.msg) {
+            ElNotification({
+              title: '成功',
+              message: '删除房间成功',
+              type: 'success'
+            })
+          } else {
+            ElNotification({
+              title: '失败',
+              message: '删除房间失败',
+              type: 'error'
+            })
+          }
+        },
+        error: function (XMLHttpRequest, textStatus, errorThrown) {
+          ElNotification({
+            title: '失败',
+            message: '删除房间失败',
+            type: 'error'
+          })
         }
       })
       this.editFormVisible = false
@@ -229,14 +243,8 @@ let Main = {
     },
     onSubmit() {
       this.editFormVisible = false
-      ElNotification({
-        title: '成功',
-        message: '编辑房间成功',
-        type: 'success'
-      })
       console.log('submit!')
       console.log(vm.form)
-      // TODO: Ajax回传给go处理
       $.ajax({
         type: "POST",
         url: "/room-handle",
@@ -249,7 +257,26 @@ let Main = {
           "Content-Type": "application/json"
         },
         success: function (msg) {
-          console.log(msg)
+          if (msg.msg) {
+            ElNotification({
+              title: '成功',
+              message: '编辑房间成功',
+              type: 'success'
+            })
+          } else {
+            ElNotification({
+              title: '失败',
+              message: '编辑房间失败',
+              type: 'error'
+            })
+          }
+        },
+        error: function (XMLHttpRequest, textStatus, errorThrown) {
+          ElNotification({
+            title: '失败',
+            message: '编辑房间失败',
+            type: 'error'
+          })
         }
       })
     },
@@ -268,16 +295,10 @@ let Main = {
     },
     addOnSubmit() {
       this.addFormVisible = false
-      ElNotification({
-        title: '成功',
-        message: '添加房间成功',
-        type: 'success'
-      })
       console.log('addSubmit!')
       console.log(
         new RoomConfigInfo(vm.addForm)
       )
-      // TODO: Ajax回传给go处理
       $.ajax({
         type: "POST",
         url: "/room-handle",
@@ -290,7 +311,26 @@ let Main = {
           "Content-Type": "application/json"
         },
         success: function (msg) {
-          console.log(msg)
+          if (msg.msg) {
+            ElNotification({
+              title: '成功',
+              message: '添加房间成功',
+              type: 'success'
+            })
+          } else {
+            ElNotification({
+              title: '失败',
+              message: '添加房间失败',
+              type: 'error'
+            })
+          }
+        },
+        error: function (XMLHttpRequest, textStatus, errorThrown) {
+          ElNotification({
+            title: '失败',
+            message: '添加房间失败',
+            type: 'error'
+          })
         }
       })
     },

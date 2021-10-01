@@ -102,7 +102,7 @@ func (r *Live) run() {
 			return
 		default:
 			r.St, r.Et = tools.MkDuration(r.StartTime, r.EndTime)
-			if r.State == running && tools.JudgeInDuration(r.St, r.Et) {
+			if r.State == running && tools.JudgeInDuration(r.St, r.Et) && r.AutoRecord {
 				time.Sleep(5 * time.Second)
 			} else if r.judgeLive() && tools.JudgeInDuration(r.St, r.Et) && r.AutoRecord {
 				if r.State == start || r.State == restart {
@@ -127,6 +127,9 @@ func (r *Live) run() {
 				} else {
 					time.Sleep(5 * time.Second)
 				}
+			} else if !r.AutoRecord && r.State == running {
+				r.downloadCmd.Process.Kill()
+				atomic.CompareAndSwapUint32(&r.State, running, start)
 			} else {
 				time.Sleep(5 * time.Second)
 			}

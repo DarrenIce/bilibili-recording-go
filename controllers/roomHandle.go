@@ -1,14 +1,16 @@
 package controllers
 
 import (
-	// "bilibili-recording-go/live"
-	// "bilibili-recording-go/config"
-	"bilibili-recording-go/tools"
 	"encoding/json"
 	"fmt"
+	"strings"
+
+	"bilibili-recording-go/config"
+	"bilibili-recording-go/live"
+	"bilibili-recording-go/tools"
 
 	beego "github.com/beego/beego/v2/server/web"
-	// "github.com/kataras/golog"
+	"github.com/kataras/golog"
 )
 
 type RoomHandleController struct {
@@ -37,14 +39,10 @@ type roomInfo struct {
 }
 
 func (c *RoomHandleController) Post() {
-	// golog.Info("Http Post at index.html")
-	// c.Data["json"] = live.Lives
-	// c.ServeJSON()
 	fmt.Println(tools.BytesToStringFast(c.Ctx.Input.RequestBody))
 	info := new(receiveInfo)
 	json.Unmarshal(c.Ctx.Input.RequestBody, info)
 	fmt.Println(info)
-	//TODO: 房间的编辑删除增加逻辑
 	if info.Handle == "add" {
 		c.Data["json"] = &struct {
 			Msg bool `json:"msg"`
@@ -68,29 +66,63 @@ func (c *RoomHandleController) Post() {
 }
 
 func addRoom(info roomInfo) bool {
-	// c := config.New()
-	// c.AddRoom(config.RoomConfigInfo{
-	// 	RoomID:         info.RoomID,
-	// 	StartTime:      info.StartTime,
-	// 	EndTime:        info.EndTime,
-	// 	AutoRecord:     info.AutoRecord,
-	// 	AutoUpload:     info.AutoUpload,
-	// 	RecordMode:     info.RecordMode,
-	// 	NeedM4a:        info.NeedM4a,
-	// 	Mp4Compress:    info.Mp4Compress,
-	// 	DivideByTitle:  info.DivideByTitle,
-	// 	CleanUpRegular: info.CleanUpRegular,
-	// 	SaveDuration:   info.SaveDuration,
-	// 	AreaLock:       info.AreaLock,
-	// 	AreaLimit:      info.AreaLimit,
-	// })
+	c := config.New()
+	c.AddRoom(config.RoomConfigInfo{
+		RoomID:         info.RoomID,
+		StartTime:      formatTime(info.StartTime),
+		EndTime:        formatTime(info.EndTime),
+		AutoRecord:     info.AutoRecord,
+		AutoUpload:     info.AutoUpload,
+		RecordMode:     info.RecordMode,
+		NeedM4a:        info.NeedM4a,
+		Mp4Compress:    info.Mp4Compress,
+		DivideByTitle:  info.DivideByTitle,
+		CleanUpRegular: info.CleanUpRegular,
+		SaveDuration:   info.SaveDuration,
+		AreaLock:       info.AreaLock,
+		AreaLimit:      info.AreaLimit,
+	})
+	live.AddRoom(info.RoomID)
+	if err := c.Marshal(); err != nil {
+		golog.Error(err)
+		return false
+	}
 	return true
 }
 
 func editRoom(info roomInfo) bool {
+	roominfo := config.RoomConfigInfo{
+		RoomID:         info.RoomID,
+		StartTime:      formatTime(info.StartTime),
+		EndTime:        formatTime(info.EndTime),
+		AutoRecord:     info.AutoRecord,
+		AutoUpload:     info.AutoUpload,
+		RecordMode:     info.RecordMode,
+		NeedM4a:        info.NeedM4a,
+		Mp4Compress:    info.Mp4Compress,
+		DivideByTitle:  info.DivideByTitle,
+		CleanUpRegular: info.CleanUpRegular,
+		SaveDuration:   info.SaveDuration,
+		AreaLock:       info.AreaLock,
+		AreaLimit:      info.AreaLimit,
+	}
+	c := config.New()
+	c.EditRoom(roominfo)
+	live.Lives[info.RoomID].UpadteFromConfig(roominfo)
 	return true
 }
 
 func deleteRoom(info roomInfo) bool {
+	c := config.New()
+	c.DeleteRoom(info.RoomID)
+	live.DeleteRoom(info.RoomID)
+	if err := c.Marshal(); err != nil {
+		golog.Error(err)
+		return false
+	}
 	return true
+}
+
+func formatTime(time string) string {
+	return strings.Join(strings.Split(strings.Split(time, " ")[1], ":"), "")
 }

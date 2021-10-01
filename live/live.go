@@ -201,11 +201,7 @@ func (l *Live) UpadteFromConfig(v config.RoomConfigInfo) {
 	LmapLock.Lock()
 	defer LmapLock.Unlock()
 	defer l.lock.Unlock()
-	l.RoomID = v.RoomID
-	l.StartTime = v.StartTime
-	l.EndTime = v.EndTime
-	l.AutoRecord = v.AutoRecord
-	l.AutoUpload = v.AutoUpload
+	l.RoomConfigInfo = v
 }
 
 func flushLiveStatus() {

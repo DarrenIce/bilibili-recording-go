@@ -106,3 +106,12 @@ func (c *Config) DeleteRoom(roomID string) {
 		delete(c.Conf.Live, roomID)
 	}
 }
+
+func (c *Config) EditRoom(roomInfo RoomConfigInfo) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	_, ok := c.Conf.Live[roomInfo.RoomID]
+	if ok {
+		c.Conf.Live[roomInfo.RoomID] = roomInfo
+	}
+}
