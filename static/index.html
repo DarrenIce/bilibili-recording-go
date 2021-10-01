@@ -32,47 +32,6 @@
             <el-container>
                 <el-main>
                     <el-space wrap>
-                        <!-- <div class="radius info-radius"
-                            style="border-radius: var(--el-border-radius-base); box-shadow: var(--el-box-shadow-base);">
-                            <div class="radius-title">
-                                录制状态
-                                <i class="el-icon-warning-outline"></i>
-                            </div>
-                            <el-space wrap>
-                                <el-card class="box-card">
-                                    <template #header>
-                                        <div class="card-header">
-                                            <span>监听房间数</span>
-                                        </div>
-                                    </template>
-                                    <div class="text item">{{ tableData.length }}</div>
-                                </el-card>
-                                <el-card class="box-card">
-                                    <template #header>
-                                        <div class="card-header">
-                                            <span>正在录制</span>
-                                        </div>
-                                    </template>
-                                    <div class="text item">{{ recordCount }}</div>
-                                </el-card>
-                                <el-card class="box-card">
-                                    <template #header>
-                                        <div class="card-header">
-                                            <span>下载量</span>
-                                        </div>
-                                    </template>
-                                    <div class="text item">{{ totalDownload }}</div>
-                                </el-card>
-                                <el-card class="box-card">
-                                    <template #header>
-                                        <div class="card-header">
-                                            <span>已录制文件数</span>
-                                        </div>
-                                    </template>
-                                    <div class="text item">{{ fileNum }}</div>
-                                </el-card>
-                            </el-space>
-                        </div> -->
                         <div class="radius info-radius"
                             style="border-radius: var(--el-border-radius-base); box-shadow: var(--el-box-shadow-base);">
                             <div class="radius-title">
@@ -139,11 +98,8 @@
                             </el-space>
                         </div>
                     </el-space>
-                    <!-- <div class="radius live-radius"
-                        style="border-radius: var(--el-border-radius-base); box-shadow: var(--el-box-shadow-base);"> -->
                     <el-table :data="tableData" :row-style="tableRowColor"
                         :default-sort="{prop: 'LiveStatus', order: 'descending'}">
-                        <!--TODO: config扩展后，界面还没改-->
                         <el-table-column prop="RoomID" label="房间ID">
                             <template #default="scope">
                                 <el-link :type="status2Type(scope.row.LiveStatus)" :href="roomID2Url(scope.row.RoomID)">
@@ -187,10 +143,9 @@
                             </template>
                         </el-table-column>
                     </el-table>
-                    <!-- </div> -->
                 </el-main>
-                <el-drawer v-model="editFormVisible" title="房间信息" size='35%'>
-                    <el-descriptions class="margin-top" :column="1" :data="room" border>
+                <el-drawer v-model="editFormVisible" title="房间信息" size='45%'>
+                    <el-descriptions class="margin-top" :column="2" :data="room" border>
                         <el-descriptions-item>
                             <template #label>
                                 <i class="el-icon-user"></i>
@@ -226,7 +181,56 @@
                                 <i class="el-icon-office-building"></i>
                                 直播状态
                             </template>
-                            <el-tag size="small">{{ room.LiveStatus }} </el-tag>
+                            <el-tag size="small" :type="status2Type(room.LiveStatus)">{{ status2Name(room.LiveStatus) }} </el-tag>
+                        </el-descriptions-item>
+                        <el-descriptions-item>
+                            <template #label>
+                                <i class="el-icon-office-building"></i>
+                                开播时间
+                            </template>
+                            {{ room.LiveStartTime }}
+                        </el-descriptions-item>
+                        <el-descriptions-item>
+                            <template #label>
+                                <i class="el-icon-office-building"></i>
+                                开播时长
+                            </template>
+                            {{ room.LiveTime }}
+                        </el-descriptions-item>
+                        <el-descriptions-item>
+                            <template #label>
+                                <i class="el-icon-office-building"></i>
+                                录制时长
+                            </template>
+                            {{ room.RecordTime }}
+                        </el-descriptions-item>
+                        <el-descriptions-item>
+                            <template #label>
+                                <i class="el-icon-office-building"></i>
+                                转码时长
+                            </template>
+                            {{ room.DecodeTime }}
+                        </el-descriptions-item>
+                        <el-descriptions-item>
+                            <template #label>
+                                <i class="el-icon-office-building"></i>
+                                上传时长
+                            </template>
+                            {{ room.UploadTime }}
+                        </el-descriptions-item>
+                        <el-descriptions-item>
+                            <template #label>
+                                <i class="el-icon-office-building"></i>
+                                当前状态
+                            </template>
+                            <el-tag size="small" :type="state2Type(room.State)">{{ state2Name(room.State) }} </el-tag>
+                        </el-descriptions-item>
+                        <el-descriptions-item>
+                            <template #label>
+                                <i class="el-icon-office-building"></i>
+                                占用空间
+                            </template>
+                            null
                         </el-descriptions-item>
                     </el-descriptions>
                     <el-divider>
@@ -236,25 +240,89 @@
                         <el-form-item label="房间ID" label-width="120px">
                             <el-input v-model="form.RoomID" autocomplete="off"></el-input>
                         </el-form-item>
-                        <el-form-item>
-                            <el-switch v-model="form.RecordMode" active-color="#13ce66" inactive-color="#ff4949"
-                                active-text="24小时录制" inactive-text="仅在设定时间录制"
-                                @change="changeRecordTimeText(form.RecordMode)" />
-                        </el-form-item>
-                        <el-form-item label="录制开始时间" label-width="120px">
-                            <el-time-picker v-model="form.StartTime" :disabled="disabledRecord">
-                        </el-form-item>
-                        <el-form-item label="录制结束时间" label-width="120px">
-                            <el-time-picker v-model="form.EndTime" :disabled="disabledRecord">
-                        </el-form-item>
-                        <el-form-item>
-                            <el-switch v-model="form.AutoRecord" active-color="#13ce66" inactive-color="#ff4949"
-                                active-text="自动录制" inactive-text="仅监控" />
-                        </el-form-item>
-                        <el-form-item>
-                            <el-switch v-model="form.AutoUpload" disabled active-color="#13ce66"
-                                inactive-color="#ff4949" active-text="自动上传" inactive-text="禁止上传" />
-                        </el-form-item>
+                        <el-row>
+                            <el-col :span="12">
+                                <el-form-item>
+                                    <el-switch v-model="form.RecordMode" active-color="#13ce66" inactive-color="#ff4949"
+                                        active-text="24小时录制" inactive-text="仅在设定时间录制"
+                                        @change="changeRecordTimeText(form.RecordMode)" />
+                                </el-form-item>
+                            </el-col>
+                            <el-col :span="12">
+                                <el-form-item>
+                                    <el-switch v-model="form.DivideByTitle" active-color="#13ce66"
+                                        inactive-color="#ff4949" active-text="当天录像按照标题分P" inactive-text="当天录像不分P" />
+                                </el-form-item>
+                            </el-col>
+                        </el-row>
+                        <el-row>
+                            <el-col :span="12">
+                                <el-form-item label="录制开始时间" label-width="120px">
+                                    <el-time-picker v-model="form.StartTime" :disabled="disabledRecord">
+                                </el-form-item>
+                            </el-col>
+                            <el-col :span="12">
+                                <el-form-item label="录制结束时间" label-width="120px">
+                                    <el-time-picker v-model="form.EndTime" :disabled="disabledRecord">
+                                </el-form-item>
+                            </el-col>
+                        </el-row>
+                        <el-row>
+                            <el-col :span="12">
+                                <el-form-item>
+                                    <el-switch v-model="form.AutoRecord" active-color="#13ce66" inactive-color="#ff4949"
+                                        active-text="自动录制" inactive-text="仅监控" />
+                                </el-form-item>
+                            </el-col>
+                            <el-col :span="12">
+                                <el-form-item>
+                                    <el-switch v-model="form.AutoUpload" disabled active-color="#13ce66"
+                                        inactive-color="#ff4949" active-text="自动上传" inactive-text="禁止上传" />
+                                </el-form-item>
+                            </el-col>
+                        </el-row>
+                        <el-row>
+                            <el-col :span="12">
+                                <el-form-item>
+                                    <el-switch v-model="form.NeedM4a" active-color="#13ce66" inactive-color="#ff4949"
+                                        active-text="转码生成视频和音频" inactive-text="仅生成视频" />
+                                </el-form-item>
+                            </el-col>
+                            <el-col :span="12">
+                                <el-form-item>
+                                    <el-switch v-model="form.Mp4Compress" active-color="#13ce66"
+                                        inactive-color="#ff4949" active-text="视频质量压缩" inactive-text="不压缩视频" />
+                                </el-form-item>
+                            </el-col>
+                        </el-row>
+                        <el-row>
+                            <el-col :span="12">
+                                <el-form-item>
+                                    <el-switch v-model="form.CleanUpRegular" active-color="#13ce66"
+                                        inactive-color="#ff4949" active-text="定期清理录制内容" inactive-text="不清理生成的文件" />
+                                </el-form-item>
+                            </el-col>
+                            <el-col :span="12">
+                                <el-form-item label="文件保留时间" label-width="120px">
+                                    <el-input v-model="form.SaveDuration" autocomplete="off"
+                                        :disabled="!form.CleanUpRegular"></el-input>
+                                </el-form-item>
+                            </el-col>
+                        </el-row>
+                        <el-row>
+                            <el-col :span="12">
+                                <el-form-item>
+                                    <el-switch v-model="form.AreaLock" active-color="#13ce66" inactive-color="#ff4949"
+                                        active-text="只录制指定分区下的直播" inactive-text="不限制直播分区" />
+                                </el-form-item>
+                            </el-col>
+                            <el-col :span="12">
+                                <el-form-item label="指定的分区名" label-width="120px">
+                                    <el-input v-model="form.AreaLimit" autocomplete="off" :disabled="!form.AreaLock">
+                                    </el-input>
+                                </el-form-item>
+                            </el-col>
+                        </el-row>
                     </el-form>
                     <div class="drawer-footer">
                         <!-- <template #default="scope"> -->
@@ -267,30 +335,94 @@
                         <!-- </template> -->
                     </div>
                 </el-drawer>
-                <el-drawer v-model="addFormVisible" title="房间信息" size='35%'>
+                <el-drawer v-model="addFormVisible" title="添加房间" size='45%' direction="ltr">
                     <el-form :model="addForm">
                         <el-form-item label="房间ID" label-width="120px">
                             <el-input v-model="addForm.RoomID" autocomplete="off"></el-input>
                         </el-form-item>
-                        <el-form-item>
-                            <el-switch v-model="addForm.RecordMode" active-color="#13ce66" inactive-color="#ff4949"
-                                active-text="24小时录制" inactive-text="仅在设定时间录制"
-                                @change="changeAddRecordTimeText(addForm.RecordMode)" />
-                        </el-form-item>
-                        <el-form-item label="录制开始时间" label-width="120px">
-                            <el-time-picker v-model="addForm.StartTime" :disabled="disableAddRecord">
-                        </el-form-item>
-                        <el-form-item label="录制结束时间" label-width="120px">
-                            <el-time-picker v-model="addForm.EndTime" :disabled="disableAddRecord">
-                        </el-form-item>
-                        <el-form-item>
-                            <el-switch v-model="addForm.AutoRecord" active-color="#13ce66" inactive-color="#ff4949"
-                                active-text="自动录制" inactive-text="仅监控" />
-                        </el-form-item>
-                        <el-form-item>
-                            <el-switch v-model="addForm.AutoUpload" disabled active-color="#13ce66"
-                                inactive-color="#ff4949" active-text="自动上传" inactive-text="禁止上传" />
-                        </el-form-item>
+                        <el-row>
+                            <el-col :span="12">
+                                <el-form-item>
+                                    <el-switch v-model="addForm.RecordMode" active-color="#13ce66" inactive-color="#ff4949"
+                                        active-text="24小时录制" inactive-text="仅在设定时间录制"
+                                        @change="changeAddRecordTimeText(addForm.RecordMode)" />
+                                </el-form-item>
+                            </el-col>
+                            <el-col :span="12">
+                                <el-form-item>
+                                    <el-switch v-model="addForm.DivideByTitle" active-color="#13ce66"
+                                        inactive-color="#ff4949" active-text="当天录像按照标题分P" inactive-text="当天录像不分P" />
+                                </el-form-item>
+                            </el-col>
+                        </el-row>
+                        <el-row>
+                            <el-col :span="12">
+                                <el-form-item label="录制开始时间" label-width="120px">
+                                    <el-time-picker v-model="addForm.StartTime" :disabled="disableAddRecord">
+                                </el-form-item>
+                            </el-col>
+                            <el-col :span="12">
+                                <el-form-item label="录制结束时间" label-width="120px">
+                                    <el-time-picker v-model="addForm.EndTime" :disabled="disableAddRecord">
+                                </el-form-item>
+                            </el-col>
+                        </el-row>
+                        <el-row>
+                            <el-col :span="12">
+                                <el-form-item>
+                                    <el-switch v-model="addForm.AutoRecord" active-color="#13ce66" inactive-color="#ff4949"
+                                        active-text="自动录制" inactive-text="仅监控" />
+                                </el-form-item>
+                            </el-col>
+                            <el-col :span="12">
+                                <el-form-item>
+                                    <el-switch v-model="addForm.AutoUpload" disabled active-color="#13ce66"
+                                        inactive-color="#ff4949" active-text="自动上传" inactive-text="禁止上传" />
+                                </el-form-item>
+                            </el-col>
+                        </el-row>
+                        <el-row>
+                            <el-col :span="12">
+                                <el-form-item>
+                                    <el-switch v-model="addForm.NeedM4a" active-color="#13ce66" inactive-color="#ff4949"
+                                        active-text="转码生成视频和音频" inactive-text="仅生成视频" />
+                                </el-form-item>
+                            </el-col>
+                            <el-col :span="12">
+                                <el-form-item>
+                                    <el-switch v-model="addForm.Mp4Compress" active-color="#13ce66"
+                                        inactive-color="#ff4949" active-text="视频质量压缩" inactive-text="不压缩视频" />
+                                </el-form-item>
+                            </el-col>
+                        </el-row>
+                        <el-row>
+                            <el-col :span="12">
+                                <el-form-item>
+                                    <el-switch v-model="addForm.CleanUpRegular" active-color="#13ce66"
+                                        inactive-color="#ff4949" active-text="定期清理录制内容" inactive-text="不清理生成的文件" />
+                                </el-form-item>
+                            </el-col>
+                            <el-col :span="12">
+                                <el-form-item label="文件保留时间" label-width="120px">
+                                    <el-input v-model="addForm.SaveDuration" autocomplete="off"
+                                        :disabled="!addForm.CleanUpRegular"></el-input>
+                                </el-form-item>
+                            </el-col>
+                        </el-row>
+                        <el-row>
+                            <el-col :span="12">
+                                <el-form-item>
+                                    <el-switch v-model="addForm.AreaLock" active-color="#13ce66" inactive-color="#ff4949"
+                                        active-text="只录制指定分区下的直播" inactive-text="不限制直播分区" />
+                                </el-form-item>
+                            </el-col>
+                            <el-col :span="12">
+                                <el-form-item label="指定的分区名" label-width="120px">
+                                    <el-input v-model="addForm.AreaLimit" autocomplete="off" :disabled="!addForm.AreaLock">
+                                    </el-input>
+                                </el-form-item>
+                            </el-col>
+                        </el-row>
                     </el-form>
                     <div class="drawer-footer">
                         <el-button-group>
