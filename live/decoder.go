@@ -117,7 +117,7 @@ func (l *Live) Decode() {
 		}
 	}
 
-	if flag {
+	if flag && l.Mp4Compress {
 		cmd := exec.Command("ffmpeg", "-f", "concat", "-safe", "0", "-i", concatFilePath, "-c:v", "libx264", "-c:a", "copy", "-crf", "17", "-maxrate", "3M", "-bufsize", "3M", "-preset", "fast", "-y", outputFile)
 		// stdout, _ := cmd.StdoutPipe()
 		// cmd.Stderr = cmd.Stdout
@@ -130,11 +130,12 @@ func (l *Live) Decode() {
 		cmd.Run()
 		// tools.LiveOutput(stdout)
 	}
-
-	cmd := exec.Command("ffmpeg", "-f", "concat", "-safe", "0", "-i", concatFilePath, "-acodec", "copy", "-vn", "-y", strings.Replace(outputFile, ".mp4", ".m4a", -1))
+	if l.NeedM4a {
+		cmd := exec.Command("ffmpeg", "-f", "concat", "-safe", "0", "-i", concatFilePath, "-acodec", "copy", "-vn", "-y", strings.Replace(outputFile, ".mp4", ".m4a", -1))
+		cmd.Run()
+	}
 	// stdout, _ := cmd.StdoutPipe()
 	// cmd.Stderr = cmd.Stdout
-	cmd.Run()
 	// tools.LiveOutput(stdout)
 
 	for _, f := range middleLst {

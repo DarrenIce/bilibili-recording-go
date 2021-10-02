@@ -1,7 +1,7 @@
 bilibili:
   user: "你的账号"
   password: "你的密码"
-  cookies: {}
+  cookies: {} # 这里无需填写
 record:
   needProxy: true
   proxy: "socks5://127.0.0.1:1080"

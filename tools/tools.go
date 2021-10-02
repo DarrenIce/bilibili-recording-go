@@ -248,6 +248,7 @@ func GetUname(roomID string) (string, error) {
 	}
 	data := gjson.Get(resp.Text(), "data")
 	uname := data.Get("anchor_info").Get("base_info").Get("uname").String()
+	time.Sleep(3 * time.Second)
 	return uname, nil
 }
 
