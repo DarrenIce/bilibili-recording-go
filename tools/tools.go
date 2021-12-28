@@ -282,7 +282,7 @@ func CacRecordingFileNum() int64 {
 				continue
 			}
 			for _, f := range ListDir(localBasePath) {
-				if o, _ := os.Stat(f); !o.IsDir() && strings.HasSuffix(o.Name(), "flv") {
+				if strings.HasSuffix(f, "flv") {
 					fileNum++
 				}
 			}
