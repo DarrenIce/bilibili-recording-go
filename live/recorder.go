@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os/exec"
 	"path/filepath"
-	"time"
 	"sync/atomic"
+	"time"
 
 	"github.com/asmcos/requests"
 	"github.com/kataras/golog"
@@ -102,10 +102,10 @@ func (r *Live) run() {
 			return
 		default:
 			r.St, r.Et = tools.MkDuration(r.StartTime, r.EndTime)
-			if r.State == running && (r.RecordMode || tools.JudgeInDuration(r.St, r.Et)) && r.AutoRecord {
-				time.Sleep(5 * time.Second)
-			} else if r.judgeLive() && (r.RecordMode || tools.JudgeInDuration(r.St, r.Et)) && r.AutoRecord {
-				if r.State == start || r.State == restart {
+			if tools.JudgeInDuration(r.St, r.Et) && r.AutoRecord && r.judgeLive() {
+				if r.State == running {
+					time.Sleep(5 * time.Second)
+				} else if r.State == start || r.State == restart {
 					r.RecordStartTime = time.Now().Unix()
 					r.RecordStatus = 1
 					golog.Info(fmt.Sprintf("%s[RoomID: %s] 开始录制", r.Uname, r.RoomID))
