@@ -30,7 +30,7 @@ go run main.go
   - [ ] 定期删除
   - [ ] 分区锁定
   - [x] 全天录制or指定时间段录制
-- [ ] 可以监控整个放松分区
-  API：https://api.live.bilibili.com/xlive/web-interface/v1/second/getList?platform=web&parent_area_id=5&area_id=339&sort_type=&page=1
-  可以标记黑名单up主，将不在监控界面展示
+- [ ] 可以监控整个子分区
+  - [ ] 前端加一个add按钮，可以自定义爬取的子分区
+  - [ ] 可以标记黑名单up主，将不在监控界面展示
 - [ ] 记录主播的开播和下播时间
