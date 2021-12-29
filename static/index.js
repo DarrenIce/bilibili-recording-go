@@ -439,6 +439,7 @@ function getLowFrqData() {
       for (let key in msg) {
         console.log(msg[key])
         arealist.push(key)
+        //TODO: 在vue外的notification失败，需要找一个可以响应变化的action
         if (vm.monitorMap[key] && msg[key].Nums !== vm.monitorMap[key].Nums) {
           newroomlst = Array(0)
           oldroomlst = Array(0)

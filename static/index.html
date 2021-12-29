@@ -154,9 +154,11 @@
                 </el-tabs>
                 <el-space wrap>
                     <template v-for="(item, index) in monitorMap[activeName].Data">
-                        <el-card shadow="always">
+                        <el-card shadow="always" style="--el-card-padding: 10px">
                             <el-space direction="vertical" alignment="start">
-                                <img :src="item.LiveCover" style="width:250px; height:140px" class="image" lazy>
+                                <el-link :href="roomID2Url(item.RoomID)" :underline="false"> 
+                                    <img :src="item.LiveCover" style="width:256px; height:144px" class="image" lazy>
+                                </el-link>
                                 <i class="el-icon-user" style="font-size: small;">{{ item.Popularity }}</i>
                                 <el-link :href="roomID2Url(item.RoomID)">{{ item.Title }}</el-link>
                                 <div style="color: #909399">

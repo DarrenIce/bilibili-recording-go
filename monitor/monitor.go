@@ -45,8 +45,8 @@ type AreaList struct {
 
 var (
 	MonitorMap = make(map[string]AreaList)
-	ParentIDs = []int{5}
-	AreaIDs = []int{339}
+	ParentIDs = []int{5, 5, 1, 1, 9}
+	AreaIDs = []int{339, 192, 145, 207, 371}
 	monitorApi = "https://api.live.bilibili.com/xlive/web-interface/v1/second/getList?platform=web&parent_area_id=%d&area_id=%d&sort_type=&page=%d"
 )
 
@@ -119,6 +119,6 @@ func Monitor() {
 			MonitorMap[areaname] = *areaList
 			time.Sleep(time.Second * 30)
 		}
-		time.Sleep(5 * time.Minute)
+		time.Sleep(1 * time.Minute)
 	}
 }
