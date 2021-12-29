@@ -53,15 +53,19 @@ func (l *Live) Decode() {
 			fileLst = append(fileLst, f)
 		}
 	}
-	sort.Sort(sort.StringSlice(fileLst))
+	sort.Strings(fileLst)
 	for _, f := range fileLst {
 		timeLst = append(timeLst, tools.GetFileLastModifyTime(f))
 	}
 	latestTime := timeLst[len(timeLst)-1]
 	var inputFile []string
-	for k, v := range timeLst {
-		if tools.GetTimeDeltaFromTimestamp(latestTime, v) < 28800 {
-			inputFile = append(inputFile, fileLst[k])
+	if l.RecordMode {
+		inputFile = append(inputFile, fileLst[len(fileLst)-1])
+	} else {
+		for k, v := range timeLst {
+			if tools.GetTimeDeltaFromTimestamp(latestTime, v) < tools.GetTimeDeltaFromTimestamp(l.Et.Unix(), l.St.Unix()) {
+				inputFile = append(inputFile, fileLst[k])
+			}
 		}
 	}
 	fileTime := tools.GetFileCreateTime(inputFile[0])
@@ -72,6 +76,9 @@ func (l *Live) Decode() {
 		ftime = time.Now().AddDate(0, 0, -1).Format("20060102")
 	} else {
 		ftime = time.Now().Format("20060102")
+	}
+	if l.RecordMode {
+		ftime = time.Unix(fileTime, 0).Format("2006-01-02 15:04:05")
 	}
 	uploadName := fmt.Sprintf("%s%s", l.Uname, ftime)
 	outputName := fmt.Sprintf("%s_%s", l.Uname, ftime)
@@ -105,7 +112,7 @@ func (l *Live) Decode() {
 		// tools.LiveOutput(stdout)
 	}
 
-	reg, _ := regexp.Compile("bitrate: (\\d+) kb/s")
+	reg, _ := regexp.Compile(`bitrate: (\\d+) kb/s`)
 	flag := false
 
 	for _, f := range middleLst {

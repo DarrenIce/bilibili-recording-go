@@ -29,4 +29,13 @@ go run main.go
   - [ ] 是否根据直播标题分P
   - [ ] 定期删除
   - [ ] 分区锁定
-  - [ ] 全天录制or指定时间段录制
+  - [x] 全天录制or指定时间段录制
+        
+- [ ] 可以监控整个放松分区
+  API：https://api.live.bilibili.com/xlive/web-interface/v1/second/getList?platform=web&parent_area_id=5&area_id=339&sort_type=&page=1
+  根据返回list长度判断page是否到底
+  后端维护一个list，每5分钟更新一次，5秒请求一个page
+  前端3秒请求一次后端，后端将维护的list发送给前端展示
+  可以标记黑名单up主，将不在监控界面展示
+  如果不是已经在录制或监控的up，后面会跟一个add按钮，可以添加到监控中
+  监控界面根据热度排序

@@ -102,9 +102,9 @@ func (r *Live) run() {
 			return
 		default:
 			r.St, r.Et = tools.MkDuration(r.StartTime, r.EndTime)
-			if r.State == running && tools.JudgeInDuration(r.St, r.Et) && r.AutoRecord {
+			if r.State == running && (r.RecordMode || tools.JudgeInDuration(r.St, r.Et)) && r.AutoRecord {
 				time.Sleep(5 * time.Second)
-			} else if r.judgeLive() && tools.JudgeInDuration(r.St, r.Et) && r.AutoRecord {
+			} else if r.judgeLive() && (r.RecordMode || tools.JudgeInDuration(r.St, r.Et)) && r.AutoRecord {
 				if r.State == start || r.State == restart {
 					r.RecordStartTime = time.Now().Unix()
 					r.RecordStatus = 1
@@ -118,7 +118,7 @@ func (r *Live) run() {
 				} else {
 					time.Sleep(5 * time.Second)
 				}
-			} else if !tools.JudgeInDuration(r.St, r.Et) {
+			} else if !(r.RecordMode || tools.JudgeInDuration(r.St, r.Et)) {
 				if r.State == restart {
 					r.unlive()
 				} else if r.State == running {
@@ -140,18 +140,19 @@ func (r *Live) run() {
 func (r *Live) judgeLive() bool {
 	r.lock.Lock()
 	defer r.lock.Unlock()
-	if r.LiveStatus != 1 {
-		return false
-	}
-	return true
+	return r.LiveStatus == 1
 }
 
 func (r *Live) unlive() {
-	if tools.JudgeInDuration(r.St, r.Et) {
+	if tools.JudgeInDuration(r.St, r.Et) && !r.RecordMode {
 		time.Sleep(10 * time.Second)
 		atomic.CompareAndSwapUint32(&r.State, running, restart)
 	} else {
 		if atomic.CompareAndSwapUint32(&r.State, running, waiting) || atomic.CompareAndSwapUint32(&r.State, restart, waiting) {
+			if r.RecordMode && tools.GetTimeDeltaFromTimestamp(r.RecordEndTime, r.RecordStartTime) < 60 {
+				atomic.CompareAndSwapUint32(&r.State, waiting, start)
+				return
+			}
 			decodeChan <- r.RoomID
 		}
 	}

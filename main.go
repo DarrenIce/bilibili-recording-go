@@ -17,6 +17,7 @@ import (
 	"bilibili-recording-go/live"
 	_ "bilibili-recording-go/routers"
 	"bilibili-recording-go/tools"
+	"bilibili-recording-go/monitor"
 )
 
 // Init 初始化函数
@@ -133,6 +134,6 @@ func main() {
 			}
 		}()
 	}
-	
+	go monitor.Monitor()
 	beego.Run()
 }
