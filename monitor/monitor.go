@@ -11,17 +11,17 @@ import (
 )
 
 type MonitorRoom struct {
-	RoomID string
-	UID	string
-	Uname string
-	Title string
+	RoomID     string
+	UID        string
+	Uname      string
+	Title      string
 	Popularity int64
-	ParentID string
+	ParentID   string
 	ParentName string
-	AreaID	string
-	AreaName string
-	UserCover string
-	LiveCover string
+	AreaID     string
+	AreaName   string
+	UserCover  string
+	LiveCover  string
 }
 
 type MonitorRoomSlice []MonitorRoom
@@ -45,8 +45,8 @@ type AreaList struct {
 
 var (
 	MonitorMap = make(map[string]AreaList)
-	ParentIDs = []int{5, 5, 1, 1, 9}
-	AreaIDs = []int{339, 192, 145, 207, 371}
+	ParentIDs  = []int{5}
+	AreaIDs    = []int{339}
 	monitorApi = "https://api.live.bilibili.com/xlive/web-interface/v1/second/getList?platform=web&parent_area_id=%d&area_id=%d&sort_type=&page=%d"
 )
 
@@ -97,17 +97,17 @@ func Monitor() {
 					if _, ok := uidmap[roomID]; !ok {
 						uidmap[roomID] = uid
 						areaList.Data = append(areaList.Data, MonitorRoom{
-							RoomID: roomID,
-							UID: uid,
-							Uname: uname,
-							Title: title,
+							RoomID:     roomID,
+							UID:        uid,
+							Uname:      uname,
+							Title:      title,
 							Popularity: popularity,
-							ParentID: parentID,
+							ParentID:   parentID,
 							ParentName: parentName,
-							AreaID: areaID,
-							AreaName: areaName,
-							UserCover: userCover,
-							LiveCover: liveCover,
+							AreaID:     areaID,
+							AreaName:   areaName,
+							UserCover:  userCover,
+							LiveCover:  liveCover,
 						})
 						areaList.Nums++
 					}

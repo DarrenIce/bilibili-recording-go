@@ -191,8 +191,8 @@ let Main = {
     },
     handleOpen(index, row) {
       console.log(row)
-      vm.editFormVisible = true
-      vm.form = {
+      this.editFormVisible = true
+      this.form = {
         RoomID: row.RoomID,
         RecordMode: row.RecordMode,
         StartTime: new Date(2021, 9, 29, row.StartTime.slice(0, 2), row.StartTime.slice(2, 4), row.StartTime.slice(4, 6)),
@@ -207,14 +207,15 @@ let Main = {
         AreaLock: row.AreaLock,
         AreaLimit: row.AreaLimit
       }
+      this.disabledRecord = row.RecordMode
       let r = {}
-      for (let key in vm.tableData) {
-        if (vm.tableData[key].RoomID == row.RoomID) {
-          r = vm.tableData[key]
+      for (let key in this.tableData) {
+        if (this.tableData[key].RoomID == row.RoomID) {
+          r = this.tableData[key]
           break
         }
       }
-      vm.room = {
+      this.room = {
         RoomID: r.RoomID,
         Uname: r.Uname,
         AreaName: r.AreaName,
@@ -244,19 +245,19 @@ let Main = {
         AreaLock: r.AreaLock,
         AreaLimit: r.AreaLimit
       }
-      console.log(vm.room)
+      console.log(this.room)
     },
     onSubmit() {
       this.editFormVisible = false
       console.log('submit!')
-      console.log(vm.form)
+      console.log(this.form)
       $.ajax({
         type: "POST",
         url: "/room-handle",
         dataType: "json",
         data: JSON.stringify({
           handle: "edit",
-          data: new RoomConfigInfo(vm.form)
+          data: new RoomConfigInfo(this.form)
         }),
         headers: {
           "Content-Type": "application/json"
@@ -358,8 +359,8 @@ let Main = {
       this.activeName = tab.props.name
     },
     judgeExists(roomID) {
-      for (let key in vm.tableData) {
-        if (vm.tableData[key].RoomID == roomID) {
+      for (let key in this.tableData) {
+        if (this.tableData[key].RoomID == roomID) {
           return false
         }
       }
