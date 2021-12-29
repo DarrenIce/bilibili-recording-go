@@ -112,7 +112,7 @@ func (l *Live) Decode() {
 		// tools.LiveOutput(stdout)
 	}
 
-	reg, _ := regexp.Compile(`bitrate: (\\d+) kb/s`)
+	reg, _ := regexp.Compile(`bitrate: (\d+) kb/s`)
 	flag := false
 
 	for _, f := range middleLst {
