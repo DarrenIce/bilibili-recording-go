@@ -2,6 +2,7 @@ package monitor
 
 import (
 	"fmt"
+	"sort"
 	"time"
 
 	"github.com/asmcos/requests"
@@ -19,9 +20,28 @@ type MonitorRoom struct {
 	ParentName string
 	AreaID	string
 	AreaName string
+	UserCover string
+	LiveCover string
 }
 
-type AreaList []*MonitorRoom
+type MonitorRoomSlice []MonitorRoom
+
+func (mrs MonitorRoomSlice) Len() int {
+	return len(mrs)
+}
+
+func (mrs MonitorRoomSlice) Less(i, j int) bool {
+	return mrs[i].Popularity > mrs[j].Popularity
+}
+
+func (mrs MonitorRoomSlice) Swap(i, j int) {
+	mrs[i], mrs[j] = mrs[j], mrs[i]
+}
+
+type AreaList struct {
+	Data MonitorRoomSlice
+	Nums int
+}
 
 var (
 	MonitorMap = make(map[string]AreaList)
@@ -34,6 +54,12 @@ func Monitor() {
 	for {
 		for k := range ParentIDs {
 			page := 1
+			areaname := ""
+			areaList := &AreaList{
+				Data: make([]MonitorRoom, 0),
+				Nums: 0,
+			}
+			uidmap := make(map[string]string)
 			for {
 				url := fmt.Sprintf(monitorApi, ParentIDs[k], AreaIDs[k], page)
 				resp, err := requests.Get(url)
@@ -63,21 +89,34 @@ func Monitor() {
 					parentName := room.Get("parent_name").String()
 					areaID := room.Get("area_id").String()
 					areaName := room.Get("area_name").String()
-					MonitorMap[roomID] = append(MonitorMap[roomID], &MonitorRoom{
-						RoomID: roomID,
-						UID: uid,
-						Uname: uname,
-						Title: title,
-						Popularity: popularity,
-						ParentID: parentID,
-						ParentName: parentName,
-						AreaID: areaID,
-						AreaName: areaName,
-					})
+					userCover := room.Get("user_cover").String()
+					liveCover := room.Get("cover").String()
+					if areaname == "" {
+						areaname = areaName
+					}
+					if _, ok := uidmap[roomID]; !ok {
+						uidmap[roomID] = uid
+						areaList.Data = append(areaList.Data, MonitorRoom{
+							RoomID: roomID,
+							UID: uid,
+							Uname: uname,
+							Title: title,
+							Popularity: popularity,
+							ParentID: parentID,
+							ParentName: parentName,
+							AreaID: areaID,
+							AreaName: areaName,
+							UserCover: userCover,
+							LiveCover: liveCover,
+						})
+						areaList.Nums++
+					}
 				}
 				page++
 				time.Sleep(time.Second * 3)
 			}
+			sort.Sort(areaList.Data)
+			MonitorMap[areaname] = *areaList
 			time.Sleep(time.Second * 30)
 		}
 		time.Sleep(5 * time.Minute)

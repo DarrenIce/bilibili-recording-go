@@ -66,8 +66,13 @@ let Main = {
       disabledRecord: false,
       addFormVisible: false,
       disableAddRecord: false,
+      showOverview: true,
+      showMonitor: false,
       form: new RoomConfigInfo(""),
       addForm: new RoomConfigInfo(""),
+      areaList: [],
+      activeName: "",
+      monitorMap: "",
     }
   },
   mounted() {
@@ -290,8 +295,23 @@ let Main = {
       console.log('addRoom')
       this.addFormVisible = true
     },
+    openOverview() {
+      this.showOverview = true
+      this.showMonitor = false
+    },
+    openMonitor() {
+      this.showOverview = false
+      this.showMonitor = true
+      if (this.activeName == "") {
+        this.activeName = this.areaList[0]
+      }
+      console.log(this.activeName)
+    },
     roomID2Url(roomID) {
       return "https://live.bilibili.com/" + roomID
+    },
+    uID2url(UID) {
+      return "https://space.bilibili.com/" + UID
     },
     addOnSubmit() {
       this.addFormVisible = false
@@ -333,6 +353,21 @@ let Main = {
           })
         }
       })
+    },
+    handleTabClick(tab) {
+      this.activeName = tab.props.name
+    },
+    judgeExists(roomID) {
+      for (let key in vm.tableData) {
+        if (vm.tableData[key].RoomID == roomID) {
+          return false
+        }
+      }
+      return true
+    },
+    clickMonitorRoom(roomID) {
+      this.addForm.RoomID = roomID
+      this.addFormVisible = true
     },
     test(scope) {
       console.log(scope)
@@ -393,6 +428,50 @@ function getLowFrqData() {
       vm.tableData = data
       vm.recordCount = recording
       flushData()
+    }
+  })
+  $.ajax({
+    type: "POST",
+    url: "/monitor",
+    data: {},
+    success: function(msg) {
+      let arealist = Array(0)
+      for (let key in msg) {
+        console.log(msg[key])
+        arealist.push(key)
+        if (vm.monitorMap[key] && msg[key].Nums !== vm.monitorMap[key].Nums) {
+          newroomlst = Array(0)
+          oldroomlst = Array(0)
+          for (let item in msg[key].Rooms) {
+            newroomlst.push(item.Uname)
+          }
+          for (let item in vm.monitorMap[key].Rooms) {
+            oldroomlst.push(item.Uname)
+          }
+          for (let item in newroomlst) {
+            if (oldroomlst.indexOf(newroomlst[item]) == -1) {
+              ElNotification({
+                title: '开播通知',
+                message: item + '开播了',
+                type: 'success',
+                duration: 0,
+              })
+            }
+          }
+          for (let item in oldroomlst) {
+            if (newroomlst.indexOf(oldroomlst[item]) == -1) {
+              ElNotification({
+                title: '下播通知',
+                message: item + '下播了',
+                type: 'error',
+                duration: 0,
+              })
+            }
+          }
+        }
+      }
+      vm.areaList = arealist
+      vm.monitorMap = msg
     }
   })
 }
