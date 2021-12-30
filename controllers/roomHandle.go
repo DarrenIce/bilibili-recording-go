@@ -109,6 +109,10 @@ func editRoom(info roomInfo) bool {
 	c := config.New()
 	c.EditRoom(roominfo)
 	live.Lives[info.RoomID].UpadteFromConfig(roominfo)
+	if err := c.Marshal(); err != nil {
+		golog.Error(err)
+		return false
+	}
 	return true
 }
 

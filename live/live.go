@@ -185,6 +185,7 @@ func (l *Live) UpdateFromGJSON(res gjson.Result) {
 	LmapLock.Lock()
 	defer LmapLock.Unlock()
 	defer l.lock.Unlock()
+	beforeTitle := l.Title
 	l.RealID = res.Get("room_info").Get("room_id").String()
 	l.LiveStatus = int(res.Get("room_info").Get("live_status").Int())
 	l.LockStatus = int(res.Get("room_info").Get("lock_status").Int())
@@ -193,6 +194,12 @@ func (l *Live) UpdateFromGJSON(res gjson.Result) {
 	l.Title = res.Get("room_info").Get("title").String()
 	l.LiveStartTime = res.Get("room_info").Get("live_start_time").Int()
 	l.AreaName = res.Get("room_info").Get("area_name").String()
+	if beforeTitle != ""  && beforeTitle != l.Title {
+		golog.Info(fmt.Sprintf("%s[RoomID: %s] 标题更换 %s -> %s", l.Uname, l.RoomID, beforeTitle, l.Title))
+		if l.DivideByTitle && l.State == running {
+			l.downloadCmd.Process.Kill()
+		}
+	}
 }
 
 // UpadteFromConfig update
@@ -201,7 +208,11 @@ func (l *Live) UpadteFromConfig(v config.RoomConfigInfo) {
 	LmapLock.Lock()
 	defer LmapLock.Unlock()
 	defer l.lock.Unlock()
+	dividebeforestaus := l.DivideByTitle
 	l.RoomConfigInfo = v
+	if dividebeforestaus != l.DivideByTitle && l.State == running {
+		l.downloadCmd.Process.Kill()
+	}
 }
 
 func flushLiveStatus() {
@@ -213,11 +224,12 @@ func flushLiveStatus() {
 		}
 		LmapLock.Unlock()
 		for _, v := range lst {
-			if _, ok := Lives[v]; !ok {
+			LmapLock.Lock()
+			live, ok := Lives[v]
+			if !ok {
+				LmapLock.Unlock()
 				continue
 			}
-			LmapLock.Lock()
-			live := Lives[v]
 			LmapLock.Unlock()
 			live.GetInfoByRoom()
 			time.Sleep(10 * time.Second)

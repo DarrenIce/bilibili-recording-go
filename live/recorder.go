@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"sync/atomic"
 	"time"
 
@@ -75,6 +76,13 @@ func (r *Live) DownloadLive() {
 	uname := r.Uname
 	tools.Mkdir(fmt.Sprintf("./recording/%s/tmp", uname))
 	outputName := uname + "_" + fmt.Sprint(time.Now().Format("20060102150405")) + ".flv"
+	// 开启后如果相同标题断线重连，会导致之前被覆盖
+	if r.DivideByTitle {
+		exp := regexp.MustCompile(`[\/:*?"<>|]`)
+		title := exp.ReplaceAllString(r.Title, " ")
+		outputName = title + ".flv"
+	}
+	golog.Info(fmt.Sprintf("%s[RoomID: %s] 本次录制文件为：%s", r.Uname, r.RoomID, outputName))
 	middle, _ := filepath.Abs(fmt.Sprintf("./recording/%s/tmp", uname))
 	outputFile := fmt.Sprint(middle + "\\" + outputName)
 	url := fmt.Sprint("https://live.bilibili.com/", r.RoomID)

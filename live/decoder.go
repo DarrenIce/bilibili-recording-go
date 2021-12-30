@@ -9,8 +9,8 @@ import (
 	"regexp"
 	"sort"
 	"strings"
-	"time"
 	"sync/atomic"
+	"time"
 
 	"github.com/kataras/golog"
 
@@ -19,7 +19,7 @@ import (
 
 func decodeWorker() {
 	for {
-		roomID := <- decodeChan
+		roomID := <-decodeChan
 		if _, ok := Lives[roomID]; !ok {
 			continue
 		}
@@ -28,9 +28,9 @@ func decodeWorker() {
 		LmapLock.Unlock()
 		if atomic.CompareAndSwapUint32(&live.State, waiting, decoding) {
 			live.DecodeStartTime = time.Now().Unix()
-			golog.Debug(fmt.Sprintf("%s[RoomID: %s] 开始转码", live.Uname, roomID))
+			golog.Info(fmt.Sprintf("%s[RoomID: %s] 开始转码", live.Uname, roomID))
 			live.Decode()
-			golog.Debug(fmt.Sprintf("%s[RoomID: %s] 结束转码", live.Uname, roomID))
+			golog.Info(fmt.Sprintf("%s[RoomID: %s] 结束转码", live.Uname, roomID))
 			live.DecodeEndTime = time.Now().Unix()
 			atomic.CompareAndSwapUint32(&live.State, decoding, decodeEnd)
 			if live.AutoUpload {
@@ -59,7 +59,7 @@ func (l *Live) Decode() {
 	}
 	latestTime := timeLst[len(timeLst)-1]
 	var inputFile []string
-	if l.RecordMode {
+	if l.RecordMode || l.DivideByTitle {
 		inputFile = append(inputFile, fileLst[len(fileLst)-1])
 	} else {
 		for k, v := range timeLst {
@@ -80,13 +80,18 @@ func (l *Live) Decode() {
 	if l.RecordMode {
 		ftime = fmt.Sprintf("%s场", time.Unix(fileTime, 0).Format("2006-01-02 15时04分"))
 	}
+	if l.DivideByTitle {
+		filesplit := strings.Split(inputFile[0], "/")
+		title := strings.TrimSuffix(filesplit[len(filesplit)-1], ".flv")
+		ftime = fmt.Sprintf("%s_%s场", title, time.Unix(fileTime, 0).Format("2006-01-02 15时04分"))
+	}
 	uploadName := fmt.Sprintf("%s%s", l.Uname, ftime)
 	outputName := fmt.Sprintf("%s_%s", l.Uname, ftime)
 	pwd, _ := os.Getwd()
 	outputFile := filepath.Join(pwd, "recording", l.Uname, fmt.Sprintf("%s.mp4", outputName))
 	l.UploadName = uploadName
 	l.FilePath = outputFile
-	golog.Info(fmt.Sprintf("%s[RoomID: %s] 本次录制文件: %s, 最终上传: %s", l.Uname, l.UID, strings.Join(inputFile, " "), uploadName))
+	golog.Info(fmt.Sprintf("%s[RoomID: %s] 本次转码的文件有: %s, 最终生成: %s", l.Uname, l.UID, strings.Join(inputFile, " "), outputName))
 	var middleLst []string
 	for _, f := range inputFile {
 		middleLst = append(middleLst, strings.Replace(f, ".flv", ".ts", -1))
