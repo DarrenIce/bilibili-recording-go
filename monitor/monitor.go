@@ -1,8 +1,10 @@
 package monitor
 
 import (
+	"bilibili-recording-go/config"
 	"fmt"
 	"sort"
+	"sync"
 	"time"
 
 	"github.com/asmcos/requests"
@@ -44,24 +46,28 @@ type AreaList struct {
 }
 
 var (
+	Lock *sync.Mutex
 	MonitorMap = make(map[string]AreaList)
-	ParentIDs  = []int{5}
-	AreaIDs    = []int{339}
 	monitorApi = "https://api.live.bilibili.com/xlive/web-interface/v1/second/getList?platform=web&parent_area_id=%d&area_id=%d&sort_type=&page=%d"
 )
 
+func init() {
+	Lock = new(sync.Mutex)
+}
+
 func Monitor() {
 	for {
-		for k := range ParentIDs {
+		c := config.New()
+		for k := range c.Conf.MonitorAreas {
 			page := 1
-			areaname := ""
+			areaname := c.Conf.MonitorAreas[k].AreaName
 			areaList := &AreaList{
 				Data: make([]MonitorRoom, 0),
 				Nums: 0,
 			}
 			uidmap := make(map[string]string)
 			for {
-				url := fmt.Sprintf(monitorApi, ParentIDs[k], AreaIDs[k], page)
+				url := fmt.Sprintf(monitorApi, c.Conf.MonitorAreas[k].ParentID, c.Conf.MonitorAreas[k].AreaID, page)
 				resp, err := requests.Get(url)
 				if err != nil {
 					golog.Error(err)
@@ -91,8 +97,8 @@ func Monitor() {
 					areaName := room.Get("area_name").String()
 					userCover := room.Get("user_cover").String()
 					liveCover := room.Get("cover").String()
-					if areaname == "" {
-						areaname = areaName
+					if judgeRoomBlocked(roomID) {
+						continue
 					}
 					if _, ok := uidmap[roomID]; !ok {
 						uidmap[roomID] = uid
@@ -116,9 +122,21 @@ func Monitor() {
 				time.Sleep(time.Second * 3)
 			}
 			sort.Sort(areaList.Data)
+			Lock.Lock()
 			MonitorMap[areaname] = *areaList
+			Lock.Unlock()
 			time.Sleep(time.Second * 30)
 		}
 		time.Sleep(1 * time.Minute)
 	}
+}
+
+func judgeRoomBlocked(roomID string) bool {
+	c := config.New()
+	for _, v := range c.Conf.BlockedRooms {
+		if v == roomID {
+			return true
+		}
+	}
+	return false
 }

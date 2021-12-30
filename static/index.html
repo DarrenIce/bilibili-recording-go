@@ -148,10 +148,13 @@
                 </el-table>
             </el-main>
             <el-main v-if="showMonitor">
-                <el-tabs v-model="activeName" type="card" @tab-click="handleTabClick">
-                    <el-tab-pane v-for="(item, index) in areaList" :key="index" :name="item" :label="item" lazy>
-                    </el-tab-pane>
-                </el-tabs>
+                <div style='position: relative;'>
+                    <el-tabs v-model="activeName" type="card" @tab-click="handleTabClick">
+                        <el-tab-pane v-for="(item, index) in areaList" :key="index" :name="item" :label="area2label(item)" lazy>
+                        </el-tab-pane>
+                    </el-tabs>
+                    <el-button size='mini' style='position: absolute;right:10px;top:5px;'>Add</el-button>
+                </div>
                 <el-space wrap>
                     <template v-for="(item, index) in monitorMap[activeName].Data">
                         <el-card shadow="always" style="--el-card-padding: 10px">
@@ -165,7 +168,7 @@
                                     <!-- <el-avatar size="small" :src="item.UserCover"></el-avatar> -->
                                     <el-link :href="uID2url(item.UID)">{{ item.Uname }}</el-link>
                                     <el-button style="margin-left:10px" v-if="judgeExists(item.RoomID)" size="small" icon="el-icon-plus" @click="clickMonitorRoom(item.RoomID)" circle></el-button>
-                                    <el-button size="small" icon="el-icon-remove" circle></el-button>
+                                    <el-button size="small" icon="el-icon-remove" @click="blockRoom(item.RoomID)" circle></el-button>
                                 </div>
                             </el-space>
                         </el-card>
@@ -359,6 +362,7 @@
                         </el-button>
                         <el-button icon="el-icon-circle-close" @click="editFormVisible = false">取消</el-button>
                         <el-button icon="el-icon-circle-check" type="primary" @click="onSubmit">确定</el-button>
+                        <el-button icon="el-icon-refresh" type="primary" @click="onDecode">立即转码</el-button>
                     </el-button-group>
                     <!-- </template> -->
                 </div>

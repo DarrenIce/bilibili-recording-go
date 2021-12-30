@@ -12,4 +12,6 @@ func init() {
 	beego.Router("/base-info", &controllers.BaseController{})
 	beego.Router("/room-handle", &controllers.RoomHandleController{})
 	beego.Router("/monitor", &controllers.MonitorController{})
+	beego.Router("/decode", &controllers.DecodeController{})
+	beego.Router("/block", &controllers.BlockRoomController{})
 }

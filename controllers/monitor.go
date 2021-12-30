@@ -10,7 +10,7 @@ type MonitorController struct {
 	beego.Controller
 }
 
-func (c *MonitorController) Post() {
+func (c *MonitorController) Get() {
 	c.Data["json"] = monitor.MonitorMap
 	c.ServeJSON()
 }

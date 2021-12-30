@@ -86,7 +86,7 @@ func MkDuration(startTime string, endTime string) (time.Time, time.Time) {
 		st, _ := time.ParseInLocation("20060102 150405", fmt.Sprint(head, " 000000"), loc)
 		et, _ := time.ParseInLocation("20060102 150405", fmt.Sprint(head, " 235959"), loc)
 		return st, et
-	} else if startTime < endTime {
+	} else if startTime <= endTime {
 		st, _ := time.ParseInLocation("20060102 150405", fmt.Sprint(head, " ", startTime), loc)
 		et, _ := time.ParseInLocation("20060102 150405", fmt.Sprint(head, " ", endTime), loc)
 		return st, et

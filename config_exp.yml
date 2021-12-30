@@ -21,4 +21,9 @@ live:
     cleanUpRegular: false # 是否定期清理(tmp目录和录像)
     saveDuration: 7d      # 保留时间(h - hour, d - day)
     areaLock: false       # 分区锁定，是否只录制某个分区下的直播
-    areaLimit: "放松电台" # 锁定的分区，请确保分区名准确无误 
+    areaLimit: "放松电台" # 锁定的分区，请确保分区名准确无误
+monitorAreas:             # 监控的分区
+- areaName: 放松电台
+  parentID: 5
+  areaID: 339
+blockedRooms: ["13620248"] # 监控时屏蔽的主播

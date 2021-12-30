@@ -14,34 +14,42 @@ type bili struct {
 }
 
 type RecordConfig struct {
-	NeedProxy 	bool	`yaml:"needProxy"`
-	Proxy     	string	`yaml:"proxy"`
-	NeedBdPan	bool	`yaml:"needBdPan"`
-	UploadTime	string	`yaml:"uploadTime"`
+	NeedProxy  bool   `yaml:"needProxy"`
+	Proxy      string `yaml:"proxy"`
+	NeedBdPan  bool   `yaml:"needBdPan"`
+	UploadTime string `yaml:"uploadTime"`
 }
 
 // RoomConfigInfo room config info
 type RoomConfigInfo struct {
-	RoomID     		string	`yaml:"roomID"`
-	RecordMode		bool	`yaml:"recordMode"`
-	StartTime  		string	`yaml:"startTime"`
-	EndTime    		string	`yaml:"endTime"`
-	AutoRecord 		bool	`yaml:"autorecord"`
-	AutoUpload 		bool	`yaml:"autoupload"`
-	NeedM4a			bool	`yaml:"needM4a"`
-	Mp4Compress		bool	`yaml:"mp4Compress"`
-	DivideByTitle	bool	`yaml:"divideByTitle"`
-	CleanUpRegular	bool	`yaml:"cleanUpRegular"`
-	SaveDuration	string	`yaml:"saveDuration"`
-	AreaLock		bool	`yaml:"areaLock"`
-	AreaLimit		string	`yaml:"areaLimit"`
+	RoomID         string `yaml:"roomID"`
+	RecordMode     bool   `yaml:"recordMode"`
+	StartTime      string `yaml:"startTime"`
+	EndTime        string `yaml:"endTime"`
+	AutoRecord     bool   `yaml:"autorecord"`
+	AutoUpload     bool   `yaml:"autoupload"`
+	NeedM4a        bool   `yaml:"needM4a"`
+	Mp4Compress    bool   `yaml:"mp4Compress"`
+	DivideByTitle  bool   `yaml:"divideByTitle"`
+	CleanUpRegular bool   `yaml:"cleanUpRegular"`
+	SaveDuration   string `yaml:"saveDuration"`
+	AreaLock       bool   `yaml:"areaLock"`
+	AreaLimit      string `yaml:"areaLimit"`
+}
+
+type MonitorArea struct {
+	AreaName string `yaml:"areaName"`
+	ParentID int    `yaml:"parentID"`
+	AreaID   int    `yaml:"areaID"`
 }
 
 // Config 配置文件
 type config struct {
-	Bili     bili                      `yaml:"bilibili"`
-	RcConfig RecordConfig              `yaml:"record"`
-	Live     map[string]RoomConfigInfo `yaml:"live"`
+	Bili         bili                      `yaml:"bilibili"`
+	RcConfig     RecordConfig              `yaml:"record"`
+	Live         map[string]RoomConfigInfo `yaml:"live"`
+	MonitorAreas []MonitorArea             `yaml:"monitorAreas"`
+	BlockedRooms []string                  `yaml:"blockedRooms"`
 }
 
 // Config out
@@ -113,4 +121,16 @@ func (c *Config) EditRoom(roomInfo RoomConfigInfo) {
 	if ok {
 		c.Conf.Live[roomInfo.RoomID] = roomInfo
 	}
+}
+
+func (c *Config) AddMonitorArea(area MonitorArea) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	c.Conf.MonitorAreas = append(c.Conf.MonitorAreas, area)
+}
+
+func (c *Config) AddBlockedRoom(roomID string) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	c.Conf.BlockedRooms = append(c.Conf.BlockedRooms, roomID)
 }

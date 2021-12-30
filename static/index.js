@@ -370,6 +370,126 @@ let Main = {
       this.addForm.RoomID = roomID
       this.addFormVisible = true
     },
+    onDecode() {
+      console.log('Decode!')
+      console.log(this.form.RoomID)
+      $.ajax({
+        type: "POST",
+        url: "/decode",
+        dataType: "json",
+        data: JSON.stringify({
+          RoomID: this.form.RoomID,
+        }),
+        headers: {
+          "Content-Type": "application/json"
+        },
+        success: function (msg) {
+          if (msg.msg) {
+            ElNotification({
+              title: '成功',
+              message: '转码成功',
+              type: 'success'
+            })
+          } else {
+            ElNotification({
+              title: '失败',
+              message: '转码失败',
+              type: 'error'
+            })
+          }
+        },
+        error: function (XMLHttpRequest, textStatus, errorThrown) {
+          ElNotification({
+            title: '失败',
+            message: '转码失败',
+            type: 'error'
+          })
+        }
+      })
+    },
+    blockRoom(roomID) {
+      console.log('Block ' + roomID + '!')
+      $.ajax({
+        type: "POST",
+        url: "/block",
+        dataType: "json",
+        data: JSON.stringify({
+          RoomID: roomID,
+        }),
+        headers: {
+          "Content-Type": "application/json"
+        },
+        success: function (msg) {
+          if (msg.msg) {
+            ElNotification({
+              title: '成功',
+              message: '屏蔽成功',
+              type: 'success'
+            })
+          } else {
+            ElNotification({
+              title: '失败',
+              message: '屏蔽失败',
+              type: 'error'
+            })
+          }
+        },
+        error: function (XMLHttpRequest, textStatus, errorThrown) {
+          ElNotification({
+            title: '失败',
+            message: '屏蔽失败',
+            type: 'error'
+          })
+        }
+      })
+    },
+    updateMonitor(msg) {
+      for (let key in this.monitorMap) {
+        if (msg[key].Nums !== this.monitorMap[key].Nums) {
+          newroomlst = Array(0)
+          oldroomlst = Array(0)
+          for (let item in msg[key].Data) {
+            newroomlst.push(msg[key].Data[item].Uname)
+          }
+          for (let item in this.monitorMap[key].Data) {
+            oldroomlst.push(this.monitorMap[key].Data[item].Uname)
+          }
+          console.log(oldroomlst)
+          console.log(newroomlst)
+          for (let item in newroomlst) {
+            if (oldroomlst.indexOf(newroomlst[item]) == -1) {
+              ElNotification({
+                title: '开播通知',
+                message: newroomlst[item] + '开播了',
+                type: 'success',
+                duration: 5000,
+              })
+            }
+          }
+          for (let item in oldroomlst) {
+            if (newroomlst.indexOf(oldroomlst[item]) == -1) {
+              ElNotification({
+                title: '下播通知',
+                message: oldroomlst[item] + '下播了',
+                type: 'error',
+                duration: 5000,
+              })
+            }
+          }
+        }
+      }
+      this.monitorMap = msg
+      for (let key in this.monitorMap) {
+        for (let i=0; i < this.monitorMap[key].Data.length; i++) {
+          title = this.monitorMap[key].Data[i].Title
+          title = title.length <= 20 ? title : title.slice(0, 20) + '...'
+          this.monitorMap[key].Data[i].Title = title
+        }
+      }
+    },
+    area2label(areaName) {
+      return areaName + '(' + this.monitorMap[areaName].Nums + ')'
+    },
     test(scope) {
       console.log(scope)
     }
@@ -432,48 +552,17 @@ function getLowFrqData() {
     }
   })
   $.ajax({
-    type: "POST",
+    type: "GET",
     url: "/monitor",
     data: {},
-    success: function(msg) {
+    success: function (msg) {
       let arealist = Array(0)
       for (let key in msg) {
         console.log(msg[key])
         arealist.push(key)
-        //TODO: 在vue外的notification失败，需要找一个可以响应变化的action
-        if (vm.monitorMap[key] && msg[key].Nums !== vm.monitorMap[key].Nums) {
-          newroomlst = Array(0)
-          oldroomlst = Array(0)
-          for (let item in msg[key].Rooms) {
-            newroomlst.push(item.Uname)
-          }
-          for (let item in vm.monitorMap[key].Rooms) {
-            oldroomlst.push(item.Uname)
-          }
-          for (let item in newroomlst) {
-            if (oldroomlst.indexOf(newroomlst[item]) == -1) {
-              ElNotification({
-                title: '开播通知',
-                message: item + '开播了',
-                type: 'success',
-                duration: 0,
-              })
-            }
-          }
-          for (let item in oldroomlst) {
-            if (newroomlst.indexOf(oldroomlst[item]) == -1) {
-              ElNotification({
-                title: '下播通知',
-                message: item + '下播了',
-                type: 'error',
-                duration: 0,
-              })
-            }
-          }
-        }
       }
       vm.areaList = arealist
-      vm.monitorMap = msg
+      vm.updateMonitor(msg)
     }
   })
 }

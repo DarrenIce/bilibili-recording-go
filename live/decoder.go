@@ -70,15 +70,15 @@ func (l *Live) Decode() {
 	}
 	fileTime := tools.GetFileCreateTime(inputFile[0])
 	loc, _ := time.LoadLocation("PRC")
-	tNow, _ := time.ParseInLocation("2006-01-02 15:04:05", fmt.Sprint(time.Now().Format("2006-01-02"), " ", "03:00:00"), loc)
+	tNow, _ := time.ParseInLocation("2006-01-02 15:04:05", fmt.Sprint(time.Unix(fileTime, 0).Format("2006-01-02"), " ", "06:00:00"), loc)
 	var ftime string
 	if time.Unix(fileTime, 0).Before(tNow) {
-		ftime = time.Now().AddDate(0, 0, -1).Format("20060102")
+		ftime = tNow.AddDate(0, 0, -1).Format("20060102")
 	} else {
-		ftime = time.Now().Format("20060102")
+		ftime = tNow.Format("20060102")
 	}
 	if l.RecordMode {
-		ftime = time.Unix(fileTime, 0).Format("2006-01-02 15:04:05")
+		ftime = fmt.Sprintf("%s场", time.Unix(fileTime, 0).Format("2006-01-02 15时04分"))
 	}
 	uploadName := fmt.Sprintf("%s%s", l.Uname, ftime)
 	outputName := fmt.Sprintf("%s_%s", l.Uname, ftime)

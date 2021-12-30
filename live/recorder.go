@@ -102,7 +102,7 @@ func (r *Live) run() {
 			return
 		default:
 			r.St, r.Et = tools.MkDuration(r.StartTime, r.EndTime)
-			if tools.JudgeInDuration(r.St, r.Et) && r.AutoRecord && r.judgeLive() {
+			if r.judgeRecord() && r.judgeLive() && r.judegArea() {
 				if r.State == running {
 					time.Sleep(5 * time.Second)
 				} else if r.State == start || r.State == restart {
@@ -118,18 +118,14 @@ func (r *Live) run() {
 				} else {
 					time.Sleep(5 * time.Second)
 				}
-			} else if !(r.RecordMode || tools.JudgeInDuration(r.St, r.Et)) {
+			} else if !r.judgeRecord() || !r.judegArea() {
 				if r.State == restart {
 					r.unlive()
 				} else if r.State == running {
 					r.downloadCmd.Process.Kill()
-					r.unlive()
 				} else {
 					time.Sleep(5 * time.Second)
 				}
-			} else if !r.AutoRecord && r.State == running {
-				r.downloadCmd.Process.Kill()
-				atomic.CompareAndSwapUint32(&r.State, running, start)
 			} else {
 				time.Sleep(5 * time.Second)
 			}
@@ -144,7 +140,7 @@ func (r *Live) judgeLive() bool {
 }
 
 func (r *Live) unlive() {
-	if tools.JudgeInDuration(r.St, r.Et) && !r.RecordMode {
+	if r.judgeRecord() && r.judegArea() {
 		time.Sleep(10 * time.Second)
 		atomic.CompareAndSwapUint32(&r.State, running, restart)
 	} else {
@@ -163,4 +159,15 @@ func (r *Live) start() {
 	atomic.CompareAndSwapUint32(&r.State, iinit, start)
 	r.GetInfoByRoom()
 	go r.run()
+}
+
+func (r *Live) judegArea() bool {
+	if !r.AreaLock {
+		return true
+	}
+	return r.AreaLimit == r.AreaName
+}
+
+func (r *Live) judgeRecord() bool {
+	return r.AutoRecord && (r.RecordMode || (!r.RecordMode && tools.JudgeInDuration(r.St, r.Et)))
 }
