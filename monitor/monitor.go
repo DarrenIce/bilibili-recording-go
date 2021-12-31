@@ -46,9 +46,9 @@ type AreaList struct {
 }
 
 var (
-	Lock *sync.Mutex
-	MonitorMap = make(map[string]AreaList)
-	monitorApi = "https://api.live.bilibili.com/xlive/web-interface/v1/second/getList?platform=web&parent_area_id=%d&area_id=%d&sort_type=&page=%d"
+	Lock           *sync.Mutex
+	AreaMonitorMap = make(map[string]AreaList)
+	areaMonitorApi = "https://api.live.bilibili.com/xlive/web-interface/v1/second/getList?platform=web&parent_area_id=%d&area_id=%d&sort_type=&page=%d"
 )
 
 func init() {
@@ -67,7 +67,7 @@ func Monitor() {
 			}
 			uidmap := make(map[string]string)
 			for {
-				url := fmt.Sprintf(monitorApi, c.Conf.MonitorAreas[k].ParentID, c.Conf.MonitorAreas[k].AreaID, page)
+				url := fmt.Sprintf(areaMonitorApi, c.Conf.MonitorAreas[k].ParentID, c.Conf.MonitorAreas[k].AreaID, page)
 				resp, err := requests.Get(url)
 				if err != nil {
 					golog.Error(err)
@@ -123,7 +123,7 @@ func Monitor() {
 			}
 			sort.Sort(areaList.Data)
 			Lock.Lock()
-			MonitorMap[areaname] = *areaList
+			AreaMonitorMap[areaname] = *areaList
 			Lock.Unlock()
 			time.Sleep(time.Second * 30)
 		}
