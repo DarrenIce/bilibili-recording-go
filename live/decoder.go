@@ -11,6 +11,7 @@ import (
 	"strings"
 	"sync/atomic"
 	"time"
+	"bytes"
 
 	"github.com/kataras/golog"
 
@@ -92,29 +93,39 @@ func (l *Live) Decode() {
 	outputFile := filepath.Join(pwd, "recording", l.Uname, fmt.Sprintf("%s.mp4", outputName))
 	l.UploadName = uploadName
 	l.FilePath = outputFile
-	golog.Info(fmt.Sprintf("%s[RoomID: %s] 本次转码的文件有: %s, 最终生成: %s", l.Uname, l.UID, strings.Join(inputFile, " "), outputName))
+	golog.Info(fmt.Sprintf("%s[RoomID: %s] 本次转码的文件有: %s, 最终生成: %s", l.Uname, l.UID, strings.Join(inputFile, " "), outputFile))
 	var middleLst []string
-	for _, f := range inputFile {
-		middleLst = append(middleLst, strings.Replace(f, ".flv", ".ts", -1))
+	for k, f := range inputFile {
+		inputFile[k], _ = filepath.Abs(f)
+		middleLst = append(middleLst, strings.Replace(inputFile[k], ".flv", ".ts", -1))
 	}
 
 	var middleToFileLst []string
 
 	for _, f := range middleLst {
-		absPath, _ := filepath.Abs(f)
-		middleToFileLst = append(middleToFileLst, fmt.Sprintf("file '%s'", absPath))
+		// absPath, _ := filepath.Abs(f)
+		middleToFileLst = append(middleToFileLst, fmt.Sprintf("file '%s'", f))
 	}
 
 	concatFilePath, _ := filepath.Abs(fmt.Sprintf("./recording/%s/tmp/concat.txt", l.Uname))
+	if tools.Exists(concatFilePath) {
+		os.Remove(concatFilePath)
+	}
 	concatFile, _ := os.OpenFile(concatFilePath, os.O_CREATE|os.O_WRONLY, 0644)
 	writeString := strings.Join(middleToFileLst, "\n")
 	io.WriteString(concatFile, writeString)
 
 	for k := range inputFile {
-		cmd := exec.Command("ffmpeg", "-i", inputFile[k], "-c", "copy", "-y", middleLst[k])
+		cmd := exec.Command("ffmpeg", "-fflags", "+discardcorrupt", "-i", inputFile[k], "-c", "copy", "-y", middleLst[k])
+		fmt.Println(cmd.String())
 		// stdout, _ := cmd.StdoutPipe()
 		// cmd.Stderr = cmd.Stdout
-		cmd.Run()
+		var stderr bytes.Buffer
+		cmd.Stderr = &stderr
+		err := cmd.Run()
+		if err != nil {
+			fmt.Println(fmt.Sprint(err) + ": " + stderr.String())
+		}
 		// tools.LiveOutput(stdout)
 	}
 
@@ -132,25 +143,43 @@ func (l *Live) Decode() {
 
 	if flag && l.Mp4Compress {
 		cmd := exec.Command("ffmpeg", "-f", "concat", "-safe", "0", "-i", concatFilePath, "-c:v", "libx264", "-c:a", "copy", "-crf", "17", "-maxrate", "3M", "-bufsize", "3M", "-preset", "fast", "-y", outputFile)
+		fmt.Println(cmd.String())
 		// stdout, _ := cmd.StdoutPipe()
 		// cmd.Stderr = cmd.Stdout
-		cmd.Run()
+		var stderr bytes.Buffer
+		cmd.Stderr = &stderr
+		err := cmd.Run()
+		if err != nil {
+			fmt.Println(fmt.Sprint(err) + ": " + stderr.String())
+		}
 		// tools.LiveOutput(stdout)
 	} else {
 		cmd := exec.Command("ffmpeg", "-f", "concat", "-safe", "0", "-i", concatFilePath, "-c", "copy", "-y", outputFile)
+		fmt.Println(cmd.String())
 		// stdout, _ := cmd.StdoutPipe()
 		// cmd.Stderr = cmd.Stdout
-		cmd.Run()
+		var stderr bytes.Buffer
+		cmd.Stderr = &stderr
+		err := cmd.Run()
+		if err != nil {
+			fmt.Println(fmt.Sprint(err) + ": " + stderr.String())
+		}
 		// tools.LiveOutput(stdout)
 	}
 	if l.NeedM4a {
 		cmd := exec.Command("ffmpeg", "-f", "concat", "-safe", "0", "-i", concatFilePath, "-acodec", "copy", "-vn", "-y", strings.Replace(outputFile, ".mp4", ".m4a", -1))
-		cmd.Run()
+		fmt.Println(cmd.String())
+		var stderr bytes.Buffer
+		cmd.Stderr = &stderr
+		err := cmd.Run()
+		if err != nil {
+			fmt.Println(fmt.Sprint(err) + ": " + stderr.String())
+		}
+		// stdout, _ := cmd.StdoutPipe()
+		// cmd.Stderr = cmd.Stdout
+		// tools.LiveOutput(stdout)
 	}
-	// stdout, _ := cmd.StdoutPipe()
-	// cmd.Stderr = cmd.Stdout
-	// tools.LiveOutput(stdout)
-
+	
 	for _, f := range middleLst {
 		err := os.Remove(f)
 		if err != nil {

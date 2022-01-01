@@ -1,4 +1,4 @@
-@import url("//unpkg.com/element-plus/dist/index.css");
+@import url("http://unpkg.com/element-plus@1.1.0-beta.19/dist/index.css");
 
 .el-main .radius {
     height: auto;
