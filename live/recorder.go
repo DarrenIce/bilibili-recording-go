@@ -148,7 +148,7 @@ func (r *Live) judgeLive() bool {
 }
 
 func (r *Live) unlive() {
-	if r.judgeRecord() && r.judegArea() {
+	if r.judgeRecord() && r.judegArea() && !r.RecordMode {
 		time.Sleep(10 * time.Second)
 		atomic.CompareAndSwapUint32(&r.State, running, restart)
 	} else {

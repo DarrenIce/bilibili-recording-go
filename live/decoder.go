@@ -43,28 +43,29 @@ func decodeWorker() {
 	}
 }
 
+type fileInfo struct {
+	fileName string
+	lastModifyTime int64
+}
+
 // Decode 转码
 func (l *Live) Decode() {
-	var fileLst []string
-	var timeLst []int64
+	var fileLst []fileInfo
 	tmpDir := fmt.Sprintf("./recording/%s/tmp", l.Uname)
 	for _, f := range tools.ListDir(tmpDir) {
 		if ok := strings.HasSuffix(f, ".flv"); ok {
-			fileLst = append(fileLst, f)
+			fileLst = append(fileLst, fileInfo{fileName: f, lastModifyTime: tools.GetFileLastModifyTime(f)})
 		}
 	}
-	sort.Strings(fileLst)
-	for _, f := range fileLst {
-		timeLst = append(timeLst, tools.GetFileLastModifyTime(f))
-	}
-	latestTime := timeLst[len(timeLst)-1]
+	sort.Slice(fileLst, func(i, j int) bool { return fileLst[i].lastModifyTime < fileLst[j].lastModifyTime })
+	latestTime := fileLst[len(fileLst)-1].lastModifyTime
 	var inputFile []string
 	if l.RecordMode || l.DivideByTitle {
-		inputFile = append(inputFile, fileLst[len(fileLst)-1])
+		inputFile = append(inputFile, fileLst[len(fileLst)-1].fileName)
 	} else {
-		for k, v := range timeLst {
-			if tools.GetTimeDeltaFromTimestamp(latestTime, v) < tools.GetTimeDeltaFromTimestamp(l.Et.Unix(), l.St.Unix()) {
-				inputFile = append(inputFile, fileLst[k])
+		for k, v := range fileLst {
+			if tools.GetTimeDeltaFromTimestamp(latestTime, v.lastModifyTime) < tools.GetTimeDeltaFromTimestamp(l.Et.Unix(), l.St.Unix()) {
+				inputFile = append(inputFile, fileLst[k].fileName)
 			}
 		}
 	}
@@ -155,7 +156,7 @@ func (l *Live) Decode() {
 		if err != nil {
 			golog.Error(err)
 		} else {
-			golog.Info(f, "has been removed")
+			golog.Info(f, " has been removed")
 		}
 	}
 
