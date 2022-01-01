@@ -11,6 +11,6 @@ type MonitorController struct {
 }
 
 func (c *MonitorController) Get() {
-	c.Data["json"] = monitor.MonitorMap
+	c.Data["json"] = monitor.AreaMonitorMap
 	c.ServeJSON()
 }
