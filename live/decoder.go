@@ -85,7 +85,7 @@ func (l *Live) Decode() {
 	if l.DivideByTitle {
 		filesplit := strings.Split(inputFile[0], "/")
 		title := strings.TrimSuffix(filesplit[len(filesplit)-1], ".flv")
-		ftime = fmt.Sprintf("%s_%s场", title, time.Unix(fileTime, 0).Format("2006-01-02 15时04分"))
+		ftime = fmt.Sprintf("%s场_%s", time.Unix(fileTime, 0).Format("2006-01-02 15时04分"), title)
 	}
 	uploadName := fmt.Sprintf("%s%s", l.Uname, ftime)
 	outputName := fmt.Sprintf("%s_%s", l.Uname, ftime)

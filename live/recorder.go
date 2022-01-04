@@ -2,6 +2,7 @@ package live
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
@@ -85,6 +86,10 @@ func (r *Live) DownloadLive() {
 	golog.Info(fmt.Sprintf("%s[RoomID: %s] 本次录制文件为：%s", r.Uname, r.RoomID, outputName))
 	middle, _ := filepath.Abs(fmt.Sprintf("./recording/%s/tmp", uname))
 	outputFile := fmt.Sprint(middle + "\\" + outputName)
+	if tools.Exists(outputFile) {
+		golog.Info(fmt.Sprintf("%s[RoomID: %s] 录制文件已存在，先删除再创建", r.Uname, r.RoomID))
+		os.Remove(outputFile)
+	}
 	url := fmt.Sprint("https://live.bilibili.com/", r.RoomID)
 	r.downloadCmd = exec.Command("streamlink", "-f", "-o", outputFile, url, "best")
 	// stdout, _ := r.downloadCmd.StdoutPipe()

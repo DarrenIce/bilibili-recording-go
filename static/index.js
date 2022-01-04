@@ -33,6 +33,8 @@ function RoomConfigInfo(room) {
   }
 }
 
+const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay))
+
 let Main = {
   setup() {
     const state = reactive({
@@ -443,7 +445,7 @@ let Main = {
         }
       })
     },
-    updateMonitor(msg) {
+    async updateMonitor(msg) {
       for (let key in this.monitorMap) {
         if (msg[key].Nums !== this.monitorMap[key].Nums) {
           newroomlst = Array(0)
@@ -459,21 +461,23 @@ let Main = {
           for (let item in newroomlst) {
             if (oldroomlst.indexOf(newroomlst[item]) == -1) {
               ElNotification({
-                title: '开播通知',
+                title: key,
                 message: newroomlst[item] + '开播了',
                 type: 'success',
                 duration: 5000,
               })
+              await sleep(1500)
             }
           }
           for (let item in oldroomlst) {
             if (newroomlst.indexOf(oldroomlst[item]) == -1) {
               ElNotification({
-                title: '下播通知',
+                title: key,
                 message: oldroomlst[item] + '下播了',
                 type: 'error',
                 duration: 5000,
               })
+              await sleep(1500)
             }
           }
         }
