@@ -100,6 +100,19 @@ func (l *Live) Decode() {
 		middleLst = append(middleLst, strings.Replace(inputFile[k], ".flv", ".ts", -1))
 	}
 
+	if tools.Exists(outputFile) {
+		golog.Info(fmt.Sprintf("%s[RoomID: %s] 输出文件已存在，合并到新视频中", l.Uname, l.UID))
+		middleLst = append(middleLst, strings.Replace(outputFile, ".mp4", ".ts", -1))
+		cmd := exec.Command("ffmpeg", "-i", outputFile, "-vcodec", "copy", "-acodec", "copy", "-vbsf", "h264_mp4toannexb", "-y", strings.Replace(outputFile, ".mp4", ".ts", -1))
+		fmt.Println(cmd.String())
+		var stderr bytes.Buffer
+		cmd.Stderr = &stderr
+		err := cmd.Run()
+		if err != nil {
+			fmt.Println(fmt.Sprint(err) + ": " + stderr.String())
+		}
+	}
+
 	var middleToFileLst []string
 
 	for _, f := range middleLst {
@@ -166,6 +179,9 @@ func (l *Live) Decode() {
 		}
 		// tools.LiveOutput(stdout)
 	}
+
+
+	
 	if l.NeedM4a {
 		cmd := exec.Command("ffmpeg", "-f", "concat", "-safe", "0", "-i", concatFilePath, "-acodec", "copy", "-vn", "-y", strings.Replace(outputFile, ".mp4", ".m4a", -1))
 		fmt.Println(cmd.String())
