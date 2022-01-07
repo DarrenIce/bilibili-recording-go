@@ -84,7 +84,9 @@ func (l *Live) Decode() {
 	}
 	if l.DivideByTitle {
 		filesplit := strings.Split(inputFile[0], "/")
-		title := strings.TrimSuffix(filesplit[len(filesplit)-1], ".flv")
+		titleWithTsp := strings.TrimSuffix(filesplit[len(filesplit)-1], ".flv")
+		titleSplits := strings.Split(titleWithTsp, "_")
+		title := strings.Join(titleSplits[:len(titleSplits)-1], "_")
 		ftime = fmt.Sprintf("%s场_%s", time.Unix(fileTime, 0).Format("2006-01-02 15时04分"), title)
 	}
 	uploadName := fmt.Sprintf("%s%s", l.Uname, ftime)
@@ -180,8 +182,6 @@ func (l *Live) Decode() {
 		// tools.LiveOutput(stdout)
 	}
 
-
-	
 	if l.NeedM4a {
 		cmd := exec.Command("ffmpeg", "-f", "concat", "-safe", "0", "-i", concatFilePath, "-acodec", "copy", "-vn", "-y", strings.Replace(outputFile, ".mp4", ".m4a", -1))
 		fmt.Println(cmd.String())

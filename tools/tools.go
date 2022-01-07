@@ -198,6 +198,7 @@ func md5V(t string) string {
 }
 
 func Upload2BaiduPCS() {
+	golog.Info("Upload2BaiduPCS Start")
 	c := config.New()
 	for _, v := range c.Conf.Live {
 		uname, err := GetUname(v.RoomID)
@@ -237,6 +238,7 @@ func Upload2BaiduPCS() {
 		cmd.Start()
 		LiveOutput(stdout)
 	}
+	golog.Info("Upload2BaiduPCS End")
 }
 
 // GetUname, 感觉可以加个缓存，不然频繁调用容易触发风控
