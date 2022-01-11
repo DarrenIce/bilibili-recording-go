@@ -22,6 +22,7 @@ type RecordConfig struct {
 
 // RoomConfigInfo room config info
 type RoomConfigInfo struct {
+	Platform       string `yaml:"platform"`
 	RoomID         string `yaml:"roomID"`
 	RecordMode     bool   `yaml:"recordMode"`
 	StartTime      string `yaml:"startTime"`

@@ -157,7 +157,7 @@ func (l *Live) Decode() {
 	}
 
 	if flag && l.Mp4Compress {
-		cmd := exec.Command("ffmpeg", "-f", "concat", "-safe", "0", "-i", concatFilePath, "-c:v", "libx264", "-c:a", "copy", "-crf", "17", "-maxrate", "3M", "-bufsize", "3M", "-preset", "fast", "-y", outputFile)
+		cmd := exec.Command("ffmpeg", "-f", "concat", "-safe", "0", "-i", concatFilePath, "-vcodec", "hevc_nvenc", "-c:a", "copy", "-crf", "17", "-maxrate", "3M", "-bufsize", "3M", "-preset", "fast", "-y", outputFile)
 		fmt.Println(cmd.String())
 		// stdout, _ := cmd.StdoutPipe()
 		// cmd.Stderr = cmd.Stdout
