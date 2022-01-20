@@ -105,7 +105,7 @@ func (l *Live) Decode() {
 	if tools.Exists(outputFile) {
 		golog.Info(fmt.Sprintf("%s[RoomID: %s] 输出文件已存在，合并到新视频中", l.Uname, l.UID))
 		middleLst = append(middleLst, strings.Replace(outputFile, ".mp4", ".ts", -1))
-		cmd := exec.Command("ffmpeg", "-i", outputFile, "-vcodec", "copy", "-acodec", "copy", "-vbsf", "h264_mp4toannexb", "-y", strings.Replace(outputFile, ".mp4", ".ts", -1))
+		cmd := exec.Command("ffmpeg", "-i", outputFile, "-vcodec", "copy", "-acodec", "copy", "-vbsf", "hevc_mp4toannexb", "-y", strings.Replace(outputFile, ".mp4", ".ts", -1))
 		fmt.Println(cmd.String())
 		var stderr bytes.Buffer
 		cmd.Stderr = &stderr
