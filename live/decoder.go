@@ -102,7 +102,7 @@ func (l *Live) Decode() {
 		middleLst = append(middleLst, strings.Replace(inputFile[k], ".flv", ".ts", -1))
 	}
 
-	if tools.Exists(outputFile) {
+	if tools.Exists(outputFile) && l.DivideByTitle {
 		golog.Info(fmt.Sprintf("%s[RoomID: %s] 输出文件已存在，合并到新视频中", l.Uname, l.UID))
 		middleLst = append(middleLst, strings.Replace(outputFile, ".mp4", ".ts", -1))
 		cmd := exec.Command("ffmpeg", "-i", outputFile, "-vcodec", "copy", "-acodec", "copy", "-vbsf", "hevc_mp4toannexb", "-y", strings.Replace(outputFile, ".mp4", ".ts", -1))

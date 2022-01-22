@@ -446,15 +446,17 @@ let Main = {
       })
     },
     async updateMonitor(msg) {
-      for (let key in this.monitorMap) {
-        if (msg[key].Nums !== this.monitorMap[key].Nums) {
+      tmpMap = this.monitorMap
+      this.monitorMap = msg
+      for (let key in tmpMap) {
+        if (msg[key].Nums !== tmpMap[key].Nums) {
           newroomlst = Array(0)
           oldroomlst = Array(0)
           for (let item in msg[key].Data) {
             newroomlst.push(msg[key].Data[item].Uname)
           }
-          for (let item in this.monitorMap[key].Data) {
-            oldroomlst.push(this.monitorMap[key].Data[item].Uname)
+          for (let item in tmpMap[key].Data) {
+            oldroomlst.push(tmpMap[key].Data[item].Uname)
           }
           console.log(oldroomlst)
           console.log(newroomlst)
@@ -482,7 +484,7 @@ let Main = {
           }
         }
       }
-      this.monitorMap = msg
+      
       for (let key in this.monitorMap) {
         for (let i=0; i < this.monitorMap[key].Data.length; i++) {
           title = this.monitorMap[key].Data[i].Title
