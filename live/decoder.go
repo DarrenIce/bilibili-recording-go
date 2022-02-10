@@ -59,36 +59,37 @@ func (l *Live) Decode() {
 		}
 	}
 	sort.Slice(fileLst, func(i, j int) bool { return fileLst[i].lastModifyTime < fileLst[j].lastModifyTime })
-	latestTime := fileLst[len(fileLst)-1].lastModifyTime
+	// latestTime := fileLst[len(fileLst)-1].lastModifyTime
 	var inputFile []string
-	if l.RecordMode || l.DivideByTitle {
-		inputFile = append(inputFile, fileLst[len(fileLst)-1].fileName)
-	} else {
-		for k, v := range fileLst {
-			if tools.GetTimeDeltaFromTimestamp(latestTime, v.lastModifyTime) < tools.GetTimeDeltaFromTimestamp(l.Et.Unix(), l.St.Unix()) {
-				inputFile = append(inputFile, fileLst[k].fileName)
-			}
-		}
-	}
+	// if l.RecordMode || l.DivideByTitle {
+	inputFile = append(inputFile, fileLst[len(fileLst)-1].fileName)
+	// } else {
+	// 	for k, v := range fileLst {
+	// 		if tools.GetTimeDeltaFromTimestamp(latestTime, v.lastModifyTime) < tools.GetTimeDeltaFromTimestamp(l.Et.Unix(), l.St.Unix()) {
+	// 			inputFile = append(inputFile, fileLst[k].fileName)
+	// 		}
+	// 	}
+	// }
 	fileTime := tools.GetFileCreateTime(inputFile[0])
-	loc, _ := time.LoadLocation("PRC")
-	tNow, _ := time.ParseInLocation("2006-01-02 15:04:05", fmt.Sprint(time.Unix(fileTime, 0).Format("2006-01-02"), " ", "06:00:00"), loc)
-	var ftime string
-	if time.Unix(fileTime, 0).Before(tNow) {
-		ftime = tNow.AddDate(0, 0, -1).Format("20060102")
-	} else {
-		ftime = tNow.Format("20060102")
-	}
-	if l.RecordMode {
-		ftime = fmt.Sprintf("%s场", time.Unix(fileTime, 0).Format("2006-01-02 15时04分"))
-	}
-	if l.DivideByTitle {
-		filesplit := strings.Split(inputFile[0], "/")
-		titleWithTsp := strings.TrimSuffix(filesplit[len(filesplit)-1], ".flv")
-		titleSplits := strings.Split(titleWithTsp, "_")
-		title := strings.Join(titleSplits[:len(titleSplits)-1], "_")
-		ftime = fmt.Sprintf("%s场_%s", time.Unix(fileTime, 0).Format("2006-01-02 15时04分"), title)
-	}
+	// loc, _ := time.LoadLocation("PRC")
+	// tNow, _ := time.ParseInLocation("2006-01-02 15:04:05", fmt.Sprint(time.Unix(fileTime, 0).Format("2006-01-02"), " ", "06:00:00"), loc)
+	// var ftime string
+	// if time.Unix(fileTime, 0).Before(tNow) {
+	// 	ftime = tNow.AddDate(0, 0, -1).Format("20060102")
+	// } else {
+	// 	ftime = tNow.Format("20060102")
+	// }
+	// if l.RecordMode {
+		// ftime := fmt.Sprintf("%s场", time.Unix(fileTime, 0).Format("2006-01-02 15时04分"))
+	// }
+	// if l.DivideByTitle {
+	filesplit := strings.Split(inputFile[0], "/")
+	titleWithTsp := strings.TrimSuffix(filesplit[len(filesplit)-1], ".flv")
+	titleSplits := strings.Split(titleWithTsp, "_")
+	areaName := titleSplits[0]
+	title := strings.Join(titleSplits[1:len(titleSplits)-1], "_")
+	ftime := fmt.Sprintf("%s场_%s_%s", time.Unix(fileTime, 0).Format("2006-01-02 15时04分"), areaName, title)
+	// }
 	uploadName := fmt.Sprintf("%s%s", l.Uname, ftime)
 	outputName := fmt.Sprintf("%s_%s", l.Uname, ftime)
 	pwd, _ := os.Getwd()

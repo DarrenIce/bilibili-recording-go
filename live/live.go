@@ -186,6 +186,7 @@ func (l *Live) UpdateFromGJSON(res gjson.Result) {
 	defer LmapLock.Unlock()
 	defer l.lock.Unlock()
 	beforeTitle := l.Title
+	beforeArea := l.AreaName
 	l.RealID = res.Get("room_info").Get("room_id").String()
 	l.LiveStatus = int(res.Get("room_info").Get("live_status").Int())
 	l.LockStatus = int(res.Get("room_info").Get("lock_status").Int())
@@ -197,6 +198,12 @@ func (l *Live) UpdateFromGJSON(res gjson.Result) {
 	if beforeTitle != ""  && beforeTitle != l.Title {
 		golog.Info(fmt.Sprintf("%s[RoomID: %s] 标题更换 %s -> %s", l.Uname, l.RoomID, beforeTitle, l.Title))
 		if l.DivideByTitle && l.State == running {
+			l.downloadCmd.Process.Kill()
+		}
+	} 
+	if beforeArea != l.AreaName {
+		golog.Info(fmt.Sprintf("%s[RoomID: %s] 直播分区更换 %s -> %s", l.Uname, l.RoomID, beforeArea, l.AreaName))
+		if !l.AreaLock && l.State == running {
 			l.downloadCmd.Process.Kill()
 		}
 	}
