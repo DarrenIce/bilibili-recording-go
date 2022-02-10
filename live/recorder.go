@@ -151,18 +151,18 @@ func (r *Live) judgeLive() bool {
 }
 
 func (r *Live) unlive() {
-	if r.judgeRecord() && r.judegArea() && !r.RecordMode {
-		time.Sleep(10 * time.Second)
-		atomic.CompareAndSwapUint32(&r.State, running, restart)
-	} else {
-		if atomic.CompareAndSwapUint32(&r.State, running, waiting) || atomic.CompareAndSwapUint32(&r.State, restart, waiting) {
-			if r.RecordMode && tools.GetTimeDeltaFromTimestamp(r.RecordEndTime, r.RecordStartTime) < 60 {
-				atomic.CompareAndSwapUint32(&r.State, waiting, start)
-				return
-			}
-			decodeChan <- r.RoomID
+	// if r.judgeRecord() && r.judegArea() && !r.RecordMode {
+	// 	time.Sleep(10 * time.Second)
+	// 	atomic.CompareAndSwapUint32(&r.State, running, restart)
+	// } else {
+	if atomic.CompareAndSwapUint32(&r.State, running, waiting) || atomic.CompareAndSwapUint32(&r.State, restart, waiting) {
+		if r.RecordMode && tools.GetTimeDeltaFromTimestamp(r.RecordEndTime, r.RecordStartTime) < 60 {
+			atomic.CompareAndSwapUint32(&r.State, waiting, start)
+			return
 		}
+		decodeChan <- r.RoomID
 	}
+	// }
 }
 
 func (r *Live) start() {
