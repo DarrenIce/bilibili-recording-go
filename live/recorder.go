@@ -156,7 +156,7 @@ func (r *Live) unlive() {
 	// 	atomic.CompareAndSwapUint32(&r.State, running, restart)
 	// } else {
 	if atomic.CompareAndSwapUint32(&r.State, running, waiting) || atomic.CompareAndSwapUint32(&r.State, restart, waiting) {
-		if r.RecordMode && tools.GetTimeDeltaFromTimestamp(r.RecordEndTime, r.RecordStartTime) < 60 {
+		if tools.GetTimeDeltaFromTimestamp(r.RecordEndTime, r.RecordStartTime) < 60 {
 			atomic.CompareAndSwapUint32(&r.State, waiting, start)
 			return
 		}
