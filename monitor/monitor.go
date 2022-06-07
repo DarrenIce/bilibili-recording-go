@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/asmcos/requests"
-	"github.com/kataras/golog"
+	// "github.com/kataras/golog"
 	"github.com/tidwall/gjson"
 )
 
@@ -70,7 +70,7 @@ func Monitor() {
 				url := fmt.Sprintf(areaMonitorApi, c.Conf.MonitorAreas[k].ParentID, c.Conf.MonitorAreas[k].AreaID, page)
 				resp, err := requests.Get(url)
 				if err != nil {
-					golog.Error(err)
+					// golog.Error(err)
 					continue
 				}
 				if resp.R.StatusCode != 200 {

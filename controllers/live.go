@@ -11,10 +11,10 @@ type LiveController struct {
 	beego.Controller
 }
 
-// func (c *LiveController) Get() {
-// 	golog.Info("Http Get at index.html")
-// 	c.TplName = "index.html"
-// }
+func (c *LiveController) Get() {
+	c.Data["json"] = live.Lives
+	c.ServeJSON()
+}
 
 func (c *LiveController) Post() {
 	// golog.Info("Http Post at index.html")

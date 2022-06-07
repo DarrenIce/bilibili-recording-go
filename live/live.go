@@ -190,7 +190,9 @@ func (l *Live) UpdateFromGJSON(res gjson.Result) {
 	l.RealID = res.Get("room_info").Get("room_id").String()
 	l.LiveStatus = int(res.Get("room_info").Get("live_status").Int())
 	l.LockStatus = int(res.Get("room_info").Get("lock_status").Int())
-	l.Uname = res.Get("anchor_info").Get("base_info").Get("uname").String()
+	if l.Uname == "" {
+		l.Uname = res.Get("anchor_info").Get("base_info").Get("uname").String()
+	}
 	l.UID = res.Get("room_info").Get("uid").String()
 	l.Title = res.Get("room_info").Get("title").String()
 	l.LiveStartTime = res.Get("room_info").Get("live_start_time").Int()

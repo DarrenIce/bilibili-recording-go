@@ -134,6 +134,7 @@ func (l *Live) Decode() {
 	for k := range inputFile {
 		cmd := exec.Command("ffmpeg", "-fflags", "+discardcorrupt", "-i", inputFile[k], "-c", "copy", "-y", middleLst[k])
 		fmt.Println(cmd.String())
+		golog.Info(cmd.String())
 		// stdout, _ := cmd.StdoutPipe()
 		// cmd.Stderr = cmd.Stdout
 		var stderr bytes.Buffer
@@ -160,6 +161,7 @@ func (l *Live) Decode() {
 	if flag && l.Mp4Compress {
 		cmd := exec.Command("ffmpeg", "-f", "concat", "-safe", "0", "-i", concatFilePath, "-vcodec", "hevc_nvenc", "-c:a", "copy", "-crf", "17", "-maxrate", "3M", "-bufsize", "3M", "-preset", "fast", "-y", outputFile)
 		fmt.Println(cmd.String())
+		golog.Info(cmd.String())
 		// stdout, _ := cmd.StdoutPipe()
 		// cmd.Stderr = cmd.Stdout
 		var stderr bytes.Buffer
@@ -170,8 +172,9 @@ func (l *Live) Decode() {
 		}
 		// tools.LiveOutput(stdout)
 	} else {
-		cmd := exec.Command("ffmpeg", "-f", "concat", "-safe", "0", "-i", concatFilePath, "-c", "copy", "-y", outputFile)
+		cmd := exec.Command("ffmpeg", "-f", "concat", "-safe", "0", "-i", concatFilePath, "-vcodec", "hevc_nvenc", "-c:a", "copy", "-y", outputFile)
 		fmt.Println(cmd.String())
+		golog.Info(cmd.String())
 		// stdout, _ := cmd.StdoutPipe()
 		// cmd.Stderr = cmd.Stdout
 		var stderr bytes.Buffer
@@ -186,6 +189,7 @@ func (l *Live) Decode() {
 	if l.NeedM4a {
 		cmd := exec.Command("ffmpeg", "-f", "concat", "-safe", "0", "-i", concatFilePath, "-acodec", "copy", "-vn", "-y", strings.Replace(outputFile, ".mp4", ".m4a", -1))
 		fmt.Println(cmd.String())
+		golog.Info(cmd.String())
 		var stderr bytes.Buffer
 		cmd.Stderr = &stderr
 		err := cmd.Run()

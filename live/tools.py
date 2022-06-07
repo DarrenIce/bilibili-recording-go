@@ -49,7 +49,7 @@ class Bilibili:
         self.username = username
         self.password = password
         self.protocol = "https" if https else "http"
-        self.proxy = {'http': 'socks5://127.0.0.1:1083', 'https': 'socks5://127.0.0.1:1083'}
+        self.proxy = {'http': 'socks5://127.0.0.1:1080', 'https': 'socks5://127.0.0.1:1080'}
 
     def _requests(self, method, url, decode_level=2, retry=10, timeout=15, **kwargs):
         if method in ["get", "post"]:
