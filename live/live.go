@@ -85,21 +85,21 @@ func (l *Live) Init(roomID string) {
 	l.downloadCmd = new(exec.Cmd)
 	l.State = iinit
 	l.stop = make(chan struct{})
+	// 读的时候暂时没加锁
 	l.RoomConfigInfo = c.Conf.Live[roomID]
-	if l.Platform == "douyin" {
-		l.site.SetCookies(c.Conf.Douyin.Cookies)
-	}
 	var ok bool
 	l.site, ok = Sniff(l.Platform)
 	if !ok {
 		golog.Fatal(fmt.Sprintf("[%s] Platform %s hasn't been supported.", roomID, l.Platform))
 	}
+	if l.Platform == "douyin" {
+		l.site.SetCookies(c.Conf.Douyin.Cookies)
+	}
+	l.St, l.Et = tools.MkDuration(l.StartTime, l.EndTime)
 
 	if _, ok := c.Conf.Live[roomID]; !ok {
 		golog.Error(fmt.Sprintf("Room %s Init ERROR", roomID))
 	}
-	// 读的时候暂时没加锁
-	l.St, l.Et = tools.MkDuration(l.StartTime, l.EndTime)
 }
 
 // AddRoom ADD
