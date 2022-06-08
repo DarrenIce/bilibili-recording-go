@@ -13,7 +13,7 @@ type bili struct {
 	Cookies  map[string]string `yaml:"cookies"`
 }
 
-type douyin struct {
+type Douyin struct {
 	Cookies string `yaml:"cookies"`
 }
 
@@ -51,7 +51,7 @@ type MonitorArea struct {
 // Config 配置文件
 type config struct {
 	Bili         bili                      `yaml:"bilibili"`
-	Douyin       douyin                    `yaml:"douyin"`
+	Douyin       Douyin                    `yaml:"douyin"`
 	RcConfig     RecordConfig              `yaml:"record"`
 	Live         map[string]RoomConfigInfo `yaml:"live"`
 	MonitorAreas []MonitorArea             `yaml:"monitorAreas"`
