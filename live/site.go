@@ -1,6 +1,11 @@
 package live
 
-import "sync"
+import (
+	"fmt"
+	"sync"
+
+	"github.com/kataras/golog"
+)
 
 var sites sync.Map
 
@@ -25,6 +30,7 @@ func registerSite(siteID string, site Site) {
 	if _, dup := sites.LoadOrStore(siteID, site); dup {
 		panic("site already registered.")
 	}
+	golog.Info(fmt.Sprintf("%s registered.", siteID))
 }
 
 func Sniff(siteID string) (Site, bool) {
