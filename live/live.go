@@ -86,7 +86,7 @@ func (l *Live) Init(roomID string) {
 	var ok bool
 	l.site, ok = Sniff(l.Platform)
 	if !ok {
-		golog.Fatal(fmt.Sprintf("Platform %s hasn't been supported.", l.Platform))
+		golog.Fatal(fmt.Sprintf("[%s] Platform %s hasn't been supported.", roomID, l.Platform))
 	}
 
 	c := config.New()
