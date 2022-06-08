@@ -18,19 +18,13 @@ import (
 // Live 主类
 type Live struct {
 	config.RoomConfigInfo
-	downloadCmd		*exec.Cmd
-	lock			*sync.Mutex
-	State           uint32
-	stop			chan struct{}
+	downloadCmd *exec.Cmd
+	lock        *sync.Mutex
+	State       uint32
+	stop        chan struct{}
+	site		Site
 
-	RealID        string
-	LiveStatus    int
-	LockStatus    int
-	Uname         string
-	UID           string
-	Title         string
-	LiveStartTime int64
-	AreaName      string
+	SiteInfo
 
 	RecordStatus    int
 	RecordStartTime int64
@@ -47,7 +41,6 @@ type Live struct {
 
 	UploadName string
 	FilePath   string
-
 }
 
 const (
@@ -66,11 +59,11 @@ const (
 )
 
 var (
-	Lives	map[string]*Live
-	LmapLock	*sync.Mutex
+	Lives    map[string]*Live
+	LmapLock *sync.Mutex
 
-	decodeChan		chan string
-	uploadChan		chan string
+	decodeChan chan string
+	uploadChan chan string
 )
 
 func init() {
@@ -90,6 +83,11 @@ func (l *Live) Init(roomID string) {
 	l.downloadCmd = new(exec.Cmd)
 	l.State = iinit
 	l.stop = make(chan struct{})
+	var ok bool
+	l.site, ok = Sniff(l.Platform)
+	if !ok {
+		golog.Fatal(fmt.Sprintf("Platform %s hasn't been supported.", l.Platform))
+	}
 
 	c := config.New()
 
@@ -179,38 +177,6 @@ func ManualDecode(roomID string) bool {
 	return false
 }
 
-// UpdateFromGJSON update
-func (l *Live) UpdateFromGJSON(res gjson.Result) {
-	l.lock.Lock()
-	LmapLock.Lock()
-	defer LmapLock.Unlock()
-	defer l.lock.Unlock()
-	beforeTitle := l.Title
-	beforeArea := l.AreaName
-	l.RealID = res.Get("room_info").Get("room_id").String()
-	l.LiveStatus = int(res.Get("room_info").Get("live_status").Int())
-	l.LockStatus = int(res.Get("room_info").Get("lock_status").Int())
-	if l.Uname == "" {
-		l.Uname = res.Get("anchor_info").Get("base_info").Get("uname").String()
-	}
-	l.UID = res.Get("room_info").Get("uid").String()
-	l.Title = res.Get("room_info").Get("title").String()
-	l.LiveStartTime = res.Get("room_info").Get("live_start_time").Int()
-	l.AreaName = res.Get("room_info").Get("area_name").String()
-	if beforeTitle != ""  && beforeTitle != l.Title {
-		golog.Info(fmt.Sprintf("%s[RoomID: %s] 标题更换 %s -> %s", l.Uname, l.RoomID, beforeTitle, l.Title))
-		if l.DivideByTitle && l.State == running {
-			l.downloadCmd.Process.Kill()
-		}
-	} 
-	if beforeArea != l.AreaName {
-		golog.Info(fmt.Sprintf("%s[RoomID: %s] 直播分区更换 %s -> %s", l.Uname, l.RoomID, beforeArea, l.AreaName))
-		if !l.AreaLock && l.State == running {
-			l.downloadCmd.Process.Kill()
-		}
-	}
-}
-
 // UpadteFromConfig update
 func (l *Live) UpadteFromConfig(v config.RoomConfigInfo) {
 	l.lock.Lock()
@@ -221,6 +187,32 @@ func (l *Live) UpadteFromConfig(v config.RoomConfigInfo) {
 	l.RoomConfigInfo = v
 	if dividebeforestaus != l.DivideByTitle && l.State == running {
 		l.downloadCmd.Process.Kill()
+	}
+}
+
+func (l *Live) UpdateSiteInfo() {
+	siteInfo := l.site.GetInfoByRoom(l)
+	if l.Uname == "" {
+		l.Uname = siteInfo.Uname
+	}
+	l.RealID = siteInfo.RealID
+	l.LiveStatus = siteInfo.LiveStatus
+	l.LockStatus = siteInfo.LockStatus
+	l.UID = siteInfo.UID
+	l.LiveStartTime = siteInfo.LiveStartTime
+	if l.Title != siteInfo.Title && l.Title != "" {
+		golog.Info(fmt.Sprintf("%s[RoomID: %s] 标题更换 %s -> %s", l.Uname, l.RoomID, l.Title, siteInfo.Title))
+		l.Title = siteInfo.Title
+		if l.DivideByTitle && l.State == running {
+			l.downloadCmd.Process.Kill()
+		}
+	}
+	l.Title = siteInfo.Title
+	if l.AreaName != siteInfo.AreaName {
+		golog.Info(fmt.Sprintf("%s[RoomID: %s] 直播分区更换 %s -> %s", l.Uname, l.RoomID, l.AreaName, siteInfo.AreaName))
+		if !l.AreaLock && l.State == running {
+			l.downloadCmd.Process.Kill()
+		}
 	}
 }
 
@@ -240,7 +232,7 @@ func flushLiveStatus() {
 				continue
 			}
 			LmapLock.Unlock()
-			live.GetInfoByRoom()
+			live.UpdateSiteInfo()
 			time.Sleep(10 * time.Second)
 		}
 	}

@@ -2,6 +2,8 @@ bilibili:
   user: "你的账号"
   password: "你的密码"
   cookies: {} # 这里无需填写
+douyin:
+  cookies: ""   # 抓取抖音直播地址需要cookies
 record:
   needProxy: true
   proxy: "socks5://127.0.0.1:1080"
@@ -9,6 +11,7 @@ record:
   uploadTime: "05:00:00"
 live:
   "2603963":              # 房间号
+    platform: "bilibili"  # 平台名：bilibili/douyin
     roomID: "2603963"     # 房间号
     recordMode: false     # 录制模式 false时只在指定时间段录制，true则全天都会监控录制
     startTime: "230000"   # 开始录制时间
