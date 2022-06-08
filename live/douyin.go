@@ -30,6 +30,10 @@ func (s *douyin) Name() string {
 	return "抖音"
 }
 
+func (s *douyin) SetCookies(cookies string) {
+	s.cookies = cookies
+}
+
 func (s *douyin) GetInfoByRoom(r *Live) SiteInfo {
 	if s.cookies == "" {
 		return SiteInfo{

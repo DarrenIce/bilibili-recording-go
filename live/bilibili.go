@@ -25,6 +25,10 @@ func (s *bilibili) Name() string {
 	return "哔哩哔哩"
 }
 
+func(s *bilibili) SetCookies(cookies string) {
+	return
+}
+
 func (s *bilibili) GetInfoByRoom(r *Live) SiteInfo {
 	defer func() {
 		if v := recover(); v != nil {
