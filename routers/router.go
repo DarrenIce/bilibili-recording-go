@@ -3,15 +3,12 @@ package routers
 import (
 	"bilibili-recording-go/controllers"
 
-	beego "github.com/beego/beego/v2/server/web"
+	"github.com/gin-gonic/gin"
 )
 
+var GIN *gin.Engine
+
 func init() {
-    beego.Router("/", &controllers.MainController{})
-	beego.Router("/live-info", &controllers.LiveController{})
-	beego.Router("/base-info", &controllers.BaseController{})
-	beego.Router("/room-handle", &controllers.RoomHandleController{})
-	beego.Router("/monitor", &controllers.MonitorController{})
-	beego.Router("/decode", &controllers.DecodeController{})
-	beego.Router("/block", &controllers.BlockRoomController{})
+    GIN = gin.Default()
+	GIN.GET("/base", controllers.GetBaseStatus)
 }

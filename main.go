@@ -2,22 +2,18 @@ package main
 
 import (
 	"fmt"
-	"net/http"
 	"os"
-	"path"
 	"runtime"
 	"strings"
 
-	beego "github.com/beego/beego/v2/server/web"
-	"github.com/beego/beego/v2/server/web/context"
-	"github.com/beego/beego/v2/server/web/filter/cors"
+	"github.com/gin-gonic/gin"
 	"github.com/kataras/golog"
 
 	"bilibili-recording-go/config"
 	"bilibili-recording-go/live"
-	_ "bilibili-recording-go/routers"
-	"bilibili-recording-go/tools"
 	"bilibili-recording-go/monitor"
+	"bilibili-recording-go/routers"
+	"bilibili-recording-go/tools"
 )
 
 // Init 初始化函数
@@ -71,43 +67,12 @@ func Init() {
 	tools.Mkdir("./recording")
 }
 
-func beegoInit() {
-	// beego.SetViewsPath("static")
-	beego.InsertFilter("/", beego.BeforeRouter, WebServerFilter)
-	beego.InsertFilter("/*", beego.BeforeRouter, WebServerFilter)
-	beego.InsertFilter("/*", beego.BeforeRouter, cors.Allow(&cors.Options{
-		AllowOrigins:     []string{"*"},
-		AllowMethods:     []string{"*"},
-		AllowHeaders:     []string{"*"},
-		AllowCredentials: true,
-	}))
+func ginInit() {
+	gin.SetMode(gin.DebugMode)
+	routers.GIN.Run()
 }
-
-//静态文件后缀
-const staticFileExt = ".html|.js|.css|.png|.jpg|.jpeg|.ico|.otf"
-
-//web 服务过滤器,实现静态文件发布
-func WebServerFilter(ctx *context.Context) {
-	urlPath := ctx.Request.URL.Path
-	// golog.Info(urlPath)
-	if urlPath == "" || urlPath == "/" {
-		urlPath = "index.html"
-	}
-    
-    
-	ext := path.Ext(urlPath)
-	if ext == "" {
-		return
-	}
-	index := strings.Index(staticFileExt, ext)
-	if index >= 0 {
-		http.ServeFile(ctx.ResponseWriter, ctx.Request, "static/"+urlPath)
-	}
-}
-
 
 func main() {
-	beegoInit()
 	Init()
 	c := config.New()
 	err := c.LoadConfig()
@@ -135,5 +100,5 @@ func main() {
 		}()
 	}
 	go monitor.Monitor()
-	beego.Run()
+	ginInit()
 }
