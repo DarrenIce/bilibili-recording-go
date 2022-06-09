@@ -12,11 +12,11 @@ func GetBaseStatus(c *gin.Context) {
 	c.JSON(200, struct {
 		TotalDownload	int64				`json:"totalDownload"`
 		FileNum			int64				`json:"fileNum"`
-		DeviceInfo		tools.DeviceInfo	`json:"deviceInfo"`
+		// DeviceInfo		tools.DeviceInfo	`json:"deviceInfo"`
 	} {
 		tools.DirSize("./recording", 0),
 		tools.CacRecordingFileNum(),
-		tools.GetDeviceInfo(),
+		// tools.GetDeviceInfo(),
 	})
 }
 
