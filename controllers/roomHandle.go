@@ -64,8 +64,8 @@ func addRoom(info roomInfo) bool {
 	c.AddRoom(config.RoomConfigInfo{
 		Platform:       info.Platform,
 		RoomID:         info.RoomID,
-		StartTime:      formatTime(info.StartTime),
-		EndTime:        formatTime(info.EndTime),
+		StartTime:      info.StartTime,
+		EndTime:        info.EndTime,
 		AutoRecord:     info.AutoRecord,
 		AutoUpload:     info.AutoUpload,
 		RecordMode:     info.RecordMode,
@@ -89,8 +89,8 @@ func editRoom(info roomInfo) bool {
 	roominfo := config.RoomConfigInfo{
 		Platform:       info.Platform,
 		RoomID:         info.RoomID,
-		StartTime:      formatTime(info.StartTime),
-		EndTime:        formatTime(info.EndTime),
+		StartTime:      info.StartTime,
+		EndTime:        info.EndTime,
 		AutoRecord:     info.AutoRecord,
 		AutoUpload:     info.AutoUpload,
 		RecordMode:     info.RecordMode,
