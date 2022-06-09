@@ -1,32 +1,25 @@
 package controllers
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"bilibili-recording-go/config"
 	"bilibili-recording-go/monitor"
-	"bilibili-recording-go/tools"
 
-	beego "github.com/beego/beego/v2/server/web"
+	"github.com/gin-gonic/gin"
 	"github.com/kataras/golog"
 )
 
-type BlockRoomController struct {
-	beego.Controller
-}
-
-func (c *BlockRoomController) Post() {
-	fmt.Println(tools.BytesToStringFast(c.Ctx.Input.RequestBody))
-	info := new(receiveInfo2)
-	json.Unmarshal(c.Ctx.Input.RequestBody, info)
-	fmt.Println(info)
-	c.Data["json"] = &struct {
-		Msg bool `json:"msg"`
-	}{
-		addBlockRoom(info.RoomID),
+func ProcessBlockRoom(c *gin.Context) {
+	info := receiveInfo2{}
+	if c.ShouldBind(&info) == nil {
+		fmt.Println(info)
+		c.JSON(200, &struct {
+			Msg bool `json:"msg"`
+		}{
+			addBlockRoom(info.RoomID),
+		})
 	}
-	c.ServeJSON()
 }
 
 func addBlockRoom(roomID string) bool {

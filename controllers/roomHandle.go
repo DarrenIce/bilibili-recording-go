@@ -1,21 +1,15 @@
 package controllers
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
 
 	"bilibili-recording-go/config"
 	"bilibili-recording-go/live"
-	"bilibili-recording-go/tools"
 
-	beego "github.com/beego/beego/v2/server/web"
+	"github.com/gin-gonic/gin"
 	"github.com/kataras/golog"
 )
-
-type RoomHandleController struct {
-	beego.Controller
-}
 
 type receiveInfo struct {
 	Handle string   `json:"handle"`
@@ -23,51 +17,52 @@ type receiveInfo struct {
 }
 
 type roomInfo struct {
-	RoomID         string `json:"RoomID"`
-	RecordMode     bool   `json:"RecordMode"`
-	StartTime      string `json:"StartTime"`
-	EndTime        string `json:"EndTime"`
-	AutoRecord     bool   `json:"AutoRecord"`
-	AutoUpload     bool   `json:"AutoUpload"`
-	NeedM4a        bool   `json:"NeedM4a"`
-	Mp4Compress    bool   `json:"Mp4Compress"`
-	DivideByTitle  bool   `json:"DivideByTitle"`
-	CleanUpRegular bool   `json:"CleanUpRegular"`
-	SaveDuration   string `json:"SaveDuration"`
-	AreaLock       bool   `json:"AreaLock"`
-	AreaLimit      string `json:"AreaLimit"`
+	Platform       string `json:"platform"`
+	RoomID         string `json:"roomID"`
+	RecordMode     bool   `json:"recordMode"`
+	StartTime      string `json:"startTime"`
+	EndTime        string `json:"endTime"`
+	AutoRecord     bool   `json:"autoRecord"`
+	AutoUpload     bool   `json:"autoUpload"`
+	NeedM4a        bool   `json:"needM4a"`
+	Mp4Compress    bool   `json:"mp4Compress"`
+	DivideByTitle  bool   `json:"divideByTitle"`
+	CleanUpRegular bool   `json:"cleanUpRegular"`
+	SaveDuration   string `json:"saveDuration"`
+	AreaLock       bool   `json:"areaLock"`
+	AreaLimit      string `json:"areaLimit"`
 }
 
-func (c *RoomHandleController) Post() {
-	fmt.Println(tools.BytesToStringFast(c.Ctx.Input.RequestBody))
+func RoomHandle(c *gin.Context) {
 	info := new(receiveInfo)
-	json.Unmarshal(c.Ctx.Input.RequestBody, info)
-	fmt.Println(info)
-	if info.Handle == "add" {
-		c.Data["json"] = &struct {
-			Msg bool `json:"msg"`
-		}{
-			addRoom(info.Data),
-		}
-	} else if info.Handle == "edit" {
-		c.Data["json"] = &struct {
-			Msg bool `json:"msg"`
-		}{
-			editRoom(info.Data),
-		}
-	} else if info.Handle == "delete" {
-		c.Data["json"] = &struct {
-			Msg bool `json:"msg"`
-		}{
-			deleteRoom(info.Data),
+	if c.ShouldBind(&info) == nil {
+		fmt.Println(info)
+		if info.Handle == "add" {
+			c.JSON(200, &struct {
+				Msg bool `json:"msg"`
+			}{
+				addRoom(info.Data),
+			})
+		} else if info.Handle == "edit" {
+			c.JSON(200, &struct {
+				Msg bool `json:"msg"`
+			}{
+				editRoom(info.Data),
+			})
+		} else if info.Handle == "delete" {
+			c.JSON(200, &struct {
+				Msg bool `json:"msg"`
+			}{
+				deleteRoom(info.Data),
+			})
 		}
 	}
-	c.ServeJSON()
 }
 
 func addRoom(info roomInfo) bool {
 	c := config.New()
 	c.AddRoom(config.RoomConfigInfo{
+		Platform:       info.Platform,
 		RoomID:         info.RoomID,
 		StartTime:      formatTime(info.StartTime),
 		EndTime:        formatTime(info.EndTime),
@@ -92,6 +87,7 @@ func addRoom(info roomInfo) bool {
 
 func editRoom(info roomInfo) bool {
 	roominfo := config.RoomConfigInfo{
+		Platform:       info.Platform,
 		RoomID:         info.RoomID,
 		StartTime:      formatTime(info.StartTime),
 		EndTime:        formatTime(info.EndTime),

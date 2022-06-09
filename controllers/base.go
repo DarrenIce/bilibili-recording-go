@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"bilibili-recording-go/live"
+	"bilibili-recording-go/monitor"
 	"bilibili-recording-go/tools"
 
 	"github.com/gin-gonic/gin"
@@ -16,4 +18,12 @@ func GetBaseStatus(c *gin.Context) {
 		tools.CacRecordingFileNum(),
 		tools.GetDeviceInfo(),
 	})
+}
+
+func GetLiveStatus(c *gin.Context) {
+	c.JSON(200, live.Lives)
+}
+
+func GetMonitorStatus(c *gin.Context) {
+	c.JSON(200, monitor.AreaMonitorMap)
 }
