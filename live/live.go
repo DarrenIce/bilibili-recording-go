@@ -211,7 +211,7 @@ func (l *Live) UpdateSiteInfo() {
 		}
 	}
 	l.Title = siteInfo.Title
-	if l.AreaName != siteInfo.AreaName && l.AreaName != ""{
+	if l.AreaName != siteInfo.AreaName && siteInfo.AreaName != ""{
 		golog.Info(fmt.Sprintf("%s[RoomID: %s] 直播分区更换 %s -> %s", l.Uname, l.RoomID, l.AreaName, siteInfo.AreaName))
 		l.AreaName = siteInfo.AreaName
 		if !l.AreaLock && l.State == running {
