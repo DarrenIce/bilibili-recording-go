@@ -2,6 +2,7 @@ package routers
 
 import (
 	"net/http"
+	"io/ioutil"
 
 	"github.com/gin-gonic/gin"
 
@@ -12,6 +13,7 @@ var GIN *gin.Engine
 
 func init() {
 	gin.SetMode(gin.ReleaseMode)
+	gin.DefaultWriter = ioutil.Discard
     GIN = gin.Default()
 	GIN.Use(Cors())
 	GIN.GET("/basestatus", controllers.GetBaseStatus)
