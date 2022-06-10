@@ -11,6 +11,7 @@ import (
 var GIN *gin.Engine
 
 func init() {
+	gin.SetMode(gin.ReleaseMode)
     GIN = gin.Default()
 	GIN.Use(Cors())
 	GIN.GET("/basestatus", controllers.GetBaseStatus)

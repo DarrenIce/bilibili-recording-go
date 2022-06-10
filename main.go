@@ -6,7 +6,6 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/gin-gonic/gin"
 	"github.com/kataras/golog"
 
 	"bilibili-recording-go/config"
@@ -68,7 +67,6 @@ func Init() {
 }
 
 func ginInit() {
-	gin.SetMode(gin.ReleaseMode)
 	routers.GIN.Run()
 }
 
