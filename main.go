@@ -90,7 +90,7 @@ func main() {
 			for {
 				select {
 				case <-upload2baidu:
-					tools.Upload2BaiduPCS()
+					live.Upload2BaiduPCS()
 				default:
 					continue
 				}

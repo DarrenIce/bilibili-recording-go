@@ -26,7 +26,6 @@ func (s *bilibili) Name() string {
 }
 
 func(s *bilibili) SetCookies(cookies string) {
-	return
 }
 
 func (s *bilibili) GetInfoByRoom(r *Live) SiteInfo {

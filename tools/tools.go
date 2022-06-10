@@ -9,7 +9,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-	"os/exec"
 	"strings"
 	"syscall"
 	"time"
@@ -21,10 +20,7 @@ import (
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/disk"
 	"github.com/shirou/gopsutil/mem"
-	"github.com/shirou/gopsutil/net"
-
-	"bilibili-recording-go/config"
-)
+	"github.com/shirou/gopsutil/net")
 
 const (
 	contentType     = "Content-Type"
@@ -195,50 +191,6 @@ func md5V(t string) string {
 	h := md5.New()
 	h.Write([]byte(t))
 	return hex.EncodeToString(h.Sum(nil))
-}
-
-func Upload2BaiduPCS() {
-	golog.Info("Upload2BaiduPCS Start")
-	c := config.New()
-	for _, v := range c.Conf.Live {
-		uname, err := GetUname(v.RoomID)
-		if err != nil {
-			continue
-		}
-		localBasePath := fmt.Sprint("./recording/", uname)
-		if !Exists(localBasePath) {
-			continue
-		}
-		pcsBasePath := fmt.Sprint("/录播/", uname)
-		cmd := exec.Command("./BaiduPCS-Go.exe", "mkdir", pcsBasePath)
-		stdout, _ := cmd.StdoutPipe()
-		cmd.Stderr = cmd.Stdout
-		cmd.Start()
-		LiveOutput(stdout)
-		for _, f := range ListDir(localBasePath) {
-			if o, _ := os.Stat(f); !o.IsDir() {
-				// s1 := strings.Split(f, "\\")
-				// filename := s1[len(s1)-1]
-				// s2 := strings.Split(filename, "_")
-				// d := s2[len(s2)-1]
-				// s3 := strings.Split(d, ".")[0]
-				// fmt.Println(s3)
-				// if time.Now().AddDate(0, 0, -1).Format("20060102") == s3 {
-				cmd = exec.Command("./BaiduPCS-Go.exe", "upload", f, pcsBasePath)
-				stdout, _ := cmd.StdoutPipe()
-				cmd.Stderr = cmd.Stdout
-				cmd.Start()
-				LiveOutput(stdout)
-				// }
-			}
-		}
-		// cmd = exec.Command("./BaiduPCS-Go.exe", "export", pcsBasePath, "--link")
-		// stdout, _ = cmd.StdoutPipe()
-		// cmd.Stderr = cmd.Stdout
-		// cmd.Start()
-		// LiveOutput(stdout)
-	}
-	golog.Info("Upload2BaiduPCS End")
 }
 
 // GetUname, 感觉可以加个缓存，不然频繁调用容易触发风控
