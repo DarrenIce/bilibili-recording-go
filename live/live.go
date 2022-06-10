@@ -140,13 +140,17 @@ func (l *Live) UpdateSiteInfo() {
 			l.downloadCmd.Process.Kill()
 		}
 	}
-	l.Title = siteInfo.Title
-	if l.AreaName != siteInfo.AreaName && siteInfo.AreaName != ""{
+	if siteInfo.Title != "" {
+		l.Title = siteInfo.Title
+	}
+	if l.AreaName != siteInfo.AreaName && l.AreaName != ""{
 		golog.Info(fmt.Sprintf("%s[RoomID: %s] 直播分区更换 %s -> %s", l.Uname, l.RoomID, l.AreaName, siteInfo.AreaName))
 		l.AreaName = siteInfo.AreaName
 		if !l.AreaLock && l.State == running {
 			l.downloadCmd.Process.Kill()
 		}
 	}
-	l.AreaName = siteInfo.AreaName
+	if siteInfo.AreaName != "" {
+		l.AreaName = siteInfo.AreaName
+	}
 }
