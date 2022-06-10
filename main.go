@@ -68,7 +68,7 @@ func Init() {
 }
 
 func ginInit() {
-	gin.SetMode(gin.DebugMode)
+	gin.SetMode(gin.ReleaseMode)
 	routers.GIN.Run()
 }
 
