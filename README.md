@@ -1,5 +1,5 @@
 # bilibili-recording-go
-完全重构的哔站录播系统
+哔哩哔哩录播器，搭配[前端](https://github.com/DarrenIce/BiliRecordFrontEnd)使用
 
 ## 功能
 - 定时录制，<del>录制完成自动上传</del>(自动上传功能后面再维护吧，目前不考虑了)
