@@ -18,7 +18,7 @@ func init() {
 	GIN.Use(Cors())
 	GIN.GET("/basestatus", controllers.GetBaseStatus)
 	GIN.GET("/livestatus", controllers.GetLiveStatus)
-	GIN.GET("/monitorstatus", controllers.GetMonitorStatus)
+	GIN.GET("/areainfos", controllers.GetAreaInfos)
 	GIN.POST("/blockroom", controllers.ProcessBlockRoom)
 	GIN.POST("/decode", controllers.ProcessDecode)
 	GIN.POST("/roomhandle", controllers.RoomHandle)
