@@ -41,7 +41,7 @@ func (s * huya) GetInfoByRoom(r *Live) SiteInfo {
 		req.Proxy(c.Conf.RcConfig.Proxy)
 	}
 	headers := requests.Header{
-		"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.71 Safari/537.36 Edg/94.0.992.38",
+		"User-Agent": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko); Chrome/75.0.3770.100 Mobile Safari/537.36",
 		"Content-Type": "application/x-www-form-urlencoded",
 	}
 	resp, err := req.Get(fmt.Sprintf("https://m.huya.com/%s", r.RoomID), headers)
@@ -57,23 +57,22 @@ func (s * huya) GetInfoByRoom(r *Live) SiteInfo {
 			Title: "暂不支持",
 		}
 	}
-	jdata := gjson.Get(data[1], "")
 	sInfo := SiteInfo{}
-	sInfo.LiveStatus = int(jdata.Get("roomInfo.eLiveStatus").Int()) - 1
+	sInfo.LiveStatus = int(gjson.Get(data[1], "roomInfo.eLiveStatus").Int()) - 1
 	if sInfo.LiveStatus == 0 {
 		sInfo.LiveStartTime = 0
 	} else {
-		sInfo.LiveStartTime = jdata.Get("roomInfo.tLiveInfo.iStartTime").Int()
-		liveUrl, _ := base64.RawStdEncoding.DecodeString(jdata.Get("roomProfile.liveLineUrl").String())
+		sInfo.LiveStartTime = gjson.Get(data[1], "roomInfo.tLiveInfo.iStartTime").Int()
+		liveUrl, _ := base64.RawStdEncoding.DecodeString(gjson.Get(data[1], "roomProfile.liveLineUrl").String())
 		s.liveUrl = string(liveUrl)
 		s.getLiveUrl()
 	}
-	sInfo.RealID = jdata.Get("roomInfo.tLiveInfo.lProfileRoom").String()
+	sInfo.RealID = gjson.Get(data[1], "roomInfo.tProfileInfo.lProfileRoom").String()
 	sInfo.LockStatus = 0
-	sInfo.Uname = jdata.Get("roomInfo.tLiveInfo.sNick").String()
-	sInfo.UID = jdata.Get("roomInfo.tLiveInfo.lUid").String()
-	sInfo.Title = jdata.Get("roomInfo.tLiveInfo.sRoomName").String()
-	sInfo.AreaName = jdata.Get("roomInfo.tLiveInfo.sGameFullName").String()
+	sInfo.Uname = gjson.Get(data[1], "roomInfo.tProfileInfo.sNick").String()
+	sInfo.UID = gjson.Get(data[1], "roomInfo.tProfileInfo.lUid").String()
+	sInfo.Title = gjson.Get(data[1], "roomInfo.tLiveInfo.sRoomName").String()
+	sInfo.AreaName = gjson.Get(data[1], "roomInfo.tLiveInfo.sGameFullName").String()
 
 	return sInfo
 }
