@@ -12,7 +12,8 @@ import (
 var GIN *gin.Engine
 
 func init() {
-	gin.SetMode(gin.ReleaseMode)
+	// gin.SetMode(gin.ReleaseMode)
+    gin.SetMode(gin.DebugMode)
 	gin.DefaultWriter = ioutil.Discard
     GIN = gin.Default()
 	GIN.Use(Cors())

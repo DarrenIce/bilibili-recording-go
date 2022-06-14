@@ -9,30 +9,31 @@ import (
 	"github.com/kataras/golog"
 )
 
-type receiveAreaInfo struct {
-	Handle string   `json:"handle"`
-	Data   config.MonitorArea `json:"data"`
-}
-
 func GetAreaInfos(c *gin.Context) {
 	c.JSON(200, monitor.AreaMonitorMap)
 }
 
 func AreaHandle(c *gin.Context) {
-	info := new(receiveAreaInfo)
+	var info map[string]interface{}
 	if c.ShouldBind(&info) == nil {
-		fmt.Println(info)
-		if info.Handle == "add" {
+		fmt.Println("areaHandle")
+		data := config.MonitorArea{
+			Platform: info["data"].(map[string]interface{})["platform"].(string),
+			AreaName: info["data"].(map[string]interface{})["areaName"].(string),
+			AreaID: int(info["data"].(map[string]interface{})["areaID"].(float64)),
+			ParentID: int(info["data"].(map[string]interface{})["parentID"].(float64)),
+		}
+		if info["handle"] == "add" {
 			c.JSON(200, &struct {
 				Msg bool `json:"msg"`
 			}{
-				addArea(info.Data),
+				addArea(data),
 			})
-		} else if info.Handle == "delete" {
+		} else if info["handle"] == "delete" {
 			c.JSON(200, &struct {
 				Msg bool `json:"msg"`
 			}{
-				deleteArea(info.Data),
+				deleteArea(data),
 			})
 		} else {
 			c.JSON(400, &struct {
@@ -41,7 +42,14 @@ func AreaHandle(c *gin.Context) {
 				false,
 			})
 		}
+	} else {
+		c.JSON(400, &struct {
+			Msg bool `json:"msg"`
+		}{
+			false,
+		})
 	}
+	
 }
 
 func addArea(info config.MonitorArea) bool {
