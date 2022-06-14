@@ -38,25 +38,9 @@ type fileInfo struct {
 
 // Decode 转码
 func Decode(l live.LiveSnapshot) {
-	var fileLst []fileInfo
-	tmpDir := fmt.Sprintf("./recording/%s/tmp", l.Uname)
-	for _, f := range tools.ListDir(tmpDir) {
-		if ok := strings.HasSuffix(f, ".flv"); ok {
-			fileLst = append(fileLst, fileInfo{fileName: f, lastModifyTime: tools.GetFileLastModifyTime(f)})
-		}
-	}
-	sort.Slice(fileLst, func(i, j int) bool { return fileLst[i].lastModifyTime < fileLst[j].lastModifyTime })
 	var inputFile []string
-	inputFile = append(inputFile, fileLst[len(fileLst)-1].fileName)
-	fileTime := tools.GetFileCreateTime(inputFile[0])
-	filesplit := strings.Split(inputFile[0], "/")
-	titleWithTsp := strings.TrimSuffix(filesplit[len(filesplit)-1], ".flv")
-	titleSplits := strings.Split(titleWithTsp, "_")
-	areaName := titleSplits[0]
-	title := strings.Join(titleSplits[1:len(titleSplits)-1], "_")
-	ftime := fmt.Sprintf("%s场_%s_%s", time.Unix(fileTime, 0).Format("2006-01-02 15时04分"), areaName, title)
-	uploadName := fmt.Sprintf("%s%s", l.Uname, ftime)
-	outputName := fmt.Sprintf("%s_%s", l.Uname, ftime)
+	inputFile = append(inputFile, GetLatestFile(l).fileName)
+	uploadName, outputName := GenerateFileName(inputFile, l)
 	pwd, _ := os.Getwd()
 	outputFile := filepath.Join(pwd, "recording", l.Uname, fmt.Sprintf("%s.mp4", outputName))
 	l.UploadName = uploadName
@@ -67,7 +51,63 @@ func Decode(l live.LiveSnapshot) {
 		inputFile[k], _ = filepath.Abs(f)
 		middleLst = append(middleLst, strings.Replace(inputFile[k], ".flv", ".ts", -1))
 	}
+	ConvertFlv2Ts(middleLst, outputFile, inputFile, l)
+	concatFilePath, _ := filepath.Abs(fmt.Sprintf("./recording/%s/tmp/concat.txt", l.Uname))
+	ConvertTs2Mp4(middleLst, outputFile, l)
+	
+	if l.NeedM4a {
+		cmd := exec.Command("ffmpeg", "-f", "concat", "-safe", "0", "-i", concatFilePath, "-acodec", "copy", "-vn", "-y", strings.Replace(outputFile, ".mp4", ".m4a", -1))
+		fmt.Println(cmd.String())
+		golog.Info(cmd.String())
+		var stderr bytes.Buffer
+		cmd.Stderr = &stderr
+		err := cmd.Run()
+		if err != nil {
+			fmt.Println(fmt.Sprint(err) + ": " + stderr.String())
+		}
+		// stdout, _ := cmd.StdoutPipe()
+		// cmd.Stderr = cmd.Stdout
+		// tools.LiveOutput(stdout)
+	}
 
+	for _, f := range middleLst {
+		err := os.Remove(f)
+		if err != nil {
+			golog.Error(err)
+		} else {
+			golog.Info(f, " has been removed")
+		}
+	}
+
+	golog.Info(fmt.Sprintf("%s[RoomID: %s] 转码完成", l.Uname, l.UID))
+}
+
+func GetLatestFile(l live.LiveSnapshot) fileInfo {
+	var fileLst []fileInfo
+	tmpDir := fmt.Sprintf("./recording/%s/tmp", l.Uname)
+	for _, f := range tools.ListDir(tmpDir) {
+		if ok := strings.HasSuffix(f, ".flv"); ok {
+			fileLst = append(fileLst, fileInfo{fileName: f, lastModifyTime: tools.GetFileLastModifyTime(f)})
+		}
+	}
+	sort.Slice(fileLst, func(i, j int) bool { return fileLst[i].lastModifyTime < fileLst[j].lastModifyTime })
+	return fileLst[len(fileLst)-1]
+}
+
+func GenerateFileName(inputFile []string, l live.LiveSnapshot) (string, string) {
+	fileTime := tools.GetFileCreateTime(inputFile[0])
+	filesplit := strings.Split(inputFile[0], "/")
+	titleWithTsp := strings.TrimSuffix(filesplit[len(filesplit)-1], ".flv")
+	titleSplits := strings.Split(titleWithTsp, "_")
+	areaName := titleSplits[0]
+	title := strings.Join(titleSplits[1:len(titleSplits)-1], "_")
+	ftime := fmt.Sprintf("%s场_%s_%s", time.Unix(fileTime, 0).Format("2006-01-02 15时04分"), areaName, title)
+	uploadName := fmt.Sprintf("%s%s", l.Uname, ftime)
+	outputName := fmt.Sprintf("%s_%s", l.Uname, ftime)
+	return uploadName, outputName
+}
+
+func ConvertFlv2Ts(middleLst []string, outputFile string, inputFile []string, l live.LiveSnapshot) {
 	if tools.Exists(outputFile) && l.DivideByTitle {
 		golog.Info(fmt.Sprintf("%s[RoomID: %s] 输出文件已存在，合并到新视频中", l.Uname, l.UID))
 		middleLst = append(middleLst, strings.Replace(outputFile, ".mp4", ".ts", -1))
@@ -110,7 +150,9 @@ func Decode(l live.LiveSnapshot) {
 		}
 		// tools.LiveOutput(stdout)
 	}
+}
 
+func ConvertTs2Mp4(middleLst []string, outputFile string, l live.LiveSnapshot) {
 	reg, _ := regexp.Compile(`bitrate: (\d+) kb/s`)
 	flag := false
 
@@ -122,7 +164,7 @@ func Decode(l live.LiveSnapshot) {
 			flag = true
 		}
 	}
-
+	concatFilePath, _ := filepath.Abs(fmt.Sprintf("./recording/%s/tmp/concat.txt", l.Uname))
 	if flag && l.Mp4Compress {
 		cmd := exec.Command("ffmpeg", "-f", "concat", "-safe", "0", "-i", concatFilePath, "-vcodec", "hevc_nvenc", "-c:a", "copy", "-crf", "17", "-maxrate", "3M", "-bufsize", "3M", "-preset", "fast", "-y", outputFile)
 		fmt.Println(cmd.String())
@@ -150,30 +192,4 @@ func Decode(l live.LiveSnapshot) {
 		}
 		// tools.LiveOutput(stdout)
 	}
-
-	if l.NeedM4a {
-		cmd := exec.Command("ffmpeg", "-f", "concat", "-safe", "0", "-i", concatFilePath, "-acodec", "copy", "-vn", "-y", strings.Replace(outputFile, ".mp4", ".m4a", -1))
-		fmt.Println(cmd.String())
-		golog.Info(cmd.String())
-		var stderr bytes.Buffer
-		cmd.Stderr = &stderr
-		err := cmd.Run()
-		if err != nil {
-			fmt.Println(fmt.Sprint(err) + ": " + stderr.String())
-		}
-		// stdout, _ := cmd.StdoutPipe()
-		// cmd.Stderr = cmd.Stdout
-		// tools.LiveOutput(stdout)
-	}
-
-	for _, f := range middleLst {
-		err := os.Remove(f)
-		if err != nil {
-			golog.Error(err)
-		} else {
-			golog.Info(f, " has been removed")
-		}
-	}
-
-	golog.Info(fmt.Sprintf("%s[RoomID: %s] 转码完成", l.Uname, l.UID))
 }
