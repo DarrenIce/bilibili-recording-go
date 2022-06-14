@@ -54,6 +54,11 @@ func AreaHandle(c *gin.Context) {
 
 func addArea(info config.MonitorArea) bool {
 	c := config.New()
+	for _, v := range c.Conf.MonitorAreas {
+		if v.AreaID == info.AreaID {
+			return false
+		}
+	}
 	c.AddMonitorArea(info)
 	if err := c.Marshal(); err != nil {
 		golog.Error(err)
