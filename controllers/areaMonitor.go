@@ -20,8 +20,8 @@ func AreaHandle(c *gin.Context) {
 		data := config.MonitorArea{
 			Platform: info["data"].(map[string]interface{})["platform"].(string),
 			AreaName: info["data"].(map[string]interface{})["areaName"].(string),
-			AreaID: int(info["data"].(map[string]interface{})["areaID"].(float64)),
-			ParentID: int(info["data"].(map[string]interface{})["parentID"].(float64)),
+			AreaID: info["data"].(map[string]interface{})["areaID"].(string),
+			ParentID: info["data"].(map[string]interface{})["parentID"].(string),
 		}
 		if info["handle"] == "add" {
 			c.JSON(200, &struct {

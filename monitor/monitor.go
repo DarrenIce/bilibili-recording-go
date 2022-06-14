@@ -48,7 +48,7 @@ type AreaList struct {
 var (
 	Lock           *sync.Mutex
 	AreaMonitorMap = make(map[string]AreaList)
-	areaMonitorApi = "https://api.live.bilibili.com/xlive/web-interface/v1/second/getList?platform=web&parent_area_id=%d&area_id=%d&sort_type=&page=%d"
+	areaMonitorApi = "https://api.live.bilibili.com/xlive/web-interface/v1/second/getList?platform=web&parent_area_id=%s&area_id=%s&sort_type=&page=%d"
 )
 
 func init() {

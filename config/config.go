@@ -43,10 +43,10 @@ type RoomConfigInfo struct {
 }
 
 type MonitorArea struct {
-	Platform	string	`yaml:"platform" json:"platform"`
-	AreaName string `yaml:"areaName" json:"areaName"`
-	ParentID int    `yaml:"parentID" json:"parentID"`
-	AreaID   int    `yaml:"areaID" json:"areaID"`
+	Platform	string	`yaml:"platform"`
+	AreaName string `yaml:"areaName"`
+	ParentID string    `yaml:"parentID"`
+	AreaID   string    `yaml:"areaID"`
 }
 
 // Config 配置文件
