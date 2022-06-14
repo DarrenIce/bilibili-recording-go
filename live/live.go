@@ -40,6 +40,15 @@ type Live struct {
 	FilePath   string
 }
 
+type LiveSnapshot struct {
+	config.RoomConfigInfo
+	State	uint32
+	SiteInfo
+
+	UploadName string
+	FilePath  string
+}
+
 const (
 	iinit   uint32 = iota
 	start          // 开始监听
@@ -59,19 +68,19 @@ var (
 	Lives    map[string]*Live
 	LmapLock *sync.Mutex
 
-	decodeChan chan string
+	DecodeChan chan LiveSnapshot
 	uploadChan chan string
 )
 
 func init() {
-	decodeChan = make(chan string)
+	DecodeChan = make(chan LiveSnapshot, 100)
 	uploadChan = make(chan string)
 	Lives = make(map[string]*Live)
 
 	LmapLock = new(sync.Mutex)
 	go flushLiveStatus()
-	go uploadWorker()
-	go decodeWorker()
+	// go uploadWorker()
+	// go decodeWorker()
 }
 
 // Init Live

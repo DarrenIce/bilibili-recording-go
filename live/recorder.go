@@ -69,7 +69,8 @@ func (r *Live) unlive() {
 			atomic.CompareAndSwapUint32(&r.State, waiting, start)
 			return
 		}
-		decodeChan <- r.RoomID
+		DecodeChan <- CreateLiveSnapShot(r)
+		atomic.CompareAndSwapUint32(&r.State, waiting, start)
 	}
 	// }
 }

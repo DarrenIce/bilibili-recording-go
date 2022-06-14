@@ -1,6 +1,7 @@
-package live
+package decode
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"os"
@@ -9,48 +10,34 @@ import (
 	"regexp"
 	"sort"
 	"strings"
-	"sync/atomic"
 	"time"
-	"bytes"
 
 	"github.com/kataras/golog"
 
+	"bilibili-recording-go/live"
 	"bilibili-recording-go/tools"
 )
 
+func init() {
+	go decodeWorker()
+}
+
 func decodeWorker() {
 	for {
-		roomID := <-decodeChan
-		if _, ok := Lives[roomID]; !ok {
-			continue
-		}
-		LmapLock.Lock()
-		live := Lives[roomID]
-		LmapLock.Unlock()
-		if atomic.CompareAndSwapUint32(&live.State, waiting, decoding) {
-			live.DecodeStartTime = time.Now().Unix()
-			golog.Info(fmt.Sprintf("%s[RoomID: %s] 开始转码", live.Uname, roomID))
-			live.Decode()
-			golog.Info(fmt.Sprintf("%s[RoomID: %s] 结束转码", live.Uname, roomID))
-			live.DecodeEndTime = time.Now().Unix()
-			atomic.CompareAndSwapUint32(&live.State, decoding, decodeEnd)
-			if live.AutoUpload {
-				atomic.CompareAndSwapUint32(&live.State, decodeEnd, uploadWait)
-				uploadChan <- roomID
-			} else {
-				atomic.CompareAndSwapUint32(&live.State, decodeEnd, start)
-			}
-		}
+		live := <-live.DecodeChan
+		golog.Info(fmt.Sprintf("%s[RoomID: %s] 开始转码", live.Uname, live.RoomID))
+		Decode(live)
+		golog.Info(fmt.Sprintf("%s[RoomID: %s] 结束转码", live.Uname, live.RoomID))
 	}
 }
 
 type fileInfo struct {
-	fileName string
+	fileName       string
 	lastModifyTime int64
 }
 
 // Decode 转码
-func (l *Live) Decode() {
+func Decode(l live.LiveSnapshot) {
 	var fileLst []fileInfo
 	tmpDir := fmt.Sprintf("./recording/%s/tmp", l.Uname)
 	for _, f := range tools.ListDir(tmpDir) {
@@ -59,37 +46,15 @@ func (l *Live) Decode() {
 		}
 	}
 	sort.Slice(fileLst, func(i, j int) bool { return fileLst[i].lastModifyTime < fileLst[j].lastModifyTime })
-	// latestTime := fileLst[len(fileLst)-1].lastModifyTime
 	var inputFile []string
-	// if l.RecordMode || l.DivideByTitle {
 	inputFile = append(inputFile, fileLst[len(fileLst)-1].fileName)
-	// } else {
-	// 	for k, v := range fileLst {
-	// 		if tools.GetTimeDeltaFromTimestamp(latestTime, v.lastModifyTime) < tools.GetTimeDeltaFromTimestamp(l.Et.Unix(), l.St.Unix()) {
-	// 			inputFile = append(inputFile, fileLst[k].fileName)
-	// 		}
-	// 	}
-	// }
 	fileTime := tools.GetFileCreateTime(inputFile[0])
-	// loc, _ := time.LoadLocation("PRC")
-	// tNow, _ := time.ParseInLocation("2006-01-02 15:04:05", fmt.Sprint(time.Unix(fileTime, 0).Format("2006-01-02"), " ", "06:00:00"), loc)
-	// var ftime string
-	// if time.Unix(fileTime, 0).Before(tNow) {
-	// 	ftime = tNow.AddDate(0, 0, -1).Format("20060102")
-	// } else {
-	// 	ftime = tNow.Format("20060102")
-	// }
-	// if l.RecordMode {
-		// ftime := fmt.Sprintf("%s场", time.Unix(fileTime, 0).Format("2006-01-02 15时04分"))
-	// }
-	// if l.DivideByTitle {
 	filesplit := strings.Split(inputFile[0], "/")
 	titleWithTsp := strings.TrimSuffix(filesplit[len(filesplit)-1], ".flv")
 	titleSplits := strings.Split(titleWithTsp, "_")
 	areaName := titleSplits[0]
 	title := strings.Join(titleSplits[1:len(titleSplits)-1], "_")
 	ftime := fmt.Sprintf("%s场_%s_%s", time.Unix(fileTime, 0).Format("2006-01-02 15时04分"), areaName, title)
-	// }
 	uploadName := fmt.Sprintf("%s%s", l.Uname, ftime)
 	outputName := fmt.Sprintf("%s_%s", l.Uname, ftime)
 	pwd, _ := os.Getwd()
@@ -200,7 +165,7 @@ func (l *Live) Decode() {
 		// cmd.Stderr = cmd.Stdout
 		// tools.LiveOutput(stdout)
 	}
-	
+
 	for _, f := range middleLst {
 		err := os.Remove(f)
 		if err != nil {

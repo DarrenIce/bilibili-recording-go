@@ -101,10 +101,12 @@ func ManualDecode(roomID string) bool {
 	LmapLock.Lock()
 	defer LmapLock.Unlock()
 	if _, ok := Lives[roomID]; ok {
-		if atomic.CompareAndSwapUint32(&Lives[roomID].State, start, waiting) {
-			decodeChan <- roomID
-			return true
-		}
+		// if atomic.CompareAndSwapUint32(&Lives[roomID].State, start, waiting) {
+		// 	DecodeChan <- roomID
+		// 	return true
+		// }
+		DecodeChan <- CreateLiveSnapShot(Lives[roomID])
+		return true
 	}
 	return false
 }
@@ -129,4 +131,12 @@ func flushLiveStatus() {
 			time.Sleep(10 * time.Second)
 		}
 	}
+}
+
+func CreateLiveSnapShot(live *Live) LiveSnapshot {
+	snapshot := LiveSnapshot{}
+	snapshot.SiteInfo = live.SiteInfo
+	snapshot.State = live.State
+	snapshot.RoomConfigInfo = live.RoomConfigInfo
+	return snapshot
 }
