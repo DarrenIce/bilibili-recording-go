@@ -43,9 +43,9 @@ type RoomConfigInfo struct {
 }
 
 type MonitorArea struct {
-	AreaName string `yaml:"areaName"`
-	ParentID int    `yaml:"parentID"`
-	AreaID   int    `yaml:"areaID"`
+	AreaName string `yaml:"areaName" json:"areaName"`
+	ParentID int    `yaml:"parentID" json:"parentID"`
+	AreaID   int    `yaml:"areaID" json:"areaID"`
 }
 
 // Config 配置文件
@@ -133,6 +133,18 @@ func (c *Config) AddMonitorArea(area MonitorArea) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	c.Conf.MonitorAreas = append(c.Conf.MonitorAreas, area)
+}
+
+// 对于MonitorArea线程不安全
+func (c *Config) DeleteMonitorArea(area MonitorArea) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	for i, v := range c.Conf.MonitorAreas {
+		if v.AreaID == area.AreaID {
+			c.Conf.MonitorAreas = append(c.Conf.MonitorAreas[:i], c.Conf.MonitorAreas[i+1:]...)
+			break
+		}
+	}
 }
 
 func (c *Config) AddBlockedRoom(roomID string) {

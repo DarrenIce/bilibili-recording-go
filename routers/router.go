@@ -22,6 +22,7 @@ func init() {
 	GIN.POST("/blockroom", controllers.ProcessBlockRoom)
 	GIN.POST("/decode", controllers.ProcessDecode)
 	GIN.POST("/roomhandle", controllers.RoomHandle)
+    GIN.POST("/areahandle", controllers.AreaHandle)
 }
 
 func Cors() gin.HandlerFunc {
