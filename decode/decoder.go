@@ -42,7 +42,8 @@ type fileInfo struct {
 
 // Decode 转码
 func Decode(l *live.LiveSnapshot) {
-	inputFile := GetLatestFiles(l, 3600 * 5)
+	// inputFile := GetLatestFiles(l, 3600 * 5)
+	inputFile := []string{l.TmpFilePath}
 	uploadName, outputName := GenerateFileName(inputFile, l)
 	pwd, _ := os.Getwd()
 	outputFile := filepath.Join(pwd, "recording", l.Uname, fmt.Sprintf("%s.mp4", outputName))

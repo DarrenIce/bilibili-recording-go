@@ -38,6 +38,7 @@ type Live struct {
 
 	UploadName string
 	FilePath   string
+	TmpFilePath string
 }
 
 type LiveSnapshot struct {
@@ -47,6 +48,7 @@ type LiveSnapshot struct {
 
 	UploadName string
 	FilePath  string
+	TmpFilePath string
 }
 
 const (

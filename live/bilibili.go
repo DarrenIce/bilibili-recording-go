@@ -79,6 +79,7 @@ func (s *bilibili) DownloadLive(r *Live) {
 	title := exp.ReplaceAllString(r.Title, " ")
 	outputName := r.AreaName + "_" + title + "_" + fmt.Sprint(time.Now().Format("20060102150405")) + ".flv"
 	golog.Info(fmt.Sprintf("%s[RoomID: %s] 本次录制文件为：%s", r.Uname, r.RoomID, outputName))
+	r.TmpFilePath = fmt.Sprintf("./recording/%s/tmp/%s", uname, outputName)
 	middle, _ := filepath.Abs(fmt.Sprintf("./recording/%s/tmp", uname))
 	outputFile := fmt.Sprint(middle + "\\" + outputName)
 	url := fmt.Sprint("https://live.bilibili.com/", r.RoomID)
