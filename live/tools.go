@@ -98,20 +98,6 @@ func ManualUpload(roomID string) bool {
 	return false
 }
 
-func ManualDecode(roomID string) bool {
-	LmapLock.Lock()
-	defer LmapLock.Unlock()
-	if _, ok := Lives[roomID]; ok {
-		// if atomic.CompareAndSwapUint32(&Lives[roomID].State, start, waiting) {
-		// 	DecodeChan <- roomID
-		// 	return true
-		// }
-		DecodeChan <- CreateLiveSnapShot(Lives[roomID])
-		return true
-	}
-	return false
-}
-
 func flushLiveStatus() {
 	for {
 		lst := make([]string, len(Lives))

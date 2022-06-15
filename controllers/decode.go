@@ -20,7 +20,9 @@ func ProcessDecode(c *gin.Context) {
 	if c.ShouldBind(&info) == nil {
 		fmt.Println(info)
 		if _, ok := live.Lives[info.RoomID]; ok {
-			live.DecodeChan <- live.CreateLiveSnapShot(live.Lives[info.RoomID])
+			l := live.CreateLiveSnapShot(live.Lives[info.RoomID])
+			l.TmpFilePath = ""
+			live.DecodeChan <- l
 			c.JSON(200, &struct {
 				Msg bool `json:"msg"`
 			}{

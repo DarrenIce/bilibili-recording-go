@@ -42,8 +42,12 @@ type fileInfo struct {
 
 // Decode 转码
 func Decode(l *live.LiveSnapshot) {
-	// inputFile := GetLatestFiles(l, 3600 * 5)
-	inputFile := []string{l.TmpFilePath}
+	var inputFile []string
+	if l.TmpFilePath == "" {
+		inputFile = GetLatestFiles(l, 0)
+	} else {
+		inputFile = []string{l.TmpFilePath}
+	}
 	uploadName, outputName := GenerateFileName(inputFile, l)
 	pwd, _ := os.Getwd()
 	outputFile := filepath.Join(pwd, "recording", l.Uname, fmt.Sprintf("%s.mp4", outputName))
@@ -58,7 +62,7 @@ func Decode(l *live.LiveSnapshot) {
 	ConvertFlv2Ts(middleLst, outputFile, inputFile, l)
 	concatFilePath, _ := filepath.Abs(fmt.Sprintf("./recording/%s/tmp/concat.txt", l.Uname))
 	ConvertTs2Mp4(middleLst, outputFile, l)
-	
+
 	if l.NeedM4a {
 		cmd := exec.Command("ffmpeg", "-f", "concat", "-safe", "0", "-i", concatFilePath, "-acodec", "copy", "-vn", "-y", strings.Replace(outputFile, ".mp4", ".m4a", -1))
 		fmt.Println(cmd.String())
