@@ -81,6 +81,14 @@ func init() {
 
 	LmapLock = new(sync.Mutex)
 	go flushLiveStatus()
+
+	c := config.New()
+	err := c.LoadConfig()
+	if err != nil {
+		golog.Fatal(fmt.Sprintf("Load config error: %s", err))
+	}
+	StartTimingTask("Upload2BaiduPCS", c.Conf.RcConfig.NeedBdPan, c.Conf.RcConfig.UploadTime, Upload2BaiduPCS)
+	StartTimingTask("CleanRecordingDir", c.Conf.RcConfig.NeedRegularClean, c.Conf.RcConfig.RegularCleanTime, CleanRecordingDir)
 	// go uploadWorker()
 }
 

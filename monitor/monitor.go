@@ -53,6 +53,7 @@ var (
 
 func init() {
 	Lock = new(sync.Mutex)
+	go Monitor()
 }
 
 func Monitor() {

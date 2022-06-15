@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -16,11 +17,12 @@ import (
 
 	"github.com/asmcos/requests"
 	"github.com/kataras/golog"
-	"github.com/tidwall/gjson"
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/disk"
 	"github.com/shirou/gopsutil/mem"
-	"github.com/shirou/gopsutil/net")
+	"github.com/shirou/gopsutil/net"
+	"github.com/tidwall/gjson"
+)
 
 const (
 	contentType     = "Content-Type"
@@ -280,4 +282,24 @@ func GetDeviceInfo() (deviceInfo DeviceInfo) {
 
 func BytesToStringFast(b []byte) string {
     return *(*string)(unsafe.Pointer(&b))
+}
+
+func ConvertString2TimeStamp(str string) int {
+	if strings.HasPrefix(str, "d") {
+		days, err := strconv.ParseInt(strings.TrimPrefix(str, "d"), 10, 64)
+		if err != nil {
+			golog.Error(fmt.Sprintf("ConvertString2TimeStamp error: %s", err.Error()))
+			return 7 * 24 * 60 * 60
+		}
+		return int(days) * 24 * 60 * 60
+	} else if strings.HasPrefix(str, "h") {
+		hours, err := strconv.ParseInt(strings.TrimPrefix(str, "h"), 10, 64)
+		if err != nil {
+			golog.Error(fmt.Sprintf("ConvertString2TimeStamp error: %s", err.Error()))
+			return 7 * 24 * 60 * 60
+		}
+		return int(hours) * 60 * 60
+	} else {
+		return 7 * 24 * 60 * 60
+	}
 }

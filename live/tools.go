@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 	"sync/atomic"
 	"time"
 
@@ -141,4 +142,65 @@ func CreateLiveSnapShot(live *Live) *LiveSnapshot {
 	snapshot.RoomConfigInfo = live.RoomConfigInfo
 	snapshot.TmpFilePath = live.TmpFilePath
 	return &snapshot
+}
+
+func CleanRecordingDir() {
+	golog.Info("CleanRecordingDir Start")
+	for _, v := range Lives {
+		if v.CleanUpRegular {
+			tmpDir := fmt.Sprintf("./recording/%s/tmp", v.Uname)
+			userDir := fmt.Sprintf("./recording/%s", v.Uname)
+			timeNowStamp := time.Now().Unix()
+			expireTime := tools.ConvertString2TimeStamp(v.SaveDuration)
+			if tools.Exists(tmpDir) {
+				for _, f := range tools.ListDir(tmpDir) {
+					if ok := strings.HasSuffix(f, ".flv"); ok {
+						fileModifyTime := tools.GetFileLastModifyTime(f)
+						if tools.GetTimeDeltaFromTimestamp(timeNowStamp, fileModifyTime) > expireTime {
+							err := os.Remove(f)
+							if err != nil {
+								golog.Error(err.Error())
+							} else {
+								golog.Info("Remove Expire Tmp File: ", f)
+							}
+						}
+					}
+				}
+			}
+			if tools.Exists(userDir) {
+				for _, f := range tools.ListDir(userDir) {
+					if ok := strings.HasSuffix(f, ".mp4") || strings.HasSuffix(f, ".m4a"); ok {
+						fileModifyTime := tools.GetFileLastModifyTime(f)
+						if tools.GetTimeDeltaFromTimestamp(timeNowStamp, fileModifyTime) > expireTime {
+							err := os.Remove(f)
+							if err != nil {
+								golog.Error(err.Error())
+							} else {
+								golog.Info("Remove Expire File: ", f)
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	golog.Info("CleanRecordingDir End")
+}
+
+func StartTimingTask(name string, isStart bool, regularTime string, taskFunc func()) {
+	if isStart {
+		golog.Info("Start Timing Task: ", name)
+		taskChan := make(chan int)
+		go tools.EveryDayTimer(regularTime, taskChan)
+		go func() {
+			for {
+				select {
+				case <- taskChan:
+					taskFunc()
+				default:
+					time.Sleep(time.Second * 1)
+				}
+			}
+		}()
+	}
 }

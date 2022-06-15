@@ -10,7 +10,7 @@ import (
 
 	"bilibili-recording-go/config"
 	"bilibili-recording-go/live"
-	"bilibili-recording-go/monitor"
+	_ "bilibili-recording-go/monitor"
 	"bilibili-recording-go/routers"
 	"bilibili-recording-go/tools"
 	_ "bilibili-recording-go/decode"
@@ -67,37 +67,11 @@ func Init() {
 	tools.Mkdir("./recording")
 }
 
-func ginInit() {
-	routers.GIN.Run()
-}
-
 func main() {
 	Init()
 	c := config.New()
-	err := c.LoadConfig()
-	if err != nil {
-		golog.Fatal(err)
-	}
 	for _, v := range c.Conf.Live {
 		live.AddRoom(v.RoomID)
 	}
-
-	// time.Sleep(60 * time.Second)
-	// liver.ManualUpload()
-	if c.Conf.RcConfig.NeedBdPan {
-		upload2baidu := make(chan int)
-		go tools.EveryDayTimer(c.Conf.RcConfig.UploadTime, upload2baidu)
-		go func() {
-			for {
-				select {
-				case <-upload2baidu:
-					live.Upload2BaiduPCS()
-				default:
-					continue
-				}
-			}
-		}()
-	}
-	go monitor.Monitor()
-	ginInit()
+	routers.GIN.Run()
 }
