@@ -133,10 +133,11 @@ func flushLiveStatus() {
 	}
 }
 
-func CreateLiveSnapShot(live *Live) LiveSnapshot {
+func CreateLiveSnapShot(live *Live) *LiveSnapshot {
+	fmt.Println("CreateLiveSnapShot")
 	snapshot := LiveSnapshot{}
 	snapshot.SiteInfo = live.SiteInfo
 	snapshot.State = live.State
 	snapshot.RoomConfigInfo = live.RoomConfigInfo
-	return snapshot
+	return &snapshot
 }

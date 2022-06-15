@@ -13,6 +13,7 @@ import (
 	"bilibili-recording-go/monitor"
 	"bilibili-recording-go/routers"
 	"bilibili-recording-go/tools"
+	_ "bilibili-recording-go/decode"
 )
 
 // Init 初始化函数

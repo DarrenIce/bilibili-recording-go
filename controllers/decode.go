@@ -20,9 +20,7 @@ func ProcessDecode(c *gin.Context) {
 	if c.ShouldBind(&info) == nil {
 		fmt.Println(info)
 		if room, ok := live.Lives[info.RoomID]; ok {
-			golog.Debug(fmt.Sprintf("%s[RoomID: %s] 开始转码", room.Uname, info.RoomID))
-			live.ManualDecode(info.RoomID)
-			golog.Debug(fmt.Sprintf("%s[RoomID: %s] 结束转码", room.Uname, info.RoomID))
+			live.DecodeChan <- live.CreateLiveSnapShot(live.Lives[info.RoomID])
 			c.JSON(200, &struct {
 				Msg bool `json:"msg"`
 			}{

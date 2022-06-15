@@ -23,8 +23,12 @@ func init() {
 }
 
 func decodeWorker() {
+	fmt.Println("DecodeWorker start")
 	for {
-		live := <-live.DecodeChan
+		live, ok := <-live.DecodeChan
+		if ok {
+			fmt.Println(live)
+		}
 		golog.Info(fmt.Sprintf("%s[RoomID: %s] 开始转码", live.Uname, live.RoomID))
 		Decode(live)
 		golog.Info(fmt.Sprintf("%s[RoomID: %s] 结束转码", live.Uname, live.RoomID))
@@ -37,9 +41,8 @@ type fileInfo struct {
 }
 
 // Decode 转码
-func Decode(l live.LiveSnapshot) {
-	var inputFile []string
-	inputFile = append(inputFile, GetLatestFile(l).fileName)
+func Decode(l *live.LiveSnapshot) {
+	inputFile := GetLatestFiles(l, 3600 * 5)
 	uploadName, outputName := GenerateFileName(inputFile, l)
 	pwd, _ := os.Getwd()
 	outputFile := filepath.Join(pwd, "recording", l.Uname, fmt.Sprintf("%s.mp4", outputName))
@@ -82,7 +85,7 @@ func Decode(l live.LiveSnapshot) {
 	golog.Info(fmt.Sprintf("%s[RoomID: %s] 转码完成", l.Uname, l.UID))
 }
 
-func GetLatestFile(l live.LiveSnapshot) fileInfo {
+func GetLatestFiles(l *live.LiveSnapshot, timeStamp int) []string {
 	var fileLst []fileInfo
 	tmpDir := fmt.Sprintf("./recording/%s/tmp", l.Uname)
 	for _, f := range tools.ListDir(tmpDir) {
@@ -91,10 +94,21 @@ func GetLatestFile(l live.LiveSnapshot) fileInfo {
 		}
 	}
 	sort.Slice(fileLst, func(i, j int) bool { return fileLst[i].lastModifyTime < fileLst[j].lastModifyTime })
-	return fileLst[len(fileLst)-1]
+	if timeStamp == 0 {
+		return []string{fileLst[len(fileLst)-1].fileName}
+	} else {
+		var files []string
+		latestTime := fileLst[len(fileLst)-1].lastModifyTime
+		for k, v := range fileLst {
+			if tools.GetTimeDeltaFromTimestamp(latestTime, v.lastModifyTime) < timeStamp {
+				files = append(files, fileLst[k].fileName)
+			}
+		}
+		return files
+	}
 }
 
-func GenerateFileName(inputFile []string, l live.LiveSnapshot) (string, string) {
+func GenerateFileName(inputFile []string, l *live.LiveSnapshot) (string, string) {
 	fileTime := tools.GetFileCreateTime(inputFile[0])
 	filesplit := strings.Split(inputFile[0], "/")
 	titleWithTsp := strings.TrimSuffix(filesplit[len(filesplit)-1], ".flv")
@@ -107,7 +121,7 @@ func GenerateFileName(inputFile []string, l live.LiveSnapshot) (string, string) 
 	return uploadName, outputName
 }
 
-func ConvertFlv2Ts(middleLst []string, outputFile string, inputFile []string, l live.LiveSnapshot) {
+func ConvertFlv2Ts(middleLst []string, outputFile string, inputFile []string, l *live.LiveSnapshot) {
 	if tools.Exists(outputFile) && l.DivideByTitle {
 		golog.Info(fmt.Sprintf("%s[RoomID: %s] 输出文件已存在，合并到新视频中", l.Uname, l.UID))
 		middleLst = append(middleLst, strings.Replace(outputFile, ".mp4", ".ts", -1))
@@ -152,7 +166,7 @@ func ConvertFlv2Ts(middleLst []string, outputFile string, inputFile []string, l 
 	}
 }
 
-func ConvertTs2Mp4(middleLst []string, outputFile string, l live.LiveSnapshot) {
+func ConvertTs2Mp4(middleLst []string, outputFile string, l *live.LiveSnapshot) {
 	reg, _ := regexp.Compile(`bitrate: (\d+) kb/s`)
 	flag := false
 
