@@ -285,15 +285,15 @@ func BytesToStringFast(b []byte) string {
 }
 
 func ConvertString2TimeStamp(str string) int {
-	if strings.HasPrefix(str, "d") {
-		days, err := strconv.ParseInt(strings.TrimPrefix(str, "d"), 10, 64)
+	if strings.HasSuffix(str, "d") {
+		days, err := strconv.ParseInt(strings.TrimSuffix(str, "d"), 10, 64)
 		if err != nil {
 			golog.Error(fmt.Sprintf("ConvertString2TimeStamp error: %s", err.Error()))
 			return 7 * 24 * 60 * 60
 		}
 		return int(days) * 24 * 60 * 60
-	} else if strings.HasPrefix(str, "h") {
-		hours, err := strconv.ParseInt(strings.TrimPrefix(str, "h"), 10, 64)
+	} else if strings.HasSuffix(str, "h") {
+		hours, err := strconv.ParseInt(strings.TrimSuffix(str, "h"), 10, 64)
 		if err != nil {
 			golog.Error(fmt.Sprintf("ConvertString2TimeStamp error: %s", err.Error()))
 			return 7 * 24 * 60 * 60

@@ -9,6 +9,7 @@ import (
 	"bilibili-recording-go/config"
 	"bilibili-recording-go/tools"
 
+	emoji "github.com/Andrew-M-C/go.emoji"
 	"github.com/kataras/golog"
 )
 
@@ -143,6 +144,9 @@ func (l *Live) UpadteFromConfig(v config.RoomConfigInfo) {
 
 func (l *Live) UpdateSiteInfo() {
 	siteInfo := l.site.GetInfoByRoom(l)
+	siteInfo.Uname = emoji.ReplaceAllEmojiFunc(siteInfo.Uname, func(emoji string) string {
+		return ""
+	})
 	if l.Uname == "" {
 		l.Uname = siteInfo.Uname
 	}
@@ -151,6 +155,9 @@ func (l *Live) UpdateSiteInfo() {
 	l.LockStatus = siteInfo.LockStatus
 	l.UID = siteInfo.UID
 	l.LiveStartTime = siteInfo.LiveStartTime
+	siteInfo.Title = emoji.ReplaceAllEmojiFunc(siteInfo.Title, func(emoji string) string {
+		return ""
+	})
 	if l.Title != siteInfo.Title && l.Title != "" {
 		golog.Info(fmt.Sprintf("%s[RoomID: %s] 标题更换 %s -> %s", l.Uname, l.RoomID, l.Title, siteInfo.Title))
 		l.Title = siteInfo.Title

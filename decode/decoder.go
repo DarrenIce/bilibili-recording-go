@@ -23,7 +23,7 @@ func init() {
 }
 
 func decodeWorker() {
-	fmt.Println("DecodeWorker start")
+	golog.Info("Goroutine DecodeWorker start")
 	for {
 		live, ok := <-live.DecodeChan
 		if ok {

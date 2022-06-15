@@ -1,3 +1,5 @@
+github.com/Andrew-M-C/go.emoji v1.0.1 h1:OpTpSPqJIg+OXxeDOxM9fYDvKHOuS1GTLVV9tuPGSAs=
+github.com/Andrew-M-C/go.emoji v1.0.1/go.mod h1:XKiW1Wc2U6EhAbS7SSvolGTr7sBRRD2GYjGK/huPXCw=
 github.com/asmcos/requests v0.0.0-20210319030608-c839e8ae4946 h1:1B8lZnGJOS3E7LumjuY6lb2NzXy8vBY6N2ag/IK6JdI=
 github.com/asmcos/requests v0.0.0-20210319030608-c839e8ae4946/go.mod h1:2W5PB6UTVRBypeouEebhwOJrDZOfJvPwMP1mtD8ZXM4=
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
