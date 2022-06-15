@@ -6,7 +6,7 @@ import (
 	"bilibili-recording-go/live"
 
 	"github.com/gin-gonic/gin"
-	"github.com/kataras/golog"
+	// "github.com/kataras/golog"
 )
 
 
@@ -19,7 +19,7 @@ func ProcessDecode(c *gin.Context) {
 	info := receiveInfo2{}
 	if c.ShouldBind(&info) == nil {
 		fmt.Println(info)
-		if room, ok := live.Lives[info.RoomID]; ok {
+		if _, ok := live.Lives[info.RoomID]; ok {
 			live.DecodeChan <- live.CreateLiveSnapShot(live.Lives[info.RoomID])
 			c.JSON(200, &struct {
 				Msg bool `json:"msg"`
