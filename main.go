@@ -8,8 +8,7 @@ import (
 
 	"github.com/kataras/golog"
 
-	"bilibili-recording-go/config"
-	"bilibili-recording-go/live"
+	_ "bilibili-recording-go/live"
 	_ "bilibili-recording-go/monitor"
 	"bilibili-recording-go/routers"
 	"bilibili-recording-go/tools"
@@ -68,10 +67,6 @@ func Init() {
 }
 
 func main() {
-	Init()
-	c := config.New()
-	for _, v := range c.Conf.Live {
-		live.AddRoom(v.RoomID)
-	}
+	Init()	
 	routers.GIN.Run()
 }
