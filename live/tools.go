@@ -118,6 +118,7 @@ func flushLiveStatus() {
 			for k := range Lives {
 				lst = append(lst, k)
 			}
+			LmapLock.Unlock()
 			for _, v := range lst {
 				LmapLock.Lock()
 				live, ok := Lives[v]
