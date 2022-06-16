@@ -16,9 +16,9 @@
 ## 运行
 ```
 git clone https://github.com/DarrenIce/bilibili-recording-go.git
-pip install -r requirements.txt
 修改config_exp.yml，并重命名为config.yml
-go run main.go
+go build ./main.go
+./main.exe
 ```
 
 ## TODO
