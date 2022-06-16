@@ -79,6 +79,10 @@ func (s * huya) GetInfoByRoom(r *Live) SiteInfo {
 
 func (s *huya) getLiveUrl() {
 	ib := strings.Split(s.liveUrl, "?")
+	if len(ib) < 2 {
+		fmt.Println("huya getLiveUrl failed.")
+		return
+	}
 	i, b := ib[0], ib[1]
 	r := strings.Split(i, "/")
 	ss := strings.ReplaceAll(r[len(r)-1], ".flv", "")

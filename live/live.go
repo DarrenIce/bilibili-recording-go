@@ -9,7 +9,7 @@ import (
 	"bilibili-recording-go/config"
 	"bilibili-recording-go/tools"
 
-	emoji "github.com/Andrew-M-C/go.emoji"
+	"github.com/Andrew-M-C/go.emoji"
 	"github.com/kataras/golog"
 )
 

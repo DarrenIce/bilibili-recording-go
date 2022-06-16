@@ -98,6 +98,7 @@ func ManualUpload(roomID string) bool {
 	return false
 }
 
+// TODO: 把不同网站的刷新分开
 func flushLiveStatus() {
 	for {
 		lst := make([]string, len(Lives))

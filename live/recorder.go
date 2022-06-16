@@ -70,6 +70,7 @@ func (r *Live) unlive() {
 			return
 		}
 		DecodeChan <- CreateLiveSnapShot(r)
+		time.Sleep(5 * time.Second)
 		atomic.CompareAndSwapUint32(&r.State, waiting, start)
 	}
 	// }

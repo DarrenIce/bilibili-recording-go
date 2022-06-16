@@ -3,6 +3,7 @@ module bilibili-recording-go
 go 1.17
 
 require (
+	github.com/Andrew-M-C/go.emoji v1.0.1
 	github.com/asmcos/requests v0.0.0-20210319030608-c839e8ae4946
 	github.com/gin-gonic/gin v1.8.1
 	github.com/kataras/golog v0.1.7
@@ -12,7 +13,6 @@ require (
 )
 
 require (
-	github.com/Andrew-M-C/go.emoji v1.0.1 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/go-playground/locales v0.14.0 // indirect
