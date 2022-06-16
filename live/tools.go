@@ -113,10 +113,12 @@ func flushLiveStatus() {
 		}
 		LmapLock.Unlock()
 		f := func(platform string) {
-			lst := make([]string, 0)
+			lst := make([]string, len(Lives))
 			LmapLock.Lock()
 			for k := range Lives {
-				lst = append(lst, k)
+				if Lives[k].Platform == platform {
+					lst = append(lst, k)
+				}
 			}
 			LmapLock.Unlock()
 			for _, v := range lst {
