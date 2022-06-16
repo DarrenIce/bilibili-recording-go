@@ -70,7 +70,6 @@ const (
 var (
 	Lives    map[string]*Live
 	LmapLock *sync.Mutex
-
 	DecodeChan chan *LiveSnapshot
 	uploadChan chan string
 )
@@ -79,6 +78,7 @@ func init() {
 	DecodeChan = make(chan *LiveSnapshot, 100)
 	uploadChan = make(chan string)
 	Lives = make(map[string]*Live)
+	platformMap = make(map[string]bool)
 
 	LmapLock = new(sync.Mutex)
 	go flushLiveStatus()

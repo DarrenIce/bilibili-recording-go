@@ -16,6 +16,10 @@ import (
 	"bilibili-recording-go/tools"
 )
 
+var (
+	platformMap map[string]bool
+)
+
 func Upload2BaiduPCS() {
 	golog.Info("Upload2BaiduPCS Start")
 	for _, v := range Lives {
@@ -98,25 +102,39 @@ func ManualUpload(roomID string) bool {
 	return false
 }
 
-// TODO: 把不同网站的刷新分开
 func flushLiveStatus() {
 	for {
-		lst := make([]string, len(Lives))
+		plst := make(map[string]string)
 		LmapLock.Lock()
 		for k := range Lives {
-			lst = append(lst, k)
+			if _, ok := plst[Lives[k].Platform]; !ok {
+				plst[Lives[k].Platform] = Lives[k].Platform
+			}
 		}
 		LmapLock.Unlock()
-		for _, v := range lst {
+		f := func(platform string) {
+			lst := make([]string, 0)
 			LmapLock.Lock()
-			live, ok := Lives[v]
-			if !ok {
-				LmapLock.Unlock()
-				continue
+			for k := range Lives {
+				lst = append(lst, k)
 			}
-			LmapLock.Unlock()
-			live.UpdateSiteInfo()
-			time.Sleep(10 * time.Second)
+			for _, v := range lst {
+				LmapLock.Lock()
+				live, ok := Lives[v]
+				if !ok {
+					LmapLock.Unlock()
+					continue
+				}
+				LmapLock.Unlock()
+				live.UpdateSiteInfo()
+				time.Sleep(10 * time.Second)
+			}
+		}
+		for k := range plst {
+			if _, ok := platformMap[k]; !ok {
+				go f(k)
+				platformMap[k] = true
+			}
 		}
 	}
 }
@@ -182,7 +200,7 @@ func StartTimingTask(name string, isStart bool, regularTime string, taskFunc fun
 		go func() {
 			for {
 				select {
-				case <- taskChan:
+				case <-taskChan:
 					taskFunc()
 				default:
 					time.Sleep(time.Second * 1)
