@@ -7,6 +7,6 @@ import (
 type DanmuItem struct {
 	msg string
 	uname interface{}
-	uid string
+	uid float64
 }
 

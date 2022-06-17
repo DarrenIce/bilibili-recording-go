@@ -37,7 +37,7 @@ func (d *DanmuClient) DanmuMsg(bs []byte) {
 	if len(info) > 1 {
 		i := info[2].([]interface{})
 		if len(i) > 0 {
-			ditem.uid = i[0].(string)
+			ditem.uid = i[0].(float64)
 		}
 		if len(i) > 1 {
 			ditem.uname = i[1]
