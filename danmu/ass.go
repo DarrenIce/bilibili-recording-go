@@ -48,6 +48,7 @@ func NewAss(uname string, file string) *Ass {
 	header := `[Script Info]
 	Title: Default Ass file
 	ScriptType: v4.00+
+	Collisions: Reverse
 	WrapStyle: 0
 	ScaledBorderAndShadow: yes
 	PlayResX: ` + strconv.Itoa(ass.assHeight) + `

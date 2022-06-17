@@ -31,6 +31,7 @@ type roomInfo struct {
 	SaveDuration   string `json:"saveDuration"`
 	AreaLock       bool   `json:"areaLock"`
 	AreaLimit      string `json:"areaLimit"`
+	SaveDanmu      bool   `json:"saveDanmu"`
 }
 
 func RoomHandle(c *gin.Context) {
@@ -76,6 +77,7 @@ func addRoom(info roomInfo) bool {
 		SaveDuration:   info.SaveDuration,
 		AreaLock:       info.AreaLock,
 		AreaLimit:      info.AreaLimit,
+		SaveDanmu:      info.SaveDanmu,
 	})
 	live.AddRoom(info.RoomID)
 	if err := c.Marshal(); err != nil {
@@ -101,6 +103,7 @@ func editRoom(info roomInfo) bool {
 		SaveDuration:   info.SaveDuration,
 		AreaLock:       info.AreaLock,
 		AreaLimit:      info.AreaLimit,
+		SaveDanmu:      info.SaveDanmu,
 	}
 	c := config.New()
 	c.EditRoom(roominfo)
