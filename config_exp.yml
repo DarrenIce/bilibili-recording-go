@@ -3,7 +3,7 @@ bilibili: # 上传使用，可以不填
   password: "你的密码"
   cookies: {} # 这里无需填写
 douyin:
-  cookies: ""   # 抓取抖音直播地址需要cookies
+  cookies: "" # 抓取抖音直播地址需要cookies
 record:
   needProxy: true
   proxy: "socks5://127.0.0.1:1080"
@@ -12,24 +12,25 @@ record:
   needRegularClean: true
   regularCleanTime: "04:00:00"
 live:
-  "2603963":              # 房间号
-    platform: "bilibili"  # 平台名：bilibili/douyin/huya
-    roomID: "2603963"     # 房间号
-    recordMode: false     # 录制模式 false时只在指定时间段录制，true则全天都会监控录制
-    startTime: "230000"   # 开始录制时间
-    endTime: "020000"     # 停止录制时间
-    autorecord: true      # 是否自动录制
-    autoupload: false     # 是否自动上传
-    needM4a: true         # 是否导出音轨
-    mp4Compress: true     # 录像质量是否压缩
-    divideByTitle: false  # 当天录像是否按标题分P
+  "2603963": # 房间号
+    platform: "bilibili" # 平台名：bilibili/douyin/huya
+    roomID: "2603963" # 房间号
+    recordMode: false # 录制模式 false时只在指定时间段录制，true则全天都会监控录制
+    startTime: "230000" # 开始录制时间
+    endTime: "020000" # 停止录制时间
+    autorecord: true # 是否自动录制
+    autoupload: false # 是否自动上传
+    needM4a: true # 是否导出音轨
+    mp4Compress: true # 录像质量是否压缩
+    divideByTitle: false # 当天录像是否按标题分P
     cleanUpRegular: false # 是否定期清理(tmp目录和录像)
-    saveDuration: 7d      # 保留时间(h - hour, d - day)
-    areaLock: false       # 分区锁定，是否只录制某个分区下的直播
+    saveDuration: 7d # 保留时间(h - hour, d - day)
+    areaLock: false # 分区锁定，是否只录制某个分区下的直播
     areaLimit: "放松电台" # 锁定的分区，请确保分区名准确无误
-monitorAreas:             # 监控的分区
-- platform: bilibili
-  areaName: 放松电台
-  parentID: 5
-  areaID: 339
+    saveDanmu: true # 是否记录弹幕
+monitorAreas: # 监控的分区
+  - platform: bilibili
+    areaName: 放松电台
+    parentID: 5
+    areaID: 339
 blockedRooms: ["13620248"] # 监控分区时屏蔽的主播

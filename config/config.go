@@ -18,11 +18,11 @@ type Douyin struct {
 }
 
 type RecordConfig struct {
-	NeedProxy  bool   `yaml:"needProxy"`
-	Proxy      string `yaml:"proxy"`
-	NeedBdPan  bool   `yaml:"needBdPan"`
-	UploadTime string `yaml:"uploadTime"`
-	NeedRegularClean bool `yaml:"needRegularClean"`
+	NeedProxy        bool   `yaml:"needProxy"`
+	Proxy            string `yaml:"proxy"`
+	NeedBdPan        bool   `yaml:"needBdPan"`
+	UploadTime       string `yaml:"uploadTime"`
+	NeedRegularClean bool   `yaml:"needRegularClean"`
 	RegularCleanTime string `yaml:"regularCleanTime"`
 }
 
@@ -42,13 +42,14 @@ type RoomConfigInfo struct {
 	SaveDuration   string `yaml:"saveDuration"`
 	AreaLock       bool   `yaml:"areaLock"`
 	AreaLimit      string `yaml:"areaLimit"`
+	SaveDanmu      bool   `yaml:"saveDanmu"`
 }
 
 type MonitorArea struct {
-	Platform	string	`yaml:"platform"`
+	Platform string `yaml:"platform"`
 	AreaName string `yaml:"areaName"`
-	ParentID string    `yaml:"parentID"`
-	AreaID   string    `yaml:"areaID"`
+	ParentID string `yaml:"parentID"`
+	AreaID   string `yaml:"areaID"`
 }
 
 // Config 配置文件

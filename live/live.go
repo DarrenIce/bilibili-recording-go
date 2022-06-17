@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"bilibili-recording-go/config"
+	"bilibili-recording-go/danmu"
 	"bilibili-recording-go/tools"
 
 	"github.com/Andrew-M-C/go.emoji"
@@ -37,18 +38,20 @@ type Live struct {
 	St              time.Time
 	Et              time.Time
 
-	UploadName string
-	FilePath   string
+	UploadName  string
+	FilePath    string
 	TmpFilePath string
+
+	danmuClient *danmu.DanmuClient
 }
 
 type LiveSnapshot struct {
 	config.RoomConfigInfo
-	State	uint32
+	State uint32
 	SiteInfo
 
-	UploadName string
-	FilePath  string
+	UploadName  string
+	FilePath    string
 	TmpFilePath string
 }
 
@@ -68,8 +71,8 @@ const (
 )
 
 var (
-	Lives    map[string]*Live
-	LmapLock *sync.Mutex
+	Lives      map[string]*Live
+	LmapLock   *sync.Mutex
 	DecodeChan chan *LiveSnapshot
 	uploadChan chan string
 )
@@ -168,7 +171,7 @@ func (l *Live) UpdateSiteInfo() {
 	if siteInfo.Title != "" {
 		l.Title = siteInfo.Title
 	}
-	if l.AreaName != siteInfo.AreaName && l.AreaName != ""{
+	if l.AreaName != siteInfo.AreaName && l.AreaName != "" {
 		golog.Info(fmt.Sprintf("%s[RoomID: %s] 直播分区更换 %s -> %s", l.Uname, l.RoomID, l.AreaName, siteInfo.AreaName))
 		l.AreaName = siteInfo.AreaName
 		if !l.AreaLock && l.State == running {

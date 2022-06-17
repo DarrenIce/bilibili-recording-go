@@ -119,7 +119,7 @@ func (s *huya)DownloadLive(r *Live) {
 	tools.Mkdir(fmt.Sprintf("./recording/%s/tmp", uname))
 	exp := regexp.MustCompile(`[\/:*?"<>|]`)
 	title := exp.ReplaceAllString(r.Title, " ")
-	outputName := r.AreaName + "_" + title + "_" + fmt.Sprint(time.Now().Format("20060102150405")) + ".flv"
+	outputName := r.AreaName + "_" + title + "_" + fmt.Sprint(time.Unix(r.RecordStartTime, 0).Format("20060102150405")) + ".flv"
 	golog.Info(fmt.Sprintf("%s[RoomID: %s] 本次录制文件为：%s", r.Uname, r.RoomID, outputName))
 	middle, _ := filepath.Abs(fmt.Sprintf("./recording/%s/tmp", uname))
 	outputFile := fmt.Sprint(middle + "\\" + outputName)

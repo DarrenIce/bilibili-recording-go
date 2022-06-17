@@ -14,6 +14,7 @@ import (
 	"bilibili-recording-go/routers"
 	"bilibili-recording-go/tools"
 	_ "bilibili-recording-go/decode"
+	_ "bilibili-recording-go/danmu"
 )
 
 // Init 初始化函数

@@ -2,11 +2,14 @@ package live
 
 import (
 	"fmt"
+	"os"
+	"strconv"
 	"sync/atomic"
 	"time"
 
 	"github.com/kataras/golog"
 
+	"bilibili-recording-go/danmu"
 	"bilibili-recording-go/tools"
 )
 
@@ -30,6 +33,12 @@ func (r *Live) run() {
 					r.RecordStatus = 1
 					golog.Info(fmt.Sprintf("%s[RoomID: %s] 开始录制", r.Uname, r.RoomID))
 					go r.site.DownloadLive(r)
+					if r.SaveDanmu {
+						file := fmt.Sprintf("%s_%s场_%s_%s", r.Uname, time.Unix(r.RecordStartTime, 0).Format("2006-01-02 15时04分"), r.AreaName, r.Title)
+						roomID_uint64, _ := strconv.ParseUint(r.RoomID, 10, 64)
+						r.danmuClient = danmu.NewDanmuClient(uint32(roomID_uint64), r.Uname, file)
+						go r.danmuClient.Run()
+					}
 					if r.State == start {
 						atomic.CompareAndSwapUint32(&r.State, start, running)
 					} else if r.State == restart {
@@ -65,8 +74,10 @@ func (r *Live) unlive() {
 	// 	atomic.CompareAndSwapUint32(&r.State, running, restart)
 	// } else {
 	if atomic.CompareAndSwapUint32(&r.State, running, waiting) || atomic.CompareAndSwapUint32(&r.State, restart, waiting) {
+		r.danmuClient.Stop <- struct{}{}
 		if tools.GetTimeDeltaFromTimestamp(r.RecordEndTime, r.RecordStartTime) < 60 {
 			atomic.CompareAndSwapUint32(&r.State, waiting, start)
+			os.Remove(fmt.Sprintf("./recording/%s/%s.ass", r.Uname, r.danmuClient.Ass.File))
 			return
 		}
 		DecodeChan <- CreateLiveSnapShot(r)
