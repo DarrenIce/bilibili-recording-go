@@ -3,9 +3,9 @@ package danmu
 import (
 	"encoding/json"
 	"fmt"
-	"time"
+	// "time"
 
-	"github.com/issue9/term/v2/colors"
+	// "github.com/issue9/term/v2/colors"
 	"github.com/kataras/golog"
 )
 
@@ -46,7 +46,7 @@ func (d *DanmuClient) DanmuMsg(bs []byte) {
 			ditem.uname = i[1]
 		}
 	}
-	dm := colors.New(colors.Normal, 158, colors.Black)
-	dm.Printf("[%s] %s: [%s] %s. \n", time.Now().Format("2006-01-02 15:04:05"), js.Cmd, ditem.uname, ditem.msg)
+	// dm := colors.New(colors.Normal, 158, colors.Black)
+	// dm.Printf("[%s] %s: [%s] %s. \n", time.Now().Format("2006-01-02 15:04:05"), js.Cmd, ditem.uname, ditem.msg)
 	d.Ass.WriteDanmu(ditem.msg)
 }

@@ -33,7 +33,7 @@ func NewAss(uname string, file string) *Ass {
 		assHeight: 720,
 		assWeight: 1280,
 		assFontSize: 50,
-		assShowTime: 7,
+		assShowTime: 5,
 		assLoc: 7,
 	}
 	if file == "" {
