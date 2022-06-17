@@ -81,16 +81,17 @@ func init() {
 	DecodeChan = make(chan *LiveSnapshot, 100)
 	uploadChan = make(chan string)
 	Lives = make(map[string]*Live)
-	platformMap = make(map[string]bool)
-
 	LmapLock = new(sync.Mutex)
-	go flushLiveStatus()
 
 	c := config.New()
 	err := c.LoadConfig()
 	if err != nil {
 		golog.Fatal(fmt.Sprintf("Load config error: %s", err))
 	}
+	for _, v := range c.Conf.Live {
+		AddRoom(v.RoomID)
+	}
+	go flushLiveStatus()
 	StartTimingTask("Upload2BaiduPCS", c.Conf.RcConfig.NeedBdPan, c.Conf.RcConfig.UploadTime, Upload2BaiduPCS)
 	StartTimingTask("CleanRecordingDir", c.Conf.RcConfig.NeedRegularClean, c.Conf.RcConfig.RegularCleanTime, CleanRecordingDir)
 	// go uploadWorker()
