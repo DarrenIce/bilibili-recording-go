@@ -12,7 +12,10 @@ import (
 func (d *DanmuClient) process() {
 	for {
 		select {
-		case m := <- d.unzlibChannel:
+		case m, ok := <- d.unzlibChannel:
+			if !ok {
+				return
+			}
 			uz := m[16:]
 			js := new(receivedInfo)
 			json.Unmarshal(uz, js)

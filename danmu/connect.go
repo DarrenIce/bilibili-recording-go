@@ -70,12 +70,17 @@ func (d *DanmuClient) connect() {
 
 func (d *DanmuClient) heartBeat() {
 	for {
-		obj := []byte("5b6f626a656374204f626a6563745d")
-		if err := d.sendPackage(0, 16, 1, 2, 1, obj); err != nil {
-			fmt.Println("heart beat err: ", err)
-			continue
+		select {
+		case <-d.stopHeartBeat:
+			return
+		default:
+			obj := []byte("5b6f626a656374204f626a6563745d")
+			if err := d.sendPackage(0, 16, 1, 2, 1, obj); err != nil {
+				fmt.Println("heart beat err: ", err)
+				continue
+			}
+			time.Sleep(30 * time.Second)
 		}
-		time.Sleep(30 * time.Second)
 	}
 }
 func (d *DanmuClient) receiveRawMsg() {
@@ -116,6 +121,7 @@ func (d *DanmuClient) Run() {
 		select {
 		case <-d.Stop:
 			d.stopReceive <- struct{}{}
+			d.stopHeartBeat <- struct{}{}
 			d.conn.Close()
 			close(d.serverNoticeChannel)
 			close(d.heartBeatChannel)

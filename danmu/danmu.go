@@ -14,6 +14,7 @@ type DanmuClient struct {
 	serverNoticeChannel chan []byte
 	Stop                chan struct{}
 	stopReceive         chan struct{}
+	stopHeartBeat       chan struct{}
 }
 
 type receivedInfo struct {
@@ -44,5 +45,6 @@ func NewDanmuClient(roomID uint32, uname string, file string) *DanmuClient {
 		serverNoticeChannel: make(chan []byte, 100),
 		Stop:                make(chan struct{}),
 		stopReceive:         make(chan struct{}),
+		stopHeartBeat:       make(chan struct{}),
 	}
 }
