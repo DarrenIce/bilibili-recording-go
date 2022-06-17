@@ -33,7 +33,7 @@ func (r *Live) run() {
 					r.RecordStatus = 1
 					golog.Info(fmt.Sprintf("%s[RoomID: %s] 开始录制", r.Uname, r.RoomID))
 					go r.site.DownloadLive(r)
-					if r.SaveDanmu {
+					if r.SaveDanmu && r.Platform == "bilibili" {
 						file := fmt.Sprintf("%s_%s场_%s_%s", r.Uname, time.Unix(r.RecordStartTime, 0).Format("2006-01-02 15时04分"), r.AreaName, r.Title)
 						roomID_uint64, _ := strconv.ParseUint(r.RoomID, 10, 64)
 						r.danmuClient = danmu.NewDanmuClient(uint32(roomID_uint64), r.Uname, file)

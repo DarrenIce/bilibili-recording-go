@@ -27,7 +27,7 @@ live:
     saveDuration: 7d # 保留时间(h - hour, d - day)
     areaLock: false # 分区锁定，是否只录制某个分区下的直播
     areaLimit: "放松电台" # 锁定的分区，请确保分区名准确无误
-    saveDanmu: true # 是否记录弹幕
+    saveDanmu: true # 是否记录弹幕，仅限B站有效
 monitorAreas: # 监控的分区
   - platform: bilibili
     areaName: 放松电台
