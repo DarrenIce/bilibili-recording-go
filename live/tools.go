@@ -16,10 +16,6 @@ import (
 	"bilibili-recording-go/tools"
 )
 
-var (
-	platformMap map[string]bool
-)
-
 func Upload2BaiduPCS() {
 	golog.Info("Upload2BaiduPCS Start")
 	for _, v := range Lives {
@@ -104,41 +100,22 @@ func ManualUpload(roomID string) bool {
 
 func flushLiveStatus() {
 	for {
-		plst := make(map[string]string)
+		lst := make([]string, len(Lives))
 		LmapLock.Lock()
 		for k := range Lives {
-			if _, ok := plst[Lives[k].Platform]; !ok {
-				plst[Lives[k].Platform] = Lives[k].Platform
-			}
+			lst = append(lst, k)
 		}
 		LmapLock.Unlock()
-		f := func(platform string) {
-			lst := make([]string, 1)
+		for _, v := range lst {
 			LmapLock.Lock()
-			for k := range Lives {
-				if Lives[k].Platform == platform {
-					lst = append(lst, k)
-				}
-			}
-			fmt.Println(platform, ": ", lst)
-			LmapLock.Unlock()
-			for _, v := range lst {
-				LmapLock.Lock()
-				live, ok := Lives[v]
-				if !ok {
-					LmapLock.Unlock()
-					continue
-				}
+			live, ok := Lives[v]
+			if !ok {
 				LmapLock.Unlock()
-				live.UpdateSiteInfo()
-				time.Sleep(10 * time.Second)
+				continue
 			}
-		}
-		for k := range plst {
-			if _, ok := platformMap[k]; !ok {
-				go f(k)
-				platformMap[k] = true
-			}
+			LmapLock.Unlock()
+			live.UpdateSiteInfo()
+			time.Sleep(10 * time.Second)
 		}
 	}
 }

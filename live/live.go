@@ -78,7 +78,6 @@ func init() {
 	DecodeChan = make(chan *LiveSnapshot, 100)
 	uploadChan = make(chan string)
 	Lives = make(map[string]*Live)
-	platformMap = make(map[string]bool)
 	LmapLock = new(sync.Mutex)
 
 	c := config.New()
