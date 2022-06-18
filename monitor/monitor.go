@@ -59,10 +59,13 @@ func init() {
 
 func Monitor() {
 	for {
-		AreaInfoList = make(MonitorRoomSlice, 0)
+		areaInfoList := make(MonitorRoomSlice, 0)
 		c := config.New()
-		areas := make([]config.MonitorArea, len(c.Conf.MonitorAreas))
+		areas := make([]config.MonitorArea, 0)
 		for _, v := range c.Conf.MonitorAreas {
+			if v.AreaName == "" {
+				continue
+			}
 			tmparea := config.MonitorArea{
 				AreaID:   v.AreaID,
 				AreaName: v.AreaName,
@@ -116,7 +119,7 @@ func Monitor() {
 					if _, ok := uidmap[roomID]; !ok {
 						uidmap[roomID] = uid
 						Lock.Lock()
-						AreaInfoList = append(AreaInfoList, MonitorRoom{
+						areaInfoList = append(areaInfoList, MonitorRoom{
 							RoomID:     roomID,
 							UID:        uid,
 							Uname:      uname,
@@ -137,12 +140,13 @@ func Monitor() {
 				time.Sleep(time.Second * 3)
 			}
 			Lock.Lock()
-			sort.Sort(AreaInfoList)
+			sort.Sort(areaInfoList)
 			Lock.Unlock()
 			// AreaMonitorMap[areaname] = *areaList
-			time.Sleep(time.Second * 30)
+			time.Sleep(time.Second * 10)
 		}
-		time.Sleep(1 * time.Minute)
+		AreaInfoList = areaInfoList
+		time.Sleep(30 * time.Second)
 	}
 }
 
