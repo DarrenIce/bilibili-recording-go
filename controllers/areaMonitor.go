@@ -10,7 +10,7 @@ import (
 )
 
 func GetAreaInfos(c *gin.Context) {
-	c.JSON(200, monitor.AreaMonitorMap)
+	c.JSON(200, monitor.AreaInfoList)
 }
 
 func AreaHandle(c *gin.Context) {

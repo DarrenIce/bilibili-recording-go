@@ -36,17 +36,9 @@ func addBlockRoom(roomID string) bool {
 	}
 	monitor.Lock.Lock()
 	defer monitor.Lock.Unlock()
-	for k := range monitor.AreaMonitorMap {
-		for kk, v := range monitor.AreaMonitorMap[k].Data {
-			if v.RoomID == roomID {
-				newData := append(monitor.AreaMonitorMap[k].Data[:kk], monitor.AreaMonitorMap[k].Data[kk+1:]...)
-				numNum := monitor.AreaMonitorMap[k].Nums - 1
-				newArea := &monitor.AreaList{
-					Data: newData,
-					Nums: numNum,
-				}
-				monitor.AreaMonitorMap[k] = *newArea
-			}
+	for k, v := range monitor.AreaInfoList {
+		if v.RoomID == roomID {
+			monitor.AreaInfoList = append(monitor.AreaInfoList[:k], monitor.AreaInfoList[k+1:]...)
 		}
 	}
 	return true

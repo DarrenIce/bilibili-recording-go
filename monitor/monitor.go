@@ -47,7 +47,8 @@ type AreaList struct {
 
 var (
 	Lock           *sync.Mutex
-	AreaMonitorMap = make(map[string]AreaList)
+	// AreaMonitorMap = make(map[string]AreaList)
+	AreaInfoList = make(MonitorRoomSlice, 0)
 	areaMonitorApi = "https://api.live.bilibili.com/xlive/web-interface/v1/second/getList?platform=web&parent_area_id=%s&area_id=%s&sort_type=&page=%d"
 )
 
@@ -59,16 +60,26 @@ func init() {
 func Monitor() {
 	for {
 		c := config.New()
-		for k := range c.Conf.MonitorAreas {
-			page := 1
-			areaname := c.Conf.MonitorAreas[k].AreaName
-			areaList := &AreaList{
-				Data: make([]MonitorRoom, 0),
-				Nums: 0,
+		areas := make([]config.MonitorArea, len(c.Conf.MonitorAreas))
+		for _, v := range c.Conf.MonitorAreas {
+			tmparea := config.MonitorArea{
+				AreaID:   v.AreaID,
+				AreaName: v.AreaName,
+				ParentID: v.ParentID,
+				Platform: v.Platform,
 			}
+			areas = append(areas, tmparea)
+		}
+		for _, v := range areas {
+			page := 1
+			// areaname := v.AreaName
+			// areaList := &AreaList{
+			// 	Data: make([]MonitorRoom, 0),
+			// 	Nums: 0,
+			// }
 			uidmap := make(map[string]string)
 			for {
-				url := fmt.Sprintf(areaMonitorApi, c.Conf.MonitorAreas[k].ParentID, c.Conf.MonitorAreas[k].AreaID, page)
+				url := fmt.Sprintf(areaMonitorApi, v.ParentID, v.AreaID, page)
 				resp, err := requests.Get(url)
 				if err != nil {
 					// golog.Error(err)
@@ -103,7 +114,8 @@ func Monitor() {
 					}
 					if _, ok := uidmap[roomID]; !ok {
 						uidmap[roomID] = uid
-						areaList.Data = append(areaList.Data, MonitorRoom{
+						Lock.Lock()
+						AreaInfoList = append(AreaInfoList, MonitorRoom{
 							RoomID:     roomID,
 							UID:        uid,
 							Uname:      uname,
@@ -116,16 +128,17 @@ func Monitor() {
 							UserCover:  userCover,
 							LiveCover:  liveCover,
 						})
-						areaList.Nums++
+						Lock.Unlock()
+						// areaList.Nums++
 					}
 				}
 				page++
 				time.Sleep(time.Second * 3)
 			}
-			sort.Sort(areaList.Data)
 			Lock.Lock()
-			AreaMonitorMap[areaname] = *areaList
+			sort.Sort(AreaInfoList)
 			Lock.Unlock()
+			// AreaMonitorMap[areaname] = *areaList
 			time.Sleep(time.Second * 30)
 		}
 		time.Sleep(1 * time.Minute)

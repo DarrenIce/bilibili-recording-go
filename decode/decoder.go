@@ -87,7 +87,7 @@ func Decode(l *live.LiveSnapshot) {
 		}
 	}
 
-	golog.Info(fmt.Sprintf("%s[RoomID: %s] 转码完成", l.Uname, l.UID))
+	golog.Info(fmt.Sprintf("%s[RoomID: %s] 转码完成", l.Uname, l.RoomID))
 }
 
 func GetLatestFiles(l *live.LiveSnapshot, timeStamp int) []string {
