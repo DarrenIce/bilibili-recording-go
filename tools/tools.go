@@ -1,8 +1,6 @@
 package tools
 
 import (
-	"crypto/md5"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -17,10 +15,6 @@ import (
 
 	"github.com/asmcos/requests"
 	"github.com/kataras/golog"
-	"github.com/shirou/gopsutil/cpu"
-	"github.com/shirou/gopsutil/disk"
-	"github.com/shirou/gopsutil/mem"
-	"github.com/shirou/gopsutil/net"
 	"github.com/tidwall/gjson"
 )
 
@@ -29,10 +23,6 @@ const (
 	contentTypeJSON = "application/json"
 )
 
-var (
-	lastBytesSent uint64 = 0
-	lastBytesRecv uint64 = 0
-)
 
 // Exists 检测文件或文件夹是否存在
 func Exists(path string) bool {
@@ -189,12 +179,6 @@ func EveryDayTimer(t string, c chan int) {
 	}
 }
 
-func md5V(t string) string {
-	h := md5.New()
-	h.Write([]byte(t))
-	return hex.EncodeToString(h.Sum(nil))
-}
-
 // GetUname, 感觉可以加个缓存，不然频繁调用容易触发风控
 func GetUname(roomID string) (string, error) {
 	url := fmt.Sprintf("https://api.live.bilibili.com/xlive/web-room/v1/index/getInfoByRoom?room_id=%s", roomID)
@@ -245,39 +229,6 @@ func CacRecordingFileNum() int64 {
 		}
 	}
 	return int64(fileNum)
-}
-
-type DeviceInfo struct {
-	TotalCpuUsage	float64
-	PerCpuUsage		[]float64
-	MemUsage		uint64
-	MemTotal		uint64
-	DiskName		string
-	DiskUsage		uint64
-	DiskTotal		uint64
-	NetUpPerSec		uint64
-	NetDownPerSec	uint64
-}
-
-func GetDeviceInfo() (deviceInfo DeviceInfo) {
-	percent, _ := cpu.Percent(time.Second, true)
-	deviceInfo.PerCpuUsage = percent
-	percent, _ = cpu.Percent(time.Second, false)
-	deviceInfo.TotalCpuUsage = percent[0]
-	mem, _ := mem.VirtualMemory()
-	deviceInfo.MemUsage = mem.Used
-	deviceInfo.MemTotal = mem.Total
-	nett, _ := net.IOCounters(false)
-	deviceInfo.NetUpPerSec = nett[0].BytesSent - lastBytesSent
-	lastBytesSent = nett[0].BytesSent
-	deviceInfo.NetDownPerSec = nett[0].BytesRecv - lastBytesRecv
-	lastBytesRecv = nett[0].BytesRecv
-	pwd, _ := os.Getwd()
-	disk, _ := disk.Usage(fmt.Sprint(strings.Split(pwd, "\\")[0], "\\"))
-	deviceInfo.DiskName = strings.Split(pwd, "\\")[0]
-	deviceInfo.DiskUsage = disk.Used
-	deviceInfo.DiskTotal = disk.Total
-	return deviceInfo
 }
 
 func BytesToStringFast(b []byte) string {

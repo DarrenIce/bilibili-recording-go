@@ -11,18 +11,16 @@ import (
 
 func (d *DanmuClient) process() {
 	for {
-		select {
-		case m, ok := <- d.unzlibChannel:
-			if !ok {
-				return
-			}
-			uz := m[16:]
-			js := new(receivedInfo)
-			json.Unmarshal(uz, js)
-			switch js.Cmd {
-			case "DANMU_MSG":
-				d.DanmuMsg(uz)
-			}
+		m, ok := <-d.unzlibChannel
+		if !ok {
+			return
+		}
+		uz := m[16:]
+		js := new(receivedInfo)
+		json.Unmarshal(uz, js)
+		switch js.Cmd {
+		case "DANMU_MSG":
+			d.DanmuMsg(uz)
 		}
 	}
 }
