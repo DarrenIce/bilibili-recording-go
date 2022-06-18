@@ -13,6 +13,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/asmcos/requests"
@@ -115,12 +116,18 @@ func (s *huya) getLiveUrl() {
 }
 
 func (s *huya)DownloadLive(r *Live) {
+	isLive, dpi, bitRate, fps := GetStreamInfo(s.liveUrl)
+	if !isLive {
+		fmt.Printf("%s[RoomID: %s] 直播状态不正常\n", r.Uname, r.RoomID)
+		atomic.CompareAndSwapUint32(&r.State, running, start)
+		return
+	}
 	uname := r.Uname
 	tools.Mkdir(fmt.Sprintf("./recording/%s/tmp", uname))
 	exp := regexp.MustCompile(`[\/:*?"<>|]`)
 	title := exp.ReplaceAllString(r.Title, " ")
 	outputName := r.AreaName + "_" + title + "_" + fmt.Sprint(time.Unix(r.RecordStartTime, 0).Format("20060102150405")) + ".flv"
-	golog.Info(fmt.Sprintf("%s[RoomID: %s] 本次录制文件为：%s", r.Uname, r.RoomID, outputName))
+	golog.Info(fmt.Sprintf("%s[RoomID: %s] 本次录制文件为：%s, 分辨率: %s, 码率: %s, fps: %s", r.Uname, r.RoomID, outputName, dpi, bitRate, fps))
 	middle, _ := filepath.Abs(fmt.Sprintf("./recording/%s/tmp", uname))
 	outputFile := fmt.Sprint(middle + "\\" + outputName)
 	r.downloadCmd = exec.Command("ffmpeg", "-i", s.liveUrl, "-c", "copy", outputFile)

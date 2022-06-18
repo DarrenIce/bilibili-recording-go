@@ -1,9 +1,11 @@
 package live
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"os/exec"
+	"regexp"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -189,4 +191,25 @@ func StartTimingTask(name string, isStart bool, regularTime string, taskFunc fun
 			}
 		}()
 	}
+}
+
+func GetStreamInfo(streamURL string) (isLive bool, dpi string, bitRate string, fps string) {
+	if streamURL == "" {
+		return false, "", "", ""
+	}
+	cmd := exec.Command("ffprobe", "-user_agent", "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.182 Safari/537.36", "-i", streamURL)
+	var outb bytes.Buffer
+	cmd.Stdout = &outb
+	cmd.Stderr = &outb
+	err := cmd.Run()
+	if err != nil {
+		golog.Error(fmt.Sprintf("GetStreamInfo Error: %s", err.Error()))
+		return false, "", "", ""
+	}
+	reg, _ := regexp.Compile(`Video:.*?(\d+x\d+).*?(\d+) kb\/s.*?(\d+) fps`)
+	res := reg.FindAllStringSubmatch(outb.String(), -1)
+	if len(res) > 0 {
+		return true, res[0][1], res[0][2], res[0][3]
+	}
+	return false, "", "", ""
 }

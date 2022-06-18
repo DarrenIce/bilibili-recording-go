@@ -2,10 +2,11 @@ package live
 
 import (
 	"fmt"
-	"time"
-	"regexp"
 	"os/exec"
 	"path/filepath"
+	"regexp"
+	"sync/atomic"
+	"time"
 
 	"github.com/asmcos/requests"
 	"github.com/kataras/golog"
@@ -19,13 +20,15 @@ func init() {
 	registerSite("bilibili", &bilibili{})
 }
 
-type bilibili struct {}
+type bilibili struct {
+	liveUrl string
+}
 
 func (s *bilibili) Name() string {
 	return "哔哩哔哩"
 }
 
-func(s *bilibili) SetCookies(cookies string) {
+func (s *bilibili) SetCookies(cookies string) {
 }
 
 func (s *bilibili) GetInfoByRoom(r *Live) SiteInfo {
@@ -55,10 +58,25 @@ func (s *bilibili) GetInfoByRoom(r *Live) SiteInfo {
 		return r.SiteInfo
 	}
 	data := gjson.Get(resp.Text(), "data")
+	liveStatus := int(data.Get("room_info").Get("live_status").Int())
+	if liveStatus == 1 {
+		url := fmt.Sprintf("http://api.live.bilibili.com/room/v1/Room/playUrl?cid=%s&quality=4", r.RoomID)
+		req := requests.Requests()
+		headers := requests.Header{
+			"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36 Edg/87.0.664.66",
+		}
+		resp, _ := req.Get(url, headers)
+		data := gjson.Get(resp.Text(), "data")
+		if resp.R.StatusCode == 200 {
+			s.liveUrl = data.Get("durl.0.url").String()
+		} else {
+			fmt.Printf("%s[RoomID: %s] 获取直播地址失败，请检查直播状态\n", r.Uname, r.RoomID)
+		}
+	}
 	if resp.R.StatusCode == 200 {
 		return SiteInfo{
 			RealID:        data.Get("room_info").Get("room_id").String(),
-			LiveStatus:    int(data.Get("room_info").Get("live_status").Int()),
+			LiveStatus:    liveStatus,
 			LockStatus:    int(data.Get("room_info").Get("lock_status").Int()),
 			Uname:         data.Get("anchor_info").Get("base_info").Get("uname").String(),
 			UID:           data.Get("room_info").Get("uid").String(),
@@ -73,12 +91,18 @@ func (s *bilibili) GetInfoByRoom(r *Live) SiteInfo {
 }
 
 func (s *bilibili) DownloadLive(r *Live) {
+	isLive, dpi, bitRate, fps := GetStreamInfo(s.liveUrl)
+	if !isLive {
+		fmt.Printf("%s[RoomID: %s] 直播状态不正常\n", r.Uname, r.RoomID)
+		atomic.CompareAndSwapUint32(&r.State, running, start)
+		return
+	}
 	uname := r.Uname
 	tools.Mkdir(fmt.Sprintf("./recording/%s/tmp", uname))
 	exp := regexp.MustCompile(`[\/:*?"<>|]`)
 	title := exp.ReplaceAllString(r.Title, " ")
 	outputName := r.AreaName + "_" + title + "_" + fmt.Sprint(time.Unix(r.RecordStartTime, 0).Format("20060102150405")) + ".flv"
-	golog.Info(fmt.Sprintf("%s[RoomID: %s] 本次录制文件为：%s", r.Uname, r.RoomID, outputName))
+	golog.Info(fmt.Sprintf("%s[RoomID: %s] 本次录制文件为：%s, 分辨率: %s, 码率: %s, fps: %s", r.Uname, r.RoomID, outputName, dpi, bitRate, fps))
 	r.TmpFilePath = fmt.Sprintf("./recording/%s/tmp/%s", uname, outputName)
 	middle, _ := filepath.Abs(fmt.Sprintf("./recording/%s/tmp", uname))
 	outputFile := fmt.Sprint(middle + "\\" + outputName)
