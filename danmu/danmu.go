@@ -1,6 +1,8 @@
 package danmu
 
 import (
+	"time"
+
 	"github.com/gorilla/websocket"
 )
 
@@ -14,7 +16,7 @@ type DanmuClient struct {
 	serverNoticeChannel chan []byte
 	Stop                chan struct{}
 	stopReceive         chan struct{}
-	stopHeartBeat       chan struct{}
+	heartTimer		  *time.Ticker
 }
 
 type receivedInfo struct {
@@ -41,10 +43,9 @@ func NewDanmuClient(roomID uint32, uname string, file string) *DanmuClient {
 		conn:                new(websocket.Conn),
 		Ass:                 NewAss(uname, file),
 		unzlibChannel:       make(chan []byte, 100),
-		heartBeatChannel:    make(chan []byte, 100),
-		serverNoticeChannel: make(chan []byte, 100),
+		// heartBeatChannel:    make(chan []byte, 100),
+		// serverNoticeChannel: make(chan []byte, 100),
 		Stop:                make(chan struct{}),
 		stopReceive:         make(chan struct{}),
-		stopHeartBeat:       make(chan struct{}),
 	}
 }

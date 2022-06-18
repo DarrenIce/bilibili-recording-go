@@ -3,6 +3,8 @@ package danmu
 import (
 	"encoding/json"
 	"fmt"
+	"time"
+
 	// "time"
 
 	// "github.com/issue9/term/v2/colors"
@@ -13,7 +15,11 @@ func (d *DanmuClient) process() {
 	for {
 		m, ok := <-d.unzlibChannel
 		if !ok {
+			fmt.Printf("[%d] unzlibChannel stop\n", d.roomID)
 			return
+		}
+		if d.roomID == 545068 {
+			fmt.Printf("%s [%d] %s\n", time.Now().Format("2006-01-02 15:04:05"), d.roomID, m)
 		}
 		uz := m[16:]
 		js := new(receivedInfo)

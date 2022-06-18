@@ -7,6 +7,7 @@ import (
 
 	"github.com/asmcos/requests"
 	"github.com/gorilla/websocket"
+	"github.com/kataras/golog"
 	"github.com/tidwall/gjson"
 )
 
@@ -69,17 +70,20 @@ func (d *DanmuClient) connect() {
 }
 
 func (d *DanmuClient) heartBeat() {
+	d.heartTimer = time.NewTicker(time.Second * 30)
+	obj := []byte("5b6f626a656374204f626a6563745d")
+	d.sendPackage(0, 16, 0, 2, 1, obj)
 	for {
-		select {
-		case <-d.stopHeartBeat:
+		_, ok := <-d.heartTimer.C
+		if !ok {
+			fmt.Printf("[%d] heartTimer stop\n", d.roomID)
 			return
-		default:
-			obj := []byte("5b6f626a656374204f626a6563745d")
-			if err := d.sendPackage(0, 16, 1, 2, 1, obj); err != nil {
-				fmt.Printf("[%d]heart beat err: %s, try to reconnect.\n", d.roomID, err)
-				d.connect()
-			}
-			time.Sleep(30 * time.Second)
+		}
+		obj := []byte("5b6f626a656374204f626a6563745d")
+		if err := d.sendPackage(0, 16, 0, 2, 1, obj); err != nil {
+			golog.Error(fmt.Sprintf("[%d]heart beat err: %s, try to reconnect.", d.roomID, err))
+			golog.Error(fmt.Sprintf("[%d]now ass file is %s", d.roomID, d.Ass.File))
+			d.connect()
 		}
 	}
 }
@@ -91,23 +95,24 @@ func (d *DanmuClient) receiveRawMsg() {
 		default:
 			_, msg, err := d.conn.ReadMessage()
 			if err != nil {
-				fmt.Println("Ws Receive raw msg error: ", err)
+				fmt.Printf("[%d]%s Ws Receive raw msg error: %s\n", d.roomID, time.Now().Format("2006-01-02 15:04:05"), err)
 				return
 			}
 			if msg[7] == 2 {
-				// fmt.Println("UnZlib..")
+				fmt.Printf("[%d]UnZlib..\n", d.roomID)
 				msgs := splitMsg(zlibUnCompress(msg[16:]))
 				for _, m := range msgs {
 					// Normal danmu
 					d.unzlibChannel <- m
 				}
-			} else if msg[11] == 3 {
-				// HeartBeat
-				d.heartBeatChannel <- msg
-			} else {
-				// System
-				d.serverNoticeChannel <- msg
 			}
+			//  else if msg[11] == 3 {
+			// 	// HeartBeat
+			// 	d.heartBeatChannel <- msg
+			// } else {
+			// 	// System
+			// 	d.serverNoticeChannel <- msg
+			// }
 		}
 	}
 }
@@ -121,7 +126,7 @@ func (d *DanmuClient) Run() {
 		select {
 		case <-d.Stop:
 			d.stopReceive <- struct{}{}
-			d.stopHeartBeat <- struct{}{}
+			d.heartTimer.Stop()
 			d.conn.Close()
 			close(d.serverNoticeChannel)
 			close(d.heartBeatChannel)
