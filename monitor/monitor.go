@@ -48,7 +48,7 @@ type AreaList struct {
 var (
 	Lock           *sync.Mutex
 	// AreaMonitorMap = make(map[string]AreaList)
-	AreaInfoList = make(MonitorRoomSlice, 0)
+	AreaInfoList 	MonitorRoomSlice
 	areaMonitorApi = "https://api.live.bilibili.com/xlive/web-interface/v1/second/getList?platform=web&parent_area_id=%s&area_id=%s&sort_type=&page=%d"
 )
 
@@ -59,6 +59,7 @@ func init() {
 
 func Monitor() {
 	for {
+		AreaInfoList = make(MonitorRoomSlice, 0)
 		c := config.New()
 		areas := make([]config.MonitorArea, len(c.Conf.MonitorAreas))
 		for _, v := range c.Conf.MonitorAreas {
