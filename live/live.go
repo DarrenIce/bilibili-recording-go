@@ -3,6 +3,7 @@ package live
 import (
 	"fmt"
 	"os/exec"
+	"regexp"
 	"sync"
 	"time"
 
@@ -162,6 +163,8 @@ func (l *Live) UpdateSiteInfo() {
 	siteInfo.Title = emoji.ReplaceAllEmojiFunc(siteInfo.Title, func(emoji string) string {
 		return ""
 	})
+	exp := regexp.MustCompile(`[\/:*?"<>|]`)
+	siteInfo.Title = exp.ReplaceAllString(siteInfo.Title, " ")
 	if l.Title != siteInfo.Title && l.Title != "" {
 		golog.Info(fmt.Sprintf("%s[RoomID: %s] 标题更换 %s -> %s", l.Uname, l.RoomID, l.Title, siteInfo.Title))
 		l.Title = siteInfo.Title
