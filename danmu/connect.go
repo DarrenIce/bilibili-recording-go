@@ -76,8 +76,8 @@ func (d *DanmuClient) heartBeat() {
 		default:
 			obj := []byte("5b6f626a656374204f626a6563745d")
 			if err := d.sendPackage(0, 16, 1, 2, 1, obj); err != nil {
-				fmt.Println("heart beat err: ", err)
-				continue
+				fmt.Printf("[%d]heart beat err: %s\n", d.roomID, err)
+				return
 			}
 			time.Sleep(30 * time.Second)
 		}

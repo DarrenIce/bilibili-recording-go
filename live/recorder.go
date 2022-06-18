@@ -74,10 +74,14 @@ func (r *Live) unlive() {
 	// 	atomic.CompareAndSwapUint32(&r.State, running, restart)
 	// } else {
 	if atomic.CompareAndSwapUint32(&r.State, running, waiting) || atomic.CompareAndSwapUint32(&r.State, restart, waiting) {
-		r.danmuClient.Stop <- struct{}{}
+		if r.SaveDanmu && r.Platform == "bilibili" {
+			r.danmuClient.Stop <- struct{}{}
+		}
 		if tools.GetTimeDeltaFromTimestamp(r.RecordEndTime, r.RecordStartTime) < 60 {
 			atomic.CompareAndSwapUint32(&r.State, waiting, start)
-			os.Remove(fmt.Sprintf("./recording/%s/%s.ass", r.Uname, r.danmuClient.Ass.File))
+			if r.SaveDanmu && r.Platform == "bilibili" {
+				os.Remove(fmt.Sprintf("./recording/%s/%s.ass", r.Uname, r.danmuClient.Ass.File))
+			}
 			return
 		}
 		DecodeChan <- CreateLiveSnapShot(r)

@@ -1,6 +1,7 @@
 package danmu
 
 import (
+	"bilibili-recording-go/tools"
 	"fmt"
 	"math/rand"
 	"os"
@@ -40,6 +41,7 @@ func NewAss(uname string, file string) *Ass {
 		return ass
 	}
 	filePath := fmt.Sprintf("./recording/%s/%s.ass", uname, file)
+	tools.Mkdir(fmt.Sprintf("./recording/%s/", uname))
 	assFile, err := os.OpenFile(filePath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
 	if err != nil {
 		golog.Error(fmt.Sprintf("os.OpenFile when Init Ass File: %s", err))
