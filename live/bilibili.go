@@ -2,6 +2,7 @@ package live
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"sync/atomic"
@@ -93,6 +94,11 @@ func (s *bilibili) DownloadLive(r *Live) {
 	isLive, dpi, bitRate, fps := GetStreamInfo(s.liveUrl)
 	if !isLive {
 		fmt.Printf("%s[RoomID: %s] 直播状态不正常\n", r.Uname, r.RoomID)
+		if r.SaveDanmu {
+			r.danmuClient.Stop <- struct{}{}
+			os.Remove(fmt.Sprintf("./recording/%s/%s.ass", r.Uname, r.danmuClient.Ass.File))
+		}
+		
 		atomic.CompareAndSwapUint32(&r.State, running, start)
 		return
 	}

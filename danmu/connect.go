@@ -99,7 +99,7 @@ func (d *DanmuClient) receiveRawMsg() {
 				return
 			}
 			if msg[7] == 2 {
-				fmt.Printf("[%d]UnZlib..\n", d.roomID)
+				// fmt.Printf("[%d]UnZlib..\n", d.roomID)
 				msgs := splitMsg(zlibUnCompress(msg[16:]))
 				for _, m := range msgs {
 					// Normal danmu
@@ -128,8 +128,6 @@ func (d *DanmuClient) Run() {
 			d.stopReceive <- struct{}{}
 			d.heartTimer.Stop()
 			d.conn.Close()
-			close(d.serverNoticeChannel)
-			close(d.heartBeatChannel)
 			close(d.unzlibChannel)
 		default:
 			time.Sleep(1 * time.Second)
