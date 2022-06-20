@@ -98,7 +98,7 @@ func (s *bilibili) DownloadLive(r *Live) {
 			r.danmuClient.Stop <- struct{}{}
 			os.Remove(fmt.Sprintf("./recording/%s/%s.ass", r.Uname, r.danmuClient.Ass.File))
 		}
-		
+		time.Sleep(60 * time.Second)
 		atomic.CompareAndSwapUint32(&r.State, running, start)
 		return
 	}
