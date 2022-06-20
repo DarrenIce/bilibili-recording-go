@@ -165,24 +165,26 @@ func (l *Live) UpdateSiteInfo() {
 	})
 	exp := regexp.MustCompile(`[\/:*?"<>|]`)
 	siteInfo.Title = exp.ReplaceAllString(siteInfo.Title, " ")
-	if l.Title != siteInfo.Title && l.Title != "" {
+	isTitleChanged := false
+	isAreaChanged := false
+	if l.Title != siteInfo.Title && l.Title != "" && siteInfo.Title != "" {
 		golog.Info(fmt.Sprintf("%s[RoomID: %s] 标题更换 %s -> %s", l.Uname, l.RoomID, l.Title, siteInfo.Title))
 		l.Title = siteInfo.Title
-		if l.DivideByTitle && l.State == running {
-			l.downloadCmd.Process.Kill()
-		}
+		isTitleChanged = true
 	}
-	if siteInfo.Title != "" {
+	if siteInfo.Title != "" && l.Title == "" {
 		l.Title = siteInfo.Title
 	}
-	if l.AreaName != siteInfo.AreaName && l.AreaName != "" {
+	if l.AreaName != siteInfo.AreaName && l.AreaName != "" && siteInfo.AreaName != "" {
 		golog.Info(fmt.Sprintf("%s[RoomID: %s] 直播分区更换 %s -> %s", l.Uname, l.RoomID, l.AreaName, siteInfo.AreaName))
 		l.AreaName = siteInfo.AreaName
-		if !l.AreaLock && l.State == running {
-			l.downloadCmd.Process.Kill()
-		}
+		isAreaChanged = true
 	}
-	if siteInfo.AreaName != "" {
+	if siteInfo.AreaName != "" && l.AreaName == "" {
 		l.AreaName = siteInfo.AreaName
 	}
+	if (isTitleChanged && l.DivideByTitle && l.State == running) || (isAreaChanged && !l.AreaLock && l.State == running) {
+		l.downloadCmd.Process.Kill()
+	}
+
 }
