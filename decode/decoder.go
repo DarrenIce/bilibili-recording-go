@@ -18,20 +18,46 @@ import (
 	"bilibili-recording-go/tools"
 )
 
+var (
+	decodeChan chan *decodeTuple
+)
+
 func init() {
+	decodeChan = make(chan *decodeTuple, 100)
 	go decodeWorker()
+	go decode()
+}
+
+type decodeTuple struct {
+	live       *live.LiveSnapshot
+	convertFile string
+	outputName string
 }
 
 func decodeWorker() {
-	golog.Info("Goroutine DecodeWorker start")
 	for {
-		live, ok := <-live.DecodeChan
-		if ok {
-			fmt.Println(live)
+		live := <-live.DecodeChan
+		var inputFile []string
+		if live.TmpFilePath == "" {
+			inputFile = GetLatestFiles(live, 0)
+		} else {
+			inputFile = []string{live.TmpFilePath}
 		}
-		golog.Info(fmt.Sprintf("%s[RoomID: %s] 开始转码", live.Uname, live.RoomID))
-		Decode(live)
-		golog.Info(fmt.Sprintf("%s[RoomID: %s] 结束转码", live.Uname, live.RoomID))
+		_, outputName := GenerateFileName(inputFile, live)
+		decodeChan <- &decodeTuple{
+			live:       live,
+			convertFile: inputFile[0],
+			outputName: outputName,
+		}
+	}
+}
+
+func decode() {
+	for {
+		dt := <-decodeChan
+		golog.Info(fmt.Sprintf("%s[RoomID: %s] 开始转码", dt.live.Uname, dt.live.RoomID))
+		Decode(dt.live, dt.convertFile, dt.outputName)
+		golog.Info(fmt.Sprintf("%s[RoomID: %s] 结束转码", dt.live.Uname, dt.live.RoomID))
 	}
 }
 
@@ -41,19 +67,13 @@ type fileInfo struct {
 }
 
 // Decode 转码
-func Decode(l *live.LiveSnapshot) {
-	var inputFile []string
-	if l.TmpFilePath == "" {
-		inputFile = GetLatestFiles(l, 0)
-	} else {
-		inputFile = []string{l.TmpFilePath}
-	}
-	uploadName, outputName := GenerateFileName(inputFile, l)
+func Decode(l *live.LiveSnapshot, convertFile string, outputName string) {
 	pwd, _ := os.Getwd()
+	inputFile := []string{convertFile}
 	outputFile := filepath.Join(pwd, "recording", l.Uname, fmt.Sprintf("%s.mp4", outputName))
-	l.UploadName = uploadName
+	// l.UploadName = uploadName
 	l.FilePath = outputFile
-	golog.Info(fmt.Sprintf("%s[RoomID: %s] 本次转码的文件有: %s, 最终生成: %s", l.Uname, l.UID, strings.Join(inputFile, " "), outputFile))
+	golog.Info(fmt.Sprintf("%s[RoomID: %s] 本次转码的文件为: %s, 最终生成: %s", l.Uname, l.UID, strings.Join(inputFile, " "), outputFile))
 	var middleLst []string
 	for k, f := range inputFile {
 		inputFile[k], _ = filepath.Abs(f)
@@ -86,8 +106,6 @@ func Decode(l *live.LiveSnapshot) {
 			golog.Info(f, " has been removed")
 		}
 	}
-
-	golog.Info(fmt.Sprintf("%s[RoomID: %s] 转码完成", l.Uname, l.RoomID))
 }
 
 func GetLatestFiles(l *live.LiveSnapshot, timeStamp int) []string {
