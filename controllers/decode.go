@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 
+	"bilibili-recording-go/decode"
 	"bilibili-recording-go/live"
 
 	"github.com/gin-gonic/gin"
@@ -21,8 +22,7 @@ func ProcessDecode(c *gin.Context) {
 		fmt.Println(info)
 		if _, ok := live.Lives[info.RoomID]; ok {
 			l := live.CreateLiveSnapShot(live.Lives[info.RoomID])
-			l.TmpFilePath = ""
-			live.DecodeChan <- l
+			decode.SmartDecode(l)
 			c.JSON(200, &struct {
 				Msg bool `json:"msg"`
 			}{
