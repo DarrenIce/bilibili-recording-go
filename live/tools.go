@@ -128,7 +128,11 @@ func CreateLiveSnapShot(live *Live) *LiveSnapshot {
 	snapshot.SiteInfo = live.SiteInfo
 	snapshot.State = live.State
 	snapshot.RoomConfigInfo = live.RoomConfigInfo
-	snapshot.TmpFilePath = live.TmpFilePath
+	if live.LiveStatus == 1 {
+		snapshot.TmpFilePath = live.TmpFilePath
+	} else {
+		snapshot.TmpFilePath = ""
+	}
 	return &snapshot
 }
 
