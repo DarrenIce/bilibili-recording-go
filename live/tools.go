@@ -141,6 +141,10 @@ func flushPlatformLives(platform string) {
 		PRLock.Lock()
 		lst = append(lst, PlatformRooms[platform]...)
 		PRLock.Unlock()
+		if len(lst) == 0 {
+			time.Sleep(1 * time.Second)
+			continue
+		}
 		for _, v := range lst {
 			LmapLock.Lock()
 			live, ok := Lives[v]
