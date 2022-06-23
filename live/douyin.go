@@ -19,6 +19,10 @@ import (
 
 func init() {
 	registerSite("douyin", &douyin{})
+	PRLock.Lock()
+	PlatformRooms["douyin"] = make([]string, 0)
+	PRLock.Unlock()
+	go flushPlatformLives("douyin")
 }
 
 type douyin struct {
