@@ -23,6 +23,10 @@ import (
 
 func init() {
 	registerSite("huya", &huya{})
+	PRLock.Lock()
+	PlatformRooms["huya"] = make([]string, 0)
+	PRLock.Unlock()
+	go flushPlatformLives("huya")
 }
 
 type huya struct {

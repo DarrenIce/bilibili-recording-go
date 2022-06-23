@@ -72,10 +72,12 @@ const (
 )
 
 var (
-	Lives      map[string]*Live
-	LmapLock   *sync.Mutex
-	DecodeChan chan *LiveSnapshot
-	uploadChan chan string
+	Lives         map[string]*Live
+	LmapLock      *sync.Mutex
+	DecodeChan    chan *LiveSnapshot
+	uploadChan    chan string
+	PlatformRooms = make(map[string][]string)
+	PRLock        = new(sync.Mutex)
 )
 
 func init() {
@@ -92,7 +94,7 @@ func init() {
 	for _, v := range c.Conf.Live {
 		AddRoom(v.RoomID)
 	}
-	go flushLiveStatus()
+	// go flushLiveStatus()
 	StartTimingTask("Upload2BaiduPCS", c.Conf.RcConfig.NeedBdPan, c.Conf.RcConfig.UploadTime, Upload2BaiduPCS)
 	StartTimingTask("CleanRecordingDir", c.Conf.RcConfig.NeedRegularClean, c.Conf.RcConfig.RegularCleanTime, CleanRecordingDir)
 	// go uploadWorker()

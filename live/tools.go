@@ -52,6 +52,10 @@ func AddRoom(roomID string) {
 	LmapLock.Lock()
 	Lives[roomID] = live
 	LmapLock.Unlock()
+	PRLock.Lock()
+	PlatformRooms[live.Platform] = append(PlatformRooms[live.Platform], roomID)
+	PRLock.Unlock()
+	fmt.Printf("AddRoom %s, 当前队列: %s\n", roomID, PlatformRooms[live.Platform])
 	go live.start()
 }
 
@@ -64,6 +68,15 @@ func DeleteRoom(roomID string) {
 		live = Lives[roomID]
 		delete(Lives, roomID)
 	}
+	PRLock.Lock()
+	defer PRLock.Unlock()
+	for i, v := range PlatformRooms[live.Platform] {
+		if v == roomID {
+			PlatformRooms[live.Platform] = append(PlatformRooms[live.Platform][:i], PlatformRooms[live.Platform][i+1:]...)
+			break
+		}
+	}
+	fmt.Printf("DeleteRoom %s, 当前队列: %s\n", roomID, PlatformRooms[live.Platform])
 	live.stop <- struct{}{}
 	// 如何释放？
 	// State == start || State == restart
@@ -117,6 +130,27 @@ func flushLiveStatus() {
 			}
 			LmapLock.Unlock()
 			live.UpdateSiteInfo()
+			time.Sleep(10 * time.Second)
+		}
+	}
+}
+
+func flushPlatformLives(platform string) {
+	for {
+		lst := make([]string, 0)
+		PRLock.Lock()
+		lst = append(lst, PlatformRooms[platform]...)
+		PRLock.Unlock()
+		for _, v := range lst {
+			LmapLock.Lock()
+			live, ok := Lives[v]
+			if !ok {
+				LmapLock.Unlock()
+				continue
+			}
+			LmapLock.Unlock()
+			live.UpdateSiteInfo()
+			fmt.Printf("Flush %s %s\n", platform, v)
 			time.Sleep(10 * time.Second)
 		}
 	}

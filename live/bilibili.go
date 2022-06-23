@@ -18,6 +18,10 @@ import (
 
 func init() {
 	registerSite("bilibili", &bilibili{})
+	PRLock.Lock()
+	PlatformRooms["bilibili"] = make([]string, 0)
+	PRLock.Unlock()
+	go flushPlatformLives("bilibili")
 }
 
 type bilibili struct {
