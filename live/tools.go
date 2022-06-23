@@ -150,7 +150,6 @@ func flushPlatformLives(platform string) {
 			}
 			LmapLock.Unlock()
 			live.UpdateSiteInfo()
-			fmt.Printf("Flush %s %s\n", platform, v)
 			time.Sleep(10 * time.Second)
 		}
 	}

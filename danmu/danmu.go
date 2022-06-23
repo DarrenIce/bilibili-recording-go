@@ -10,13 +10,14 @@ type DanmuClient struct {
 	roomID uint32
 	conn   *websocket.Conn
 	Ass    *Ass
+	Brg    *Brg
 
 	unzlibChannel       chan []byte
 	heartBeatChannel    chan []byte
 	serverNoticeChannel chan []byte
 	Stop                chan struct{}
 	stopReceive         chan struct{}
-	heartTimer		  *time.Ticker
+	heartTimer          *time.Ticker
 }
 
 type receivedInfo struct {
@@ -39,13 +40,14 @@ type receivedInfo struct {
 
 func NewDanmuClient(roomID uint32, uname string, file string) *DanmuClient {
 	return &DanmuClient{
-		roomID:              roomID,
-		conn:                new(websocket.Conn),
-		Ass:                 NewAss(uname, file),
-		unzlibChannel:       make(chan []byte, 100),
+		roomID:        roomID,
+		conn:          new(websocket.Conn),
+		Ass:           NewAss(uname, file),
+		Brg:           NewBrg(uname, file),
+		unzlibChannel: make(chan []byte, 100),
 		// heartBeatChannel:    make(chan []byte, 100),
 		// serverNoticeChannel: make(chan []byte, 100),
-		Stop:                make(chan struct{}),
-		stopReceive:         make(chan struct{}),
+		Stop:        make(chan struct{}),
+		stopReceive: make(chan struct{}),
 	}
 }
