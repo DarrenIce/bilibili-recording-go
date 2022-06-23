@@ -98,6 +98,9 @@ func (d *DanmuClient) receiveRawMsg() {
 				fmt.Printf("[%d]%s Ws Receive raw msg error: %s\n", d.roomID, time.Now().Format("2006-01-02 15:04:05"), err)
 				return
 			}
+			if len(msg) == 0 {
+				continue
+			}
 			if msg[7] == 2 {
 				// fmt.Printf("[%d]UnZlib..\n", d.roomID)
 				msgs := splitMsg(zlibUnCompress(msg[16:]))

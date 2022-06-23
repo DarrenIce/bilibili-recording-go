@@ -47,7 +47,7 @@ func (r *Live) run() {
 				} else {
 					time.Sleep(5 * time.Second)
 				}
-			} else if !r.judgeRecord() || !r.judegArea() {
+			} else {
 				if r.State == restart {
 					r.unlive()
 				} else if r.State == running {
@@ -55,8 +55,6 @@ func (r *Live) run() {
 				} else {
 					time.Sleep(5 * time.Second)
 				}
-			} else {
-				time.Sleep(5 * time.Second)
 			}
 		}
 	}
@@ -78,7 +76,7 @@ func (r *Live) unlive() {
 			r.danmuClient.Stop <- struct{}{}
 		}
 		if tools.GetTimeDeltaFromTimestamp(r.RecordEndTime, r.RecordStartTime) < 60 {
-			time.Sleep(60 * time.Second)
+			time.Sleep(120 * time.Second)
 			atomic.CompareAndSwapUint32(&r.State, waiting, start)
 			if r.SaveDanmu && r.Platform == "bilibili" {
 				os.Remove(fmt.Sprintf("./recording/%s/%s.ass", r.Uname, r.danmuClient.Ass.File))

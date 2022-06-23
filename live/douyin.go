@@ -99,6 +99,7 @@ func (s *douyin) DownloadLive(r *Live) {
 	isLive, dpi, bitRate, fps := GetStreamInfo(s.liveUrl)
 	if !isLive {
 		fmt.Printf("%s[RoomID: %s] 直播状态不正常\n", r.Uname, r.RoomID)
+		time.Sleep(120 * time.Second)
 		atomic.CompareAndSwapUint32(&r.State, running, start)
 		return
 	}
