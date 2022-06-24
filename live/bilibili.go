@@ -13,7 +13,6 @@ import (
 	"github.com/tidwall/gjson"
 
 	"bilibili-recording-go/config"
-	"bilibili-recording-go/tools"
 )
 
 func init() {
@@ -107,7 +106,6 @@ func (s *bilibili) DownloadLive(r *Live) {
 		return
 	}
 	uname := r.Uname
-	tools.Mkdir(fmt.Sprintf("./recording/%s/tmp", uname))
 	outputName := r.AreaName + "_" + r.Title + "_" + fmt.Sprint(time.Unix(r.RecordStartTime, 0).Format("20060102150405")) + ".flv"
 	golog.Info(fmt.Sprintf("%s[RoomID: %s] 本次录制文件为：%s, 分辨率: %s, 码率: %s, fps: %s", r.Uname, r.RoomID, outputName, dpi, bitRate, fps))
 	r.TmpFilePath = fmt.Sprintf("./recording/%s/tmp/%s", uname, outputName)
