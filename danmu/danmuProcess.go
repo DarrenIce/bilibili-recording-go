@@ -33,6 +33,11 @@ func (d *DanmuClient) process() {
 }
 
 func (d *DanmuClient) DanmuMsg(bs []byte) {
+	defer func() {
+		if v := recover(); v != nil {
+			golog.Error("捕获了一个恐慌：", v)
+		}
+	}()
 	js := new(receivedInfo)
 	if err := json.Unmarshal(bs, js); err != nil {
 		golog.Error(fmt.Sprintf("json.Unmarshal: %s", err))
@@ -68,6 +73,11 @@ func (d *DanmuClient) DanmuMsg(bs []byte) {
 }
 
 func (d *DanmuClient) GuardBuy(bs []byte) {
+	defer func() {
+		if v := recover(); v != nil {
+			golog.Error("捕获了一个恐慌：", v)
+		}
+	}()
 	js := new(receivedInfo)
 	if err := json.Unmarshal(bs, js); err != nil {
 		golog.Error(fmt.Sprintf("json.Unmarshal: %s", err))
@@ -85,6 +95,11 @@ func (d *DanmuClient) GuardBuy(bs []byte) {
 }
 
 func (d *DanmuClient) SendGift(bs []byte) {
+	defer func() {
+		if v := recover(); v != nil {
+			golog.Error("捕获了一个恐慌：", v)
+		}
+	}()
 	js := new(receivedInfo)
 	if err := json.Unmarshal(bs, js); err != nil {
 		golog.Error(fmt.Sprintf("json.Unmarshal: %s", err))
@@ -108,6 +123,11 @@ func (d *DanmuClient) SendGift(bs []byte) {
 }
 
 func (d *DanmuClient) SuperChatMessage(bs []byte) {
+	defer func() {
+		if v := recover(); v != nil {
+			golog.Error("捕获了一个恐慌：", v)
+		}
+	}()
 	js := new(receivedInfo)
 	if err := json.Unmarshal(bs, js); err != nil {
 		golog.Error(fmt.Sprintf("json.Unmarshal: %s", err))
