@@ -121,6 +121,23 @@ func ListDir(dirPath string) (files []string) {
 	return files
 }
 
+//ListDirWithoutDirPath
+func ListDirWithoutDirPath(dirPath string) (files []string) {
+	dir, err := ioutil.ReadDir(dirPath)
+	if err != nil {
+		golog.Error(err)
+		return nil
+	}
+	for _, file := range dir {
+		if file.IsDir() {
+			continue
+		} else {
+			files = append(files, file.Name())
+		}
+	}
+	return files
+}
+
 // GetFileCreateTime get
 func GetFileCreateTime(filePath string) int64 {
 	fileInfo, _ := os.Stat(filePath)
