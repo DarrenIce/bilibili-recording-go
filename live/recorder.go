@@ -94,6 +94,9 @@ func (r *Live) start() {
 	golog.Info(fmt.Sprintf("房间[RoomID: %s] 开始监听", r.RoomID))
 	atomic.CompareAndSwapUint32(&r.State, iinit, start)
 	r.UpdateSiteInfo()
+	tools.Mkdir(fmt.Sprintf("./recording/%s/brg", r.Uname))
+	tools.Mkdir(fmt.Sprintf("./recording/%s/tmp", r.Uname))
+	tools.Mkdir(fmt.Sprintf("./recording/%s/ass", r.Uname))
 	go r.run()
 }
 

@@ -1,7 +1,6 @@
 package danmu
 
 import (
-	"bilibili-recording-go/tools"
 	"fmt"
 	"os"
 
@@ -22,7 +21,6 @@ func NewBrg(uname string, file string) *Brg {
 		return brg
 	}
 	filePath := fmt.Sprintf("./recording/%s/brg/%s.brg", uname, file)
-	tools.Mkdir(fmt.Sprintf("./recording/%s/brg", uname))
 	brgFile, err := os.OpenFile(filePath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
 	if err != nil {
 		golog.Error(fmt.Sprintf("os.OpenFile when Init Brg File: %s", err))
