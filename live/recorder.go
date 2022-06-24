@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"sync/atomic"
 	"time"
 
@@ -104,7 +105,12 @@ func (r *Live) judegArea() bool {
 	if !r.AreaLock {
 		return true
 	}
-	return r.AreaLimit == r.AreaName
+	for _, v := range strings.Split(r.AreaLimit, ",") {
+		if v == r.AreaName {
+			return true
+		}
+	}
+	return false
 }
 
 func (r *Live) judgeRecord() bool {
