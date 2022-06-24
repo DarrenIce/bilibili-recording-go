@@ -20,10 +20,12 @@ func init() {
 	GIN.GET("/basestatus", controllers.GetBaseStatus)
 	GIN.GET("/livestatus", controllers.GetLiveStatus)
 	GIN.GET("/areainfos", controllers.GetAreaInfos)
+    GIN.GET("/anchorlivebacklist", controllers.GetAnchorLivebackList)
 	GIN.POST("/blockroom", controllers.ProcessBlockRoom)
 	GIN.POST("/decode", controllers.ProcessDecode)
 	GIN.POST("/roomhandle", controllers.RoomHandle)
     GIN.POST("/areahandle", controllers.AreaHandle)
+    GIN.POST("livebackstatistics", controllers.GetLivebackStatistics)
 }
 
 func Cors() gin.HandlerFunc {
