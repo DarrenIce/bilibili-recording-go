@@ -34,6 +34,40 @@ type roomInfo struct {
 	SaveDanmu      bool   `json:"saveDanmu"`
 }
 
+type receiveInfo4 struct {
+	RoomID string `json:"roomID"`
+	Platform string `json:"platform"`
+}
+
+func GetRoomLiveURL(c *gin.Context) {
+	info := new(receiveInfo4)
+	if c.ShouldBind(&info) == nil {
+		site, ok := live.Sniff(info.Platform)
+		if !ok {
+			c.JSON(200, &struct {
+				Succ bool `json:"succ"`
+				Msg string `json:"msg"`
+				LiveUrl string `json:"liveurl"`
+			}{
+				false,
+				"不支持的平台",
+				"",
+			})
+			return
+		}
+		liveUrl, succ := site.GetRoomLiveURL(info.RoomID)
+		c.JSON(200, &struct {
+			Succ bool `json:"succ"`
+			Msg string `json:"msg"`
+			LiveUrl string `json:"liveurl"`
+		}{
+			succ,
+			"",
+			liveUrl,
+		})
+	}
+}
+
 func RoomHandle(c *gin.Context) {
 	info := new(receiveInfo)
 	if c.ShouldBind(&info) == nil {

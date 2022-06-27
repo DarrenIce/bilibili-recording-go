@@ -69,7 +69,7 @@ func (s * huya) GetInfoByRoom(r *Live) SiteInfo {
 		sInfo.LiveStartTime = gjson.Get(data[1], "roomInfo.tLiveInfo.iStartTime").Int()
 		liveUrl, _ := base64.RawStdEncoding.DecodeString(gjson.Get(data[1], "roomProfile.liveLineUrl").String())
 		s.liveUrl = string(liveUrl)
-		s.getLiveUrl()
+		s.getLiveUrl(s.liveUrl)
 	}
 	sInfo.RealID = gjson.Get(data[1], "roomInfo.tProfileInfo.lProfileRoom").String()
 	sInfo.LockStatus = 0
@@ -81,11 +81,11 @@ func (s * huya) GetInfoByRoom(r *Live) SiteInfo {
 	return sInfo
 }
 
-func (s *huya) getLiveUrl() {
-	ib := strings.Split(s.liveUrl, "?")
+func (s *huya) getLiveUrl(liveUrl string) (string, bool) {
+	ib := strings.Split(liveUrl, "?")
 	if len(ib) < 2 {
 		fmt.Println("huya getLiveUrl failed.")
-		return
+		return "", false
 	}
 	i, b := ib[0], ib[1]
 	r := strings.Split(i, "/")
@@ -116,6 +116,35 @@ func (s *huya) getLiveUrl() {
 	url = strings.ReplaceAll(url, "hls", "flv")
 	url = strings.ReplaceAll(url, "m3u8", "flv")
 	s.liveUrl = url
+	return url, true
+}
+
+func (s *huya) GetRoomLiveURL(roomID string) (string, bool) {
+	req := requests.Requests()
+	c := config.New()
+	if c.Conf.RcConfig.NeedProxy {
+		req.Proxy(c.Conf.RcConfig.Proxy)
+	}
+	headers := requests.Header{
+		"User-Agent": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko); Chrome/75.0.3770.100 Mobile Safari/537.36",
+		"Content-Type": "application/x-www-form-urlencoded",
+	}
+	resp, err := req.Get(fmt.Sprintf("https://m.huya.com/%s", roomID), headers)
+	if err != nil {
+		return "", false
+	}
+	re := regexp.MustCompile(`window.HNF_GLOBAL_INIT = ({.*})\s+<\/script>`)
+	data := re.FindStringSubmatch(resp.Text())
+	if len(data) < 2 {
+		return "", false
+	}
+	status := int(gjson.Get(data[1], "roomInfo.eLiveStatus").Int()) - 1
+	if status == 0 {
+		return "", false
+	} else {
+		liveUrl, _ := base64.RawStdEncoding.DecodeString(gjson.Get(data[1], "roomProfile.liveLineUrl").String())
+		return s.getLiveUrl(string(liveUrl))
+	}
 }
 
 func (s *huya)DownloadLive(r *Live) {
