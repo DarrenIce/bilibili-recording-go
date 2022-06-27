@@ -186,7 +186,9 @@ func (l *Live) UpdateSiteInfo() {
 		l.AreaName = siteInfo.AreaName
 	}
 	if (isTitleChanged && l.DivideByTitle && l.State == running) || (isAreaChanged && !l.AreaLock && l.State == running) {
-		l.downloadCmd.Process.Kill()
+		if l.downloadCmd.Process != nil {
+			l.downloadCmd.Process.Kill()
+		}
 	}
 
 }
