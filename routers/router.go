@@ -26,6 +26,7 @@ func init() {
 	GIN.POST("/roomhandle", controllers.RoomHandle)
     GIN.POST("/areahandle", controllers.AreaHandle)
     GIN.POST("livebackstatistics", controllers.GetLivebackStatistics)
+    GIN.POST("/getliveurl", controllers.GetRoomLiveURL)
 }
 
 func Cors() gin.HandlerFunc {

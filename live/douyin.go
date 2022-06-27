@@ -98,6 +98,47 @@ func (s *douyin) GetInfoByRoom(r *Live) SiteInfo {
 	return siteInfo
 }
 
+func (s *douyin) GetRoomLiveURL(roomID string) (string, bool) {
+	if s.cookies == "" {
+		return "", false
+	}
+	req := requests.Requests()
+	c := config.New()
+	if c.Conf.RcConfig.NeedProxy {
+		req.Proxy(c.Conf.RcConfig.Proxy)
+	}
+	headers := requests.Header{
+		"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.71 Safari/537.36 Edg/94.0.992.38",
+		"referer":    "https://live.douyin.com/",
+		"Content-Type": "application/form-data",
+		"cookie":     s.cookies,
+	}
+	resp, err := req.Get(fmt.Sprintf("https://live.douyin.com/%s", roomID), headers)
+	if err != nil {
+		golog.Error(err)
+		return "", false
+	}
+	splits := strings.Split(resp.Text(), `<script id="RENDER_DATA" type="application/json">`)
+	if len(splits) < 2 {
+		return "", false
+	}
+	resps := splits[1]
+	resps = strings.Split(resps, `</script>`)[0]
+	resps, err = url.QueryUnescape(resps)
+	if err != nil {
+		golog.Error(err)
+		return "", false
+	}
+
+	data := gjson.Get(resps, "initialState.roomStore.roomInfo")
+	status := int(data.Get("room.status").Int())
+	if status == 2 {
+		return data.Get("room.stream_url.flv_pull_url.FULL_HD1").String(), true
+	} else {
+		return "", false
+	}
+}
+
 func (s *douyin) DownloadLive(r *Live) {
 	isLive, dpi, bitRate, fps := GetStreamInfo(s.liveUrl)
 	if !isLive {

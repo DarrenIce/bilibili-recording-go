@@ -25,6 +25,7 @@ type Site interface {
 	GetInfoByRoom(*Live) SiteInfo
 	DownloadLive(*Live)
 	SetCookies(string)
+	GetRoomLiveURL(string) (string, bool)
 }
 
 func registerSite(siteID string, site Site) {

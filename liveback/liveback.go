@@ -19,6 +19,7 @@ type PlaybackList []Playback
 
 type LivebackStatistics struct {
 	MedalStatistics []MedalInfo `json:"medal_statistics"`
+	RevenueStatistics RevenueStatistics `json:"revenue_statistics"`
 }
 
 type MedalInfo struct {
@@ -31,6 +32,30 @@ type MedalInfo struct {
 type MedalLevelInfo struct {
 	Level string `json:"level"`
 	Num   int    `json:"num"`
+}
+
+type RevenueStatistics struct {
+	SendUserNum int `json:"send_user_num"`
+	TotalRevenue int64 `json:"total_revenue"`
+	RichRanking []RankInfo `json:"rich_ranking"`
+}
+
+type RankInfo struct {
+	UID string `json:"uid"`
+	Uname string `json:"uname"`
+	SendGifts []SendGiftInfo `json:"send_gifts"`
+}
+
+type SendGiftInfo struct {
+	GiftName string `json:"gift_name"`
+	Num int `json:"num"`
+	Price int `json:"price"`
+	Details []SendDetail `json:"details"`
+}
+
+type SendDetail struct {
+	Num int `json:"num"`
+	Timestamp int64 `json:"timestamp"`
 }
 
 func GetAnchorLivebackList(anchorName string) PlaybackList {
@@ -59,6 +84,7 @@ func GetLivebackStatistics(anchorName string, brgFileName string) (LivebackStati
 	defer brgFile.Close()
 	return LivebackStatistics{
 		MedalStatistics: GetMedalStatistics(brgFile),
+		RevenueStatistics: GetRevenueStatics(brgFile),
 	}, true
 }
 
@@ -167,4 +193,13 @@ func GetMedalStatistics(brgFile *os.File) []MedalInfo {
 		medalLst = append(medalLst, m)
 	}
 	return medalLst
+}
+
+func GetRevenueStatics(brgFile *os.File) RevenueStatistics {
+	// uidMap := make(map[string]string)
+	// scanner := bufio.NewScanner(brgFile)
+	// for scanner.Scan() {
+	// 	text := scanner.Text()
+	// }
+	return RevenueStatistics{}
 }

@@ -93,6 +93,21 @@ func (s *bilibili) GetInfoByRoom(r *Live) SiteInfo {
 	}
 }
 
+func (s *bilibili) GetRoomLiveURL(roomID string) (string, bool) {
+	url := fmt.Sprintf("http://api.live.bilibili.com/room/v1/Room/playUrl?cid=%s&quality=4", roomID)
+		req := requests.Requests()
+		headers := requests.Header{
+			"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36 Edg/87.0.664.66",
+		}
+		resp, _ := req.Get(url, headers)
+		data := gjson.Get(resp.Text(), "data")
+		if resp.R.StatusCode == 200 {
+			return data.Get("durl.0.url").String(), true
+		} else {
+			return "", false
+		}
+}
+
 func (s *bilibili) DownloadLive(r *Live) {
 	isLive, dpi, bitRate, fps := GetStreamInfo(s.liveUrl)
 	if !isLive {

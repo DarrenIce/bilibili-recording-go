@@ -2,18 +2,21 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"runtime"
 	"strings"
 
 	"github.com/kataras/golog"
 
+	_ "bilibili-recording-go/danmu"
+	_ "bilibili-recording-go/decode"
 	_ "bilibili-recording-go/live"
 	_ "bilibili-recording-go/monitor"
 	"bilibili-recording-go/routers"
 	"bilibili-recording-go/tools"
-	_ "bilibili-recording-go/decode"
-	_ "bilibili-recording-go/danmu"
 )
 
 // Init 初始化函数
@@ -68,6 +71,13 @@ func Init() {
 }
 
 func main() {
-	Init()	
-	routers.GIN.Run()
+	Init()
+	go func() {
+		// 启动一个 http server，注意 pprof 相关的 handler 已经自动注册过了
+		if err := http.ListenAndServe(":6060", nil); err != nil {
+			log.Fatal(err)
+		}
+		os.Exit(0)
+	}()
+	routers.GIN.Run(":8888")
 }
