@@ -26,3 +26,14 @@ func GetLivebackStatistics(c *gin.Context) {
 		}
 	}
 }
+
+func GetWordCloud(c *gin.Context) {
+	info := receiveInfo3{}
+	if c.ShouldBind(&info) == nil {
+		if l, ok := liveback.CreateWordClod(info.AnchorName, info.BrgFileName); ok {
+			c.JSON(200, l)
+		} else {
+			c.JSON(400, nil)
+		}
+	}
+}
