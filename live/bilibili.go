@@ -171,6 +171,7 @@ func (s *bilibili) DownloadLive(r *Live) {
 		if r.SaveDanmu {
 			r.danmuClient.Stop <- struct{}{}
 			os.Remove(fmt.Sprintf("./recording/%s/%s.ass", r.Uname, r.danmuClient.Ass.File))
+			os.Remove(fmt.Sprintf("./recording/%s/%s.brg", r.Uname, r.danmuClient.Brg.File))
 		}
 		r.RecordEndTime = time.Now().Unix()
 		golog.Info(fmt.Sprintf("%s[RoomID: %s] 录制结束", r.Uname, r.RoomID))

@@ -136,6 +136,10 @@ func flushLiveStatus() {
 }
 
 func flushPlatformLives(platform string) {
+	// if platform == "douyin" {
+	// 	fmt.Println("pause douyin support.")
+	// 	return
+	// }
 	for {
 		lst := make([]string, 0)
 		PRLock.Lock()
@@ -154,7 +158,11 @@ func flushPlatformLives(platform string) {
 			}
 			LmapLock.Unlock()
 			live.UpdateSiteInfo()
-			time.Sleep(10 * time.Second)
+			if (platform == "douyin") {
+				time.Sleep(30 * time.Second)
+			} else {
+				time.Sleep(10 * time.Second)
+			}
 		}
 	}
 }

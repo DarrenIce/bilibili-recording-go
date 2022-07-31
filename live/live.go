@@ -119,6 +119,9 @@ func (l *Live) Init(roomID string) {
 		l.site.SetCookies(c.Conf.Douyin.Cookies)
 	}
 	l.St, l.Et = tools.MkDuration(l.StartTime, l.EndTime)
+	if l.Name != "" {
+		l.Uname = l.Name
+	}
 
 	if _, ok := c.Conf.Live[roomID]; !ok {
 		golog.Error(fmt.Sprintf("Room %s Init ERROR", roomID))

@@ -35,7 +35,7 @@ type roomInfo struct {
 }
 
 type receiveInfo4 struct {
-	RoomID string `json:"roomID"`
+	RoomID   string `json:"roomID"`
 	Platform string `json:"platform"`
 }
 
@@ -45,8 +45,8 @@ func GetRoomLiveURL(c *gin.Context) {
 		site, ok := live.Sniff(info.Platform)
 		if !ok {
 			c.JSON(200, &struct {
-				Succ bool `json:"succ"`
-				Msg string `json:"msg"`
+				Succ    bool   `json:"succ"`
+				Msg     string `json:"msg"`
 				LiveUrl string `json:"liveurl"`
 			}{
 				false,
@@ -57,8 +57,8 @@ func GetRoomLiveURL(c *gin.Context) {
 		}
 		liveUrl, succ := site.GetRoomLiveURL(info.RoomID)
 		c.JSON(200, &struct {
-			Succ bool `json:"succ"`
-			Msg string `json:"msg"`
+			Succ    bool   `json:"succ"`
+			Msg     string `json:"msg"`
 			LiveUrl string `json:"liveurl"`
 		}{
 			succ,
@@ -112,6 +112,7 @@ func addRoom(info roomInfo) bool {
 		AreaLock:       info.AreaLock,
 		AreaLimit:      info.AreaLimit,
 		SaveDanmu:      info.SaveDanmu,
+		Name:           "",
 	})
 	live.AddRoom(info.RoomID)
 	if err := c.Marshal(); err != nil {

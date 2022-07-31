@@ -81,6 +81,7 @@ func (r *Live) unlive() {
 			atomic.CompareAndSwapUint32(&r.State, waiting, start)
 			if r.SaveDanmu && r.Platform == "bilibili" {
 				os.Remove(fmt.Sprintf("./recording/%s/%s.ass", r.Uname, r.danmuClient.Ass.File))
+				os.Remove(fmt.Sprintf("./recording/%s/%s.brg", r.Uname, r.danmuClient.Brg.File))
 			}
 			return
 		}

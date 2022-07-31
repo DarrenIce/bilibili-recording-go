@@ -145,7 +145,7 @@ func (s *douyin) DownloadLive(r *Live) {
 		fmt.Printf("%s[RoomID: %s] 直播状态不正常\n", r.Uname, r.RoomID)
 		r.RecordEndTime = time.Now().Unix()
 		golog.Info(fmt.Sprintf("%s[RoomID: %s] 录制结束", r.Uname, r.RoomID))
-		time.Sleep(120 * time.Second)
+		time.Sleep(60 * time.Second)
 		atomic.CompareAndSwapUint32(&r.State, running, start)
 		return
 	}
