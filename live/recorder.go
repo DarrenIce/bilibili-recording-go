@@ -26,7 +26,7 @@ func (r *Live) run() {
 			return
 		default:
 			r.St, r.Et = tools.MkDuration(r.StartTime, r.EndTime)
-			if r.judgeRecord() && r.judgeLive() && r.judegArea() {
+			if r.judgeRecord() && r.judgeLive() && r.judgeArea() {
 				if r.State == running {
 					time.Sleep(5 * time.Second)
 				} else if r.State == start || r.State == restart {
@@ -51,7 +51,7 @@ func (r *Live) run() {
 			} else {
 				if r.State == restart {
 					r.unlive()
-				} else if r.State == running {
+				} else if r.State == running && r.downloadCmd.Process != nil && (!r.judgeRecord() || !r.judgeArea()) {
 					r.downloadCmd.Process.Kill()
 				} else {
 					time.Sleep(5 * time.Second)
@@ -68,7 +68,7 @@ func (r *Live) judgeLive() bool {
 }
 
 func (r *Live) unlive() {
-	// if r.judgeRecord() && r.judegArea() && !r.RecordMode {
+	// if r.judgeRecord() && r.judgeArea() && !r.RecordMode {
 	// 	time.Sleep(10 * time.Second)
 	// 	atomic.CompareAndSwapUint32(&r.State, running, restart)
 	// } else {
@@ -76,7 +76,7 @@ func (r *Live) unlive() {
 		if r.SaveDanmu && r.Platform == "bilibili" {
 			r.danmuClient.Stop <- struct{}{}
 		}
-		if tools.GetTimeDeltaFromTimestamp(r.RecordEndTime, r.RecordStartTime) < 60 {
+		if tools.GetTimeDeltaFromTimestamp(r.RecordEndTime, r.RecordStartTime) < 60 && r.Platform != "douyin" {
 			time.Sleep(120 * time.Second)
 			atomic.CompareAndSwapUint32(&r.State, waiting, start)
 			if r.SaveDanmu && r.Platform == "bilibili" {
@@ -95,14 +95,16 @@ func (r *Live) unlive() {
 func (r *Live) start() {
 	golog.Info(fmt.Sprintf("房间[RoomID: %s] 开始监听", r.RoomID))
 	atomic.CompareAndSwapUint32(&r.State, iinit, start)
+	if r.Uname != "" {
+		tools.Mkdir(fmt.Sprintf("./recording/%s/brg", r.Uname))
+		tools.Mkdir(fmt.Sprintf("./recording/%s/tmp", r.Uname))
+		tools.Mkdir(fmt.Sprintf("./recording/%s/ass", r.Uname))
+	}
 	r.UpdateSiteInfo()
-	tools.Mkdir(fmt.Sprintf("./recording/%s/brg", r.Uname))
-	tools.Mkdir(fmt.Sprintf("./recording/%s/tmp", r.Uname))
-	tools.Mkdir(fmt.Sprintf("./recording/%s/ass", r.Uname))
 	go r.run()
 }
 
-func (r *Live) judegArea() bool {
+func (r *Live) judgeArea() bool {
 	if !r.AreaLock {
 		return true
 	}

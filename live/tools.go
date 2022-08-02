@@ -159,7 +159,7 @@ func flushPlatformLives(platform string) {
 			LmapLock.Unlock()
 			live.UpdateSiteInfo()
 			if (platform == "douyin") {
-				time.Sleep(30 * time.Second)
+				time.Sleep(15 * time.Second)
 			} else {
 				time.Sleep(10 * time.Second)
 			}
@@ -191,7 +191,7 @@ func CleanRecordingDir() {
 			expireTime := tools.ConvertString2TimeStamp(v.SaveDuration)
 			if tools.Exists(tmpDir) {
 				for _, f := range tools.ListDir(tmpDir) {
-					if ok := strings.HasSuffix(f, ".flv"); ok {
+					if ok := strings.HasSuffix(f, ".flv") || strings.HasSuffix(f, ".mts"); ok {
 						fileModifyTime := tools.GetFileLastModifyTime(f)
 						if tools.GetTimeDeltaFromTimestamp(timeNowStamp, fileModifyTime) > expireTime {
 							err := os.Remove(f)

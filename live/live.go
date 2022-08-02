@@ -157,8 +157,11 @@ func (l *Live) UpdateSiteInfo() {
 	siteInfo.Uname = emoji.ReplaceAllEmojiFunc(siteInfo.Uname, func(emoji string) string {
 		return ""
 	})
-	if l.Uname == "" {
+	if l.Uname == "" && siteInfo.Uname != "" {
 		l.Uname = siteInfo.Uname
+		tools.Mkdir(fmt.Sprintf("./recording/%s/brg", l.Uname))
+		tools.Mkdir(fmt.Sprintf("./recording/%s/tmp", l.Uname))
+		tools.Mkdir(fmt.Sprintf("./recording/%s/ass", l.Uname))
 	}
 	l.RealID = siteInfo.RealID
 	l.LiveStatus = siteInfo.LiveStatus
