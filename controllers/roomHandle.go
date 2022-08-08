@@ -32,6 +32,8 @@ type roomInfo struct {
 	AreaLock       bool   `json:"areaLock"`
 	AreaLimit      string `json:"areaLimit"`
 	SaveDanmu      bool   `json:"saveDanmu"`
+	Name           string `json:"name"`
+	Cookies        string `json:"cookies"`
 }
 
 type receiveInfo4 struct {
@@ -112,7 +114,8 @@ func addRoom(info roomInfo) bool {
 		AreaLock:       info.AreaLock,
 		AreaLimit:      info.AreaLimit,
 		SaveDanmu:      info.SaveDanmu,
-		Name:           "",
+		Name:           info.Name,
+		Cookies:        info.Cookies,
 	})
 	live.AddRoom(info.RoomID)
 	if err := c.Marshal(); err != nil {
@@ -139,6 +142,8 @@ func editRoom(info roomInfo) bool {
 		AreaLock:       info.AreaLock,
 		AreaLimit:      info.AreaLimit,
 		SaveDanmu:      info.SaveDanmu,
+		Name:           info.Name,
+		Cookies:        info.Cookies,
 	}
 	c := config.New()
 	c.EditRoom(roominfo)

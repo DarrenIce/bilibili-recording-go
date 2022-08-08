@@ -44,6 +44,7 @@ type RoomConfigInfo struct {
 	AreaLock       bool   `yaml:"areaLock"`
 	AreaLimit      string `yaml:"areaLimit"`
 	SaveDanmu      bool   `yaml:"saveDanmu"`
+	Cookies        string `yaml:"cookies"`
 }
 
 type MonitorArea struct {

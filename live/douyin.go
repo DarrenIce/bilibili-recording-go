@@ -12,6 +12,7 @@ import (
 	"github.com/asmcos/requests"
 	"github.com/kataras/golog"
 	"github.com/tidwall/gjson"
+	_ "github.com/u2takey/ffmpeg-go"
 
 	"bilibili-recording-go/config"
 )
@@ -38,7 +39,7 @@ func (s *douyin) SetCookies(cookies string) {
 }
 
 func (s *douyin) GetInfoByRoom(r *Live) SiteInfo {
-	if s.cookies == "" {
+	if r.Cookies == "" && s.cookies == "" {
 		return SiteInfo{
 			Title: "Cookie未添加",
 		}
@@ -48,11 +49,17 @@ func (s *douyin) GetInfoByRoom(r *Live) SiteInfo {
 	if c.Conf.RcConfig.NeedProxy {
 		req.Proxy(c.Conf.RcConfig.Proxy)
 	}
+	cookies := ""
+	if r.Cookies != "" {
+		cookies = r.Cookies
+	} else {
+		cookies = s.cookies
+	}
 	headers := requests.Header{
 		"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.71 Safari/537.36 Edg/94.0.992.38",
 		"referer":    "https://live.douyin.com/",
 		"Content-Type": "application/form-data",
-		"cookie":     s.cookies,
+		"cookie":     cookies,
 	}
 	resp, err := req.Get(fmt.Sprintf("https://live.douyin.com/%s", r.RoomID), headers)
 	if err != nil {
@@ -155,6 +162,7 @@ func (s *douyin) DownloadLive(r *Live) {
 	middle, _ := filepath.Abs(fmt.Sprintf("./recording/%s/tmp", uname))
 	outputFile := fmt.Sprint(middle + "\\" + outputName)
 	r.downloadCmd = exec.Command("ffmpeg", "-i", s.liveUrl, "-c", "copy", outputFile)
+	// ffmpeg_go.Input(s.liveUrl).Output(outputFile, ffmpeg_go.KwArgs{"c": "copy"}).OverWriteOutput().ErrorToStdOut().Run()
 	// stdout, _ := r.downloadCmd.StdoutPipe()
 	// r.downloadCmd.Stderr = r.downloadCmd.Stdout
 	if err := r.downloadCmd.Start(); err != nil {
