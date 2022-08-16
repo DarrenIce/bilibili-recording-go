@@ -157,9 +157,12 @@ func flushPlatformLives(platform string) {
 				continue
 			}
 			LmapLock.Unlock()
+			if !live.AutoRecord {
+				continue
+			}
 			live.UpdateSiteInfo()
 			if (platform == "douyin") {
-				time.Sleep(30 * time.Second)
+				time.Sleep(60 * time.Second)
 			} else {
 				time.Sleep(10 * time.Second)
 			}

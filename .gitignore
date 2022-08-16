@@ -1,5 +1,5 @@
 recording/
-config.yml
+config*.yml
 log/
 config_test.yml
 *.pyc

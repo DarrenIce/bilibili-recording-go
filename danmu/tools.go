@@ -13,6 +13,7 @@ import (
 	"unsafe"
 
 	"github.com/gorilla/websocket"
+	"github.com/kataras/golog"
 )
 
 func zlibUnCompress(compressSrc []byte) []byte {
@@ -44,6 +45,11 @@ func ByteArrToDecimal(src []byte) (sum int) {
 }
 
 func (d *DanmuClient) sendPackage(packetlen uint32, magic uint16, ver uint16, typeID uint32, param uint32, data []byte) (err error) {
+	defer func() {
+		if v := recover(); v != nil {
+			golog.Error("捕获了一个恐慌：", v)
+		}
+	}()
 	packetHead := new(bytes.Buffer)
 
 	if packetlen == 0 {

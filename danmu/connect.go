@@ -88,6 +88,11 @@ func (d *DanmuClient) heartBeat() {
 	}
 }
 func (d *DanmuClient) receiveRawMsg() {
+	defer func() {
+		if v := recover(); v != nil {
+			golog.Error("捕获了一个恐慌：", v)
+		}
+	}()
 	for {
 		select {
 		case <-d.stopReceive:
@@ -121,6 +126,11 @@ func (d *DanmuClient) receiveRawMsg() {
 }
 
 func (d *DanmuClient) Run() {
+	defer func() {
+		if v := recover(); v != nil {
+			golog.Error("捕获了一个恐慌：", v)
+		}
+	}()
 	d.connect()
 	go d.process()
 	go d.heartBeat()

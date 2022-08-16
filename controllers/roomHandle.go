@@ -70,6 +70,18 @@ func GetRoomLiveURL(c *gin.Context) {
 	}
 }
 
+func RefreshRoomInfo(c *gin.Context) {
+	roomID := c.Param("roomID")
+	if l, ok := live.Lives[roomID]; ok {
+		l.UpdateSiteInfo()
+		c.JSON(200, &struct {
+			Msg string `json:"msg"`
+		}{
+			roomID,
+		})
+	}
+}
+
 func RoomHandle(c *gin.Context) {
 	info := new(receiveInfo)
 	if c.ShouldBind(&info) == nil {

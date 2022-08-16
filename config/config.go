@@ -7,6 +7,10 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+var (
+	ConfigFile = "./config.yml"
+)
+
 type bili struct {
 	User     string            `yaml:"user"`
 	Password string            `yaml:"password"`
@@ -89,7 +93,7 @@ func New() *Config {
 func (c *Config) LoadConfig() error {
 	c.lock.Lock()
 	defer c.lock.Unlock()
-	b, err := ioutil.ReadFile("./config.yml")
+	b, err := ioutil.ReadFile(ConfigFile)
 	if err != nil {
 		return err
 	}
@@ -107,7 +111,7 @@ func (c *Config) Marshal() error {
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile("./config.yml", b, 0777)
+	return ioutil.WriteFile(ConfigFile, b, 0777)
 }
 
 // AddRoom add
