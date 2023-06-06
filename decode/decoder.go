@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
+	// "io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -81,31 +81,43 @@ func Decode(l *live.LiveSnapshot, convertFile string, outputName string) {
 	appendFile := ""
 	appendFileName := ""
 
-	ft := GetFileCreateTimeFromName(outputName)
-	farea := strings.Split(outputName, "_")[2]
-	ftitle := strings.Split(strings.TrimSuffix(outputName, ".mp4"), "_")[3]
-	flst, _ := ioutil.ReadDir(fmt.Sprintf("./recording/%s/", l.Uname))
-	if l.Platform == "douyin" {
-		for _, f := range flst {
-			if strings.HasSuffix(f.Name(), ".mp4") {
-				t := GetFileCreateTimeFromName(f.Name())
-				if int(ft.Sub(t).Seconds()) == 0 {
-					golog.Info(fmt.Sprintf("%s[RoomID: %s] 文件已存在，进行覆盖", l.Uname, l.RoomID))
-					break
-				}
-				tarea := strings.Split(f.Name(), "_")[2]
-				ttitle := strings.Split(strings.TrimSuffix(f.Name(), ".mp4"), "_")[3]
-				fmt.Println(int(ft.Sub(t).Seconds()))
-				if ft.After(t) && int(ft.Sub(t).Seconds()) < 3600 * 3 && farea == tarea && ttitle == ftitle {
-					isAppend = true
-					appendFile, _ = filepath.Abs(fmt.Sprintf("./recording/%s/%s", l.Uname, f.Name()))
-					appendFileName = f.Name()
-					outputName = f.Name()
-					break
-				}
-			}
+	// ft := GetFileCreateTimeFromName(outputName)
+	// farea := strings.Split(outputName, "_")[2]
+	// ftitle := strings.Split(strings.TrimSuffix(outputName, ".mp4"), "_")[3]
+	// flst, _ := ioutil.ReadDir(fmt.Sprintf("./recording/%s/", l.Uname))
+	// if l.Platform == "douyin" {
+	// 	// TODO: 有bug，应该只判断最近的一个文件
+	// 	for _, f := range flst {
+	// 		if strings.HasSuffix(f.Name(), ".mp4") {
+	// 			t := GetFileCreateTimeFromName(f.Name())
+	// 			if int(ft.Sub(t).Seconds()) == 0 {
+	// 				golog.Info(fmt.Sprintf("%s[RoomID: %s] 文件已存在，进行覆盖", l.Uname, l.RoomID))
+	// 				break
+	// 			}
+	// 			tarea := strings.Split(f.Name(), "_")[2]
+	// 			ttitle := strings.Split(strings.TrimSuffix(f.Name(), ".mp4"), "_")[3]
+	// 			fmt.Println(int(ft.Sub(t).Seconds()))
+	// 			if ft.After(t) && int(ft.Sub(t).Seconds()) < 3600 * 3 && farea == tarea && ttitle == ftitle {
+	// 				isAppend = true
+	// 				appendFile, _ = filepath.Abs(fmt.Sprintf("./recording/%s/%s", l.Uname, f.Name()))
+	// 				appendFileName = f.Name()
+	// 				outputName = f.Name()
+	// 				break
+	// 			}
+	// 		}
+	// 	}
+	// }
+
+	if strings.HasSuffix(convertFile, "m4a") {
+		err := os.Rename(filepath.Join(pwd, convertFile), filepath.Join(pwd, "recording", l.Uname, fmt.Sprintf("%s.m4a", outputName)))
+		if err != nil {
+			golog.Error(err)
 		}
+		return
 	}
+
+	// 暂时禁用
+	isAppend = false
 
 	for k, f := range inputFile {
 		inputFile[k], _ = filepath.Abs(f)
@@ -159,24 +171,27 @@ func Decode(l *live.LiveSnapshot, convertFile string, outputName string) {
 	if !isAppend {
 		outputName += ".mp4"
 	}
-	if l.Platform == "douyin" {
-		err := os.Rename(strings.Replace(outputFile, ".mp4", ".mts", -1), fmt.Sprintf("./recording/%s/tmp/%s", l.Uname, strings.Replace(outputName, ".mp4", ".mts", -1)))
-		if err != nil {
-			golog.Error(err)
-		}
-	} else {
+	// if l.Platform == "douyin" {
+	// 	err := os.Rename(strings.Replace(outputFile, ".mp4", ".mts", -1), fmt.Sprintf("./recording/%s/tmp/%s", l.Uname, strings.Replace(outputName, ".mp4", ".mts", -1)))
+	// 	if err != nil {
+	// 		golog.Error(err)
+	// 	}
+	// } else {
 		err := os.Remove(strings.Replace(outputFile, ".mp4", ".mts", -1))
 		if err != nil {
 			golog.Error(err)
 		} else {
 			golog.Info(strings.Replace(outputFile, ".mp4", ".mts", -1), " has been removed")
 		}
-	}
+	// }
 	
 }
 
 func GetFileCreateTimeFromName(fileName string) time.Time {
-	loc, _ := time.LoadLocation("PRC")
+	loc, err := time.LoadLocation("Asia/Shanghai")
+	if err != nil {
+		loc = time.FixedZone("CST", 8*3600)
+	}
 	t, _ := time.ParseInLocation("2006-01-02 15时04分05秒", fmt.Sprint(strings.TrimSuffix(strings.Split(fileName, "_")[1], "场"), "00秒"), loc)
 	return t
 }
@@ -207,12 +222,21 @@ func GetLatestFiles(l *live.LiveSnapshot, timeStamp int) []string {
 func GenerateFileName(inputFile []string, l *live.LiveSnapshot) (string, string) {
 	// fileTime := tools.GetFileCreateTime(inputFile[0])
 	filesplit := strings.Split(inputFile[0], "/")
-	titleWithTsp := strings.TrimSuffix(filesplit[len(filesplit)-1], ".flv")
+	var titleWithTsp string
+	if strings.HasSuffix(filesplit[len(filesplit)-1], ".flv") {
+		titleWithTsp = strings.TrimSuffix(filesplit[len(filesplit)-1], ".flv")
+	} else if strings.HasSuffix(filesplit[len(filesplit)-1], ".m4a") {
+		titleWithTsp = strings.TrimSuffix(filesplit[len(filesplit)-1], ".m4a")
+	}
+	
 	titleSplits := strings.Split(titleWithTsp, "_")
 	areaName := titleSplits[0]
 	title := strings.Join(titleSplits[1:len(titleSplits)-1], "_")
-	fileTime := strings.Split(titleWithTsp, "_")[2]
-	loc, _ := time.LoadLocation("PRC")
+	fileTime := titleSplits[len(titleSplits)-1]
+	loc, err := time.LoadLocation("Asia/Shanghai")
+	if err != nil {
+		loc = time.FixedZone("CST", 8*3600)
+	}
 	t, _ := time.ParseInLocation("20060102150405", fileTime, loc)
 	ftime := fmt.Sprintf("%s场_%s_%s", t.Format("2006-01-02 15时04分"), areaName, title)
 	uploadName := fmt.Sprintf("%s%s", l.Uname, ftime)

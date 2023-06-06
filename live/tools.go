@@ -162,7 +162,7 @@ func flushPlatformLives(platform string) {
 			}
 			live.UpdateSiteInfo()
 			if (platform == "douyin") {
-				time.Sleep(60 * time.Second)
+				time.Sleep(30 * time.Second)
 			} else {
 				time.Sleep(10 * time.Second)
 			}
@@ -176,11 +176,12 @@ func CreateLiveSnapShot(live *Live) *LiveSnapshot {
 	snapshot.SiteInfo = live.SiteInfo
 	snapshot.State = live.State
 	snapshot.RoomConfigInfo = live.RoomConfigInfo
-	if live.LiveStatus == 1 {
-		snapshot.TmpFilePath = live.TmpFilePath
-	} else {
-		snapshot.TmpFilePath = ""
-	}
+	snapshot.TmpFilePath = live.TmpFilePath
+	// if live.LiveStatus == 1 {
+	// 	snapshot.TmpFilePath = live.TmpFilePath
+	// } else {
+	// 	snapshot.TmpFilePath = ""
+	// }
 	return &snapshot
 }
 

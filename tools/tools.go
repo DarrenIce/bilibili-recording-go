@@ -69,7 +69,10 @@ func MkDuration(startTime string, endTime string) (time.Time, time.Time) {
 	t := time.Now()
 	tt := t.Format("20060102 150405")
 	head := strings.Split(tt, " ")[0]
-	loc, _ := time.LoadLocation("PRC")
+	loc, err := time.LoadLocation("Asia/Shanghai")
+	if err != nil {
+		loc = time.FixedZone("CST", 8*3600)
+	}
 	if startTime == endTime && startTime == "0" {
 		st, _ := time.ParseInLocation("20060102 150405", fmt.Sprint(head, " 000000"), loc)
 		et, _ := time.ParseInLocation("20060102 150405", fmt.Sprint(head, " 235959"), loc)
@@ -179,7 +182,10 @@ func LiveOutput(out io.ReadCloser) {
 func EveryDayTimer(t string, c chan int) {
 	golog.Info("EveryDayTimer Start, set time as ", t)
 	timeNow := time.Now()
-	loc, _ := time.LoadLocation("PRC")
+	loc, err := time.LoadLocation("Asia/Shanghai")
+	if err != nil {
+		loc = time.FixedZone("CST", 8*3600)
+	}
 	setTime, _ := time.ParseInLocation("2006-01-02 15:04:05", fmt.Sprint(time.Now().Format("2006-01-02")+" "+t), loc)
 	if setTime.Before(timeNow) {
 		setTime = setTime.AddDate(0, 0, 1)
@@ -187,12 +193,12 @@ func EveryDayTimer(t string, c chan int) {
 	timer := time.NewTimer(setTime.Sub(timeNow))
 	<-timer.C
 	c <- 1
-	golog.Info("EveryDayTimer Work at ", time.Now().Format("2006-01-02 15:04:05"), " Next work time is ", setTime.AddDate(0, 0, 1).Format("2006-01-02 15:04:05"))
+	golog.Info("EveryDayTimer Work at ", time.Now().Format("2006-01-02 15:04:05"), ", Next work time is ", setTime.AddDate(0, 0, 1).Format("2006-01-02 15:04:05"))
 	var ticker *time.Ticker = time.NewTicker(24 * time.Hour)
 	ticks := ticker.C
 	for range ticks {
 		c <- 1
-		golog.Info("EveryDayTimer Work at ", time.Now().Format("2006-01-02 15:04:05"), "Next work time is ", time.Now().Format("2006-01-02 15:04:05"))
+		golog.Info("EveryDayTimer Work at ", time.Now().Format("2006-01-02 15:04:05"), ", Next work time is ", time.Now().Format("2006-01-02 15:04:05"))
 	}
 }
 

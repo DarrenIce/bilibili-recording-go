@@ -73,19 +73,23 @@ func (r *Live) unlive() {
 	// 	atomic.CompareAndSwapUint32(&r.State, running, restart)
 	// } else {
 	if atomic.CompareAndSwapUint32(&r.State, running, waiting) || atomic.CompareAndSwapUint32(&r.State, restart, waiting) {
-		if r.SaveDanmu && r.Platform == "bilibili" {
+		for r.SaveDanmu && r.Platform == "bilibili" && !r.danmuClient.AfterConnected {
+			time.Sleep(1 * time.Second)
+		}
+		if r.SaveDanmu && r.Platform == "bilibili" && r.danmuClient.Connected {
 			r.danmuClient.Stop <- struct{}{}
 		}
-		if tools.GetTimeDeltaFromTimestamp(r.RecordEndTime, r.RecordStartTime) < 60 && r.Platform != "douyin" {
+		if tools.GetTimeDeltaFromTimestamp(r.RecordEndTime, r.RecordStartTime) < 60 {
 			time.Sleep(120 * time.Second)
 			atomic.CompareAndSwapUint32(&r.State, waiting, start)
 			if r.SaveDanmu && r.Platform == "bilibili" {
-				os.Remove(fmt.Sprintf("./recording/%s/%s.ass", r.Uname, r.danmuClient.Ass.File))
-				os.Remove(fmt.Sprintf("./recording/%s/%s.brg", r.Uname, r.danmuClient.Brg.File))
+				os.Remove(fmt.Sprintf("./recording/%s/ass/%s.ass", r.Uname, r.danmuClient.Ass.File))
+				os.Remove(fmt.Sprintf("./recording/%s/brg/%s.brg", r.Uname, r.danmuClient.Brg.File))
 			}
 			return
 		}
 		DecodeChan <- CreateLiveSnapShot(r)
+		r.TmpFilePath = ""
 		time.Sleep(5 * time.Second)
 		atomic.CompareAndSwapUint32(&r.State, waiting, start)
 	}

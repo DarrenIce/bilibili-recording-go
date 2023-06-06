@@ -6,7 +6,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"sync/atomic"
 	"time"
 
 	"github.com/asmcos/requests"
@@ -64,24 +63,19 @@ func (s *douyin) GetInfoByRoom(r *Live) SiteInfo {
 	resp, err := req.Get(fmt.Sprintf("https://live.douyin.com/%s", r.RoomID), headers)
 	if err != nil {
 		golog.Error(err)
-		return SiteInfo{
-			Title: err.Error(),
-		}
+		time.Sleep(10 * time.Minute)
+		return SiteInfo{}
 	}
 	splits := strings.Split(resp.Text(), `<script id="RENDER_DATA" type="application/json">`)
 	if len(splits) < 2 {
-		return SiteInfo{
-			Title: "Fail to find url",
-		}
+		return SiteInfo{}
 	}
 	resps := splits[1]
 	resps = strings.Split(resps, `</script>`)[0]
 	resps, err = url.QueryUnescape(resps)
 	if err != nil {
 		golog.Error(err)
-		return SiteInfo{
-			Title: err.Error(),
-		}
+		return SiteInfo{}
 	}
 
 	data := gjson.Get(resps, "app.initialState.roomStore.roomInfo")
@@ -147,22 +141,13 @@ func (s *douyin) GetRoomLiveURL(roomID string) (string, bool) {
 }
 
 func (s *douyin) DownloadLive(r *Live) {
-	isLive, dpi, bitRate, fps := GetStreamInfo(s.liveUrl)
-	if !isLive {
-		fmt.Printf("%s[RoomID: %s] 直播状态不正常\n", r.Uname, r.RoomID)
-		r.RecordEndTime = time.Now().Unix()
-		golog.Info(fmt.Sprintf("%s[RoomID: %s] 录制结束", r.Uname, r.RoomID))
-		time.Sleep(60 * time.Second)
-		atomic.CompareAndSwapUint32(&r.State, running, start)
-		return
-	}
 	uname := r.Uname
 	outputName := r.AreaName + "_" + r.Title + "_" + fmt.Sprint(time.Unix(r.RecordStartTime, 0).Format("20060102150405")) + ".flv"
-	golog.Info(fmt.Sprintf("%s[RoomID: %s] 本次录制文件为：%s, 分辨率: %s, 码率: %s, fps: %s", r.Uname, r.RoomID, outputName, dpi, bitRate, fps))
+	golog.Info(fmt.Sprintf("%s[RoomID: %s] 本次录制文件为：%s", r.Uname, r.RoomID, outputName))
 	r.TmpFilePath = fmt.Sprintf("./recording/%s/tmp/%s", uname, outputName)
 	middle, _ := filepath.Abs(fmt.Sprintf("./recording/%s/tmp", uname))
 	outputFile := fmt.Sprint(middle + "\\" + outputName)
-	r.downloadCmd = exec.Command("ffmpeg", "-i", s.liveUrl, "-c", "copy", outputFile)
+	r.downloadCmd = exec.Command("ffmpeg", "-rw_timeout", "10000000", "-i", s.liveUrl, "-c", "copy", outputFile)
 	// ffmpeg_go.Input(s.liveUrl).Output(outputFile, ffmpeg_go.KwArgs{"c": "copy"}).OverWriteOutput().ErrorToStdOut().Run()
 	// stdout, _ := r.downloadCmd.StdoutPipe()
 	// r.downloadCmd.Stderr = r.downloadCmd.Stdout
@@ -174,5 +159,7 @@ func (s *douyin) DownloadLive(r *Live) {
 	r.downloadCmd.Wait()
 	r.RecordEndTime = time.Now().Unix()
 	golog.Info(fmt.Sprintf("%s[RoomID: %s] 录制结束", r.Uname, r.RoomID))
+	time.Sleep(120 * time.Second)
+	r.UpdateSiteInfo()
 	r.unlive()
 }

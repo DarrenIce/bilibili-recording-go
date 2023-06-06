@@ -12,7 +12,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"sync/atomic"
 	"time"
 
 	"github.com/asmcos/requests"
@@ -38,14 +37,14 @@ func (s *huya) Name() string {
 
 func (s *huya) SetCookies(cookies string) {}
 
-func (s * huya) GetInfoByRoom(r *Live) SiteInfo {
+func (s *huya) GetInfoByRoom(r *Live) SiteInfo {
 	req := requests.Requests()
 	c := config.New()
 	if c.Conf.RcConfig.NeedProxy {
 		req.Proxy(c.Conf.RcConfig.Proxy)
 	}
 	headers := requests.Header{
-		"User-Agent": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko); Chrome/75.0.3770.100 Mobile Safari/537.36",
+		"User-Agent":   "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko); Chrome/75.0.3770.100 Mobile Safari/537.36",
 		"Content-Type": "application/x-www-form-urlencoded",
 	}
 	resp, err := req.Get(fmt.Sprintf("https://m.huya.com/%s", r.RoomID), headers)
@@ -65,6 +64,8 @@ func (s * huya) GetInfoByRoom(r *Live) SiteInfo {
 	sInfo.LiveStatus = int(gjson.Get(data[1], "roomInfo.eLiveStatus").Int()) - 1
 	if sInfo.LiveStatus == 0 {
 		sInfo.LiveStartTime = 0
+	} else if sInfo.LiveStatus == -1 {
+		sInfo.LockStatus = 1
 	} else {
 		sInfo.LiveStartTime = gjson.Get(data[1], "roomInfo.tLiveInfo.iStartTime").Int()
 		liveUrl, _ := base64.RawStdEncoding.DecodeString(gjson.Get(data[1], "roomProfile.liveLineUrl").String())
@@ -76,6 +77,9 @@ func (s * huya) GetInfoByRoom(r *Live) SiteInfo {
 	sInfo.Uname = gjson.Get(data[1], "roomInfo.tProfileInfo.sNick").String()
 	sInfo.UID = gjson.Get(data[1], "roomInfo.tProfileInfo.lUid").String()
 	sInfo.Title = gjson.Get(data[1], "roomInfo.tLiveInfo.sRoomName").String()
+	if sInfo.Title == "" {
+		sInfo.Title = gjson.Get(data[1], "roomInfo.tLiveInfo.sIntroduction").String()
+	}
 	sInfo.AreaName = gjson.Get(data[1], "roomInfo.tLiveInfo.sGameFullName").String()
 
 	return sInfo
@@ -126,7 +130,7 @@ func (s *huya) GetRoomLiveURL(roomID string) (string, bool) {
 		req.Proxy(c.Conf.RcConfig.Proxy)
 	}
 	headers := requests.Header{
-		"User-Agent": "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko); Chrome/75.0.3770.100 Mobile Safari/537.36",
+		"User-Agent":   "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko); Chrome/75.0.3770.100 Mobile Safari/537.36",
 		"Content-Type": "application/x-www-form-urlencoded",
 	}
 	resp, err := req.Get(fmt.Sprintf("https://m.huya.com/%s", roomID), headers)
@@ -147,23 +151,16 @@ func (s *huya) GetRoomLiveURL(roomID string) (string, bool) {
 	}
 }
 
-func (s *huya)DownloadLive(r *Live) {
-	isLive, dpi, bitRate, fps := GetStreamInfo(s.liveUrl)
-	if !isLive {
-		fmt.Printf("%s[RoomID: %s] 直播状态不正常\n", r.Uname, r.RoomID)
-		r.RecordEndTime = time.Now().Unix()
-		golog.Info(fmt.Sprintf("%s[RoomID: %s] 录制结束", r.Uname, r.RoomID))
-		time.Sleep(120 * time.Second)
-		atomic.CompareAndSwapUint32(&r.State, running, start)
-		return
-	}
+func (s *huya) DownloadLive(r *Live) {
 	uname := r.Uname
 	outputName := r.AreaName + "_" + r.Title + "_" + fmt.Sprint(time.Unix(r.RecordStartTime, 0).Format("20060102150405")) + ".flv"
-	golog.Info(fmt.Sprintf("%s[RoomID: %s] 本次录制文件为：%s, 分辨率: %s, 码率: %s, fps: %s", r.Uname, r.RoomID, outputName, dpi, bitRate, fps))
+	golog.Info(fmt.Sprintf("%s[RoomID: %s] 本次录制文件为：%s", r.Uname, r.RoomID, outputName))
 	r.TmpFilePath = fmt.Sprintf("./recording/%s/tmp/%s", uname, outputName)
 	middle, _ := filepath.Abs(fmt.Sprintf("./recording/%s/tmp", uname))
 	outputFile := fmt.Sprint(middle + "\\" + outputName)
-	r.downloadCmd = exec.Command("ffmpeg", "-i", s.liveUrl, "-c", "copy", outputFile)
+	url := fmt.Sprintf("http://127.0.0.1:1769/huya/%s", r.RoomID)
+	r.downloadCmd = exec.Command("ffmpeg", "-i", url, "-c", "copy", outputFile)
+	// r.downloadCmd = exec.Command("streamlink", "-f", "-o", outputFile, s.liveUrl, "best")
 	// stdout, _ := r.downloadCmd.StdoutPipe()
 	// r.downloadCmd.Stderr = r.downloadCmd.Stdout
 	if err := r.downloadCmd.Start(); err != nil {
@@ -174,5 +171,6 @@ func (s *huya)DownloadLive(r *Live) {
 	r.downloadCmd.Wait()
 	r.RecordEndTime = time.Now().Unix()
 	golog.Info(fmt.Sprintf("%s[RoomID: %s] 录制结束", r.Uname, r.RoomID))
+	time.Sleep(time.Second * 120)
 	r.unlive()
 }

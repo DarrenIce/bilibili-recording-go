@@ -161,9 +161,10 @@ func (l *Live) UpdateSiteInfo() {
 	})
 	exp := regexp.MustCompile(`[\/:*?"<>|]`)
 	siteInfo.Title = exp.ReplaceAllString(siteInfo.Title, " ")
+	siteInfo.AreaName = exp.ReplaceAllString(siteInfo.AreaName, " ")
 	isTitleChanged := false
 	isAreaChanged := false
-	if l.Title != siteInfo.Title && l.Title != "" && siteInfo.Title != "" {
+	if l.Title != siteInfo.Title && l.Title != "" && siteInfo.Title != "" && siteInfo.Title != "bilibili主播的直播间" {
 		golog.Info(fmt.Sprintf("%s[RoomID: %s] 标题更换 %s -> %s", l.Uname, l.RoomID, l.Title, siteInfo.Title))
 		l.Title = siteInfo.Title
 		isTitleChanged = true

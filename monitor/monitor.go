@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/asmcos/requests"
+	"github.com/kataras/golog"
 	// "github.com/kataras/golog"
 	"github.com/tidwall/gjson"
 )
@@ -87,6 +88,7 @@ func Monitor() {
 				resp, err := requests.Get(url)
 				if err != nil {
 					// golog.Error(err)
+					time.Sleep(10 * time.Minute)
 					continue
 				}
 				if resp.R.StatusCode != 200 {
@@ -115,6 +117,9 @@ func Monitor() {
 					liveCover := room.Get("cover").String()
 					if judgeRoomBlocked(roomID) {
 						continue
+					}
+					if err != nil {
+						golog.Error(err)
 					}
 					if _, ok := uidmap[roomID]; !ok {
 						uidmap[roomID] = uid

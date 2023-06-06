@@ -37,22 +37,23 @@ func SmartDecode(l *live.LiveSnapshot) {
 		golog.Error(err)
 		return
 	}
-	for _, f := range flst {
-		if fmt.Sprintf("./recording/%s/tmp/%s", l.Uname, f.Name()) == l.TmpFilePath {
-			golog.Info(fmt.Sprintf("%s[RoomID: %s] %s为正在录制文件, 已跳过.", l.Uname, l.RoomID, f.Name()))
-			continue
-		}
-		// if strings.HasSuffix(f.Name(), ".flv") && f.Size() < 1024 * 1024 * 50 {
-		// 	golog.Info(fmt.Sprintf("%s[RoomID: %s] %s 文件太小, 已删除.", l.Uname, l.RoomID, f.Name()))
-		// 	os.Remove(fmt.Sprintf("./recording/%s/tmp/%s", l.Uname, f.Name()))
-		// }
-	}
+	// for _, f := range flst {
+	// 	if fmt.Sprintf("./recording/%s/tmp/%s", l.Uname, f.Name()) == l.TmpFilePath {
+	// 		golog.Info(fmt.Sprintf("%s[RoomID: %s] %s为正在录制文件, 已跳过.", l.Uname, l.RoomID, f.Name()))
+	// 		continue
+	// 	}
+	// 	if strings.HasSuffix(f.Name(), ".flv") && f.Size() < 1024 * 1024 * 50 {
+	// 		golog.Info(fmt.Sprintf("%s[RoomID: %s] %s 文件太小, 已删除.", l.Uname, l.RoomID, f.Name()))
+	// 		os.Remove(fmt.Sprintf("./recording/%s/tmp/%s", l.Uname, f.Name()))
+	// 	}
+	// }
+	// TODO: 遍历的对象应该换成flst
 	for _, v := range tools.ListDir(fmt.Sprintf("./recording/%s/tmp", l.Uname)) {
 		if ok := strings.HasSuffix(v, ".flv"); !ok {
 			continue
 		}
 		if v == l.TmpFilePath {
-			golog.Info(fmt.Sprintf("%s[RoomID: %s] %s为正在录制文件, 已跳过.", l.Uname, l.RoomID, v))
+			golog.Info(fmt.Sprintf("%s[RoomID: %s] %s 为正在录制文件, 已跳过.", l.Uname, l.RoomID, v))
 			continue
 		}
 		_, outputName := GenerateFileName([]string{v}, l)
@@ -63,7 +64,7 @@ func SmartDecode(l *live.LiveSnapshot) {
 					os.Remove(v)
 					continue
 				} else {
-					golog.Info(fmt.Sprintf("%s[RoomID: %s] %s转码未完成，重新加入队列.", l.Uname, l.RoomID, outputName))
+					golog.Info(fmt.Sprintf("%s[RoomID: %s] %s 转码未完成，重新加入队列.", l.Uname, l.RoomID, outputName))
 					os.Remove(fmt.Sprintf("./recording/%s/%s.mp4", l.Uname, outputName))
 				}
 			} else {
@@ -72,6 +73,7 @@ func SmartDecode(l *live.LiveSnapshot) {
 				continue
 			}
 		}
+		// TODO: 似乎是乱序加入的队列
 		golog.Info(fmt.Sprintf("%s[RoomID: %s] %s 加入转码队列.", l.Uname, l.RoomID, v))
 		decodeChan <- &decodeTuple{
 			live:        l,

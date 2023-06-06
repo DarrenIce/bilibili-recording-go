@@ -116,6 +116,8 @@ func (s *bigo) DownloadLive(r *Live) {
 	middle, _ := filepath.Abs(fmt.Sprintf("./recording/%s/tmp", uname))
 	outputFile := fmt.Sprint(middle + "\\" + outputName)
 	r.downloadCmd = exec.Command("ffmpeg", "-i", s.liveUrl, "-c", "copy", outputFile)
+	// url := fmt.Sprint("https://www.bigo.tv/", r.RoomID)
+	// r.downloadCmd = exec.Command("streamlink", "-f", "-o", outputFile, url, "best")
 	if err := r.downloadCmd.Start(); err != nil {
 		golog.Error(err)
 		r.downloadCmd.Process.Kill()
