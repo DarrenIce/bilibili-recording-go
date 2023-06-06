@@ -262,7 +262,7 @@ func ConvertFlv2Ts(middleLst []string, outputFile string, inputFile []string, l 
 	for k := range inputFile {
 		if _, err := os.Stat(middleLst[k]); errors.Is(err, os.ErrNotExist) {
 			ffmpeg_go.Input(inputFile[k], ffmpeg_go.KwArgs{"fflags": "+discardcorrupt"}).Output(
-				middleLst[k], ffmpeg_go.KwArgs{"q": "0", "vcodec": "hevc_nvenc", "c:a": "copy"}).OverWriteOutput().ErrorToStdOut().Run()
+				middleLst[k], ffmpeg_go.KwArgs{"q": "0", "vcodec": "libx265", "c:a": "copy"}).OverWriteOutput().ErrorToStdOut().Run()
 		}
 	}
 
