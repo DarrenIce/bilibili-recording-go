@@ -8,7 +8,8 @@ import (
 	_ "bilibili-recording-go/monitor"
 	"bilibili-recording-go/routers"
 	_ "bilibili-recording-go/tools"
-	
+	"time"
+
 	"flag"
 	"fmt"
 
@@ -21,7 +22,7 @@ var (
 )
 
 func init() {
-	flag.StringVar(&port, "p", "8080", "端口号")
+	flag.StringVar(&port, "p", "8000", "端口号")
 	flag.StringVar(&configName, "c", "config.yml", "配置文件")
 	flag.Parse()
 	config.ConfigFile = fmt.Sprintf("./%s", configName)
@@ -32,6 +33,9 @@ func init() {
 	}
 	for _, v := range c.Conf.Live {
 		live.AddRoom(v.RoomID)
+		if v.Platform == "douyin" {
+			time.Sleep(10 * time.Second)
+		}
 	}
 	// go flushLiveStatus()
 	live.StartTimingTask("Upload2BaiduPCS", c.Conf.RcConfig.NeedBdPan, c.Conf.RcConfig.UploadTime, live.Upload2BaiduPCS)

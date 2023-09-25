@@ -163,6 +163,8 @@ func flushPlatformLives(platform string) {
 			live.UpdateSiteInfo()
 			if (platform == "douyin") {
 				time.Sleep(30 * time.Second)
+			} else if (platform == "huya") {
+				time.Sleep(30 * time.Second)
 			} else {
 				time.Sleep(10 * time.Second)
 			}

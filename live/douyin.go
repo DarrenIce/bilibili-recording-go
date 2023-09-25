@@ -55,47 +55,44 @@ func (s *douyin) GetInfoByRoom(r *Live) SiteInfo {
 		cookies = s.cookies
 	}
 	headers := requests.Header{
-		"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.71 Safari/537.36 Edg/94.0.992.38",
+		"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36",
 		"referer":    "https://live.douyin.com/",
-		"Content-Type": "application/form-data",
 		"cookie":     cookies,
 	}
-	resp, err := req.Get(fmt.Sprintf("https://live.douyin.com/%s", r.RoomID), headers)
-	if err != nil {
-		golog.Error(err)
-		time.Sleep(10 * time.Minute)
-		return SiteInfo{}
-	}
-	splits := strings.Split(resp.Text(), `<script id="RENDER_DATA" type="application/json">`)
-	if len(splits) < 2 {
-		return SiteInfo{}
-	}
-	resps := splits[1]
-	resps = strings.Split(resps, `</script>`)[0]
-	resps, err = url.QueryUnescape(resps)
+	resp, err := req.Get(fmt.Sprintf("https://live.douyin.com/webcast/room/web/enter/?web_rid=%s&aid=6383&device_platform=web&browser_language=zh-CN'&browser_platform=Win32&browser_name=Chrome&browser_version=92.0.4515.159", r.RoomID), headers)
 	if err != nil {
 		golog.Error(err)
 		return SiteInfo{}
 	}
-
-	data := gjson.Get(resps, "app.initialState.roomStore.roomInfo")
+	// splits := strings.Split(resp.Text(), `<script id="RENDER_DATA" type="application/json">`)
+	// if len(splits) < 2 {
+	// 	return SiteInfo{}
+	// }
+	// resps := splits[1]
+	// resps = strings.Split(resps, `</script>`)[0]
+	// resps, err = url.QueryUnescape(resps)
+	// if err != nil {
+	// 	golog.Error(err)
+	// 	return SiteInfo{}
+	// }
+	data := gjson.Parse(resp.Text())
 	siteInfo := SiteInfo{}
-	status := int(data.Get("room.status").Int())
+	status := int(data.Get("data.data.0.status").Int())
 	if status == 2 {
 		siteInfo.LiveStatus = 1
-		s.liveUrl = data.Get("room.stream_url.flv_pull_url.FULL_HD1").String()
+		s.liveUrl = data.Get("data.data.0.stream_url.flv_pull_url.FULL_HD1").String()
 	} else if status == 4 {
 		siteInfo.LiveStatus = 0
 	} else {
 		siteInfo.LiveStatus = status
 	}
-	siteInfo.RealID = data.Get("room.id_str").String()
+	siteInfo.RealID = data.Get("data.data.0.id_str").String()
 	siteInfo.LockStatus = 0
-	siteInfo.Uname = data.Get("anchor.nickname").String()
-	siteInfo.UID = data.Get("anchor.id_str").String()
-	siteInfo.Title = data.Get("room.title").String()
+	siteInfo.Uname = data.Get("data.user.nickname").String()
+	siteInfo.UID = data.Get("data.user.id_str").String()
+	siteInfo.Title = data.Get("data.data.0.title").String()
 	siteInfo.LiveStartTime = time.Now().Unix()
-	siteInfo.AreaName = data.Get("partition_road_map.partition.title").String()
+	siteInfo.AreaName = data.Get("data.partition_road_map.partition.title").String()
 	return siteInfo
 }
 

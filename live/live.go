@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os/exec"
 	"regexp"
+	"strings"
 	"sync"
 	"time"
 
@@ -11,7 +12,7 @@ import (
 	"bilibili-recording-go/danmu"
 	"bilibili-recording-go/tools"
 
-	"github.com/Andrew-M-C/go.emoji"
+	emoji "github.com/Andrew-M-C/go.emoji"
 	"github.com/kataras/golog"
 )
 
@@ -164,7 +165,7 @@ func (l *Live) UpdateSiteInfo() {
 	siteInfo.AreaName = exp.ReplaceAllString(siteInfo.AreaName, " ")
 	isTitleChanged := false
 	isAreaChanged := false
-	if l.Title != siteInfo.Title && l.Title != "" && siteInfo.Title != "" && siteInfo.Title != "bilibili主播的直播间" {
+	if l.Title != siteInfo.Title && l.Title != "" && siteInfo.Title != "" && siteInfo.Title != "bilibili主播的直播间" && !strings.Contains(siteInfo.Title, "暂不支持") {
 		golog.Info(fmt.Sprintf("%s[RoomID: %s] 标题更换 %s -> %s", l.Uname, l.RoomID, l.Title, siteInfo.Title))
 		l.Title = siteInfo.Title
 		isTitleChanged = true
@@ -180,7 +181,7 @@ func (l *Live) UpdateSiteInfo() {
 	if siteInfo.AreaName != "" && l.AreaName == "" {
 		l.AreaName = siteInfo.AreaName
 	}
-	if (isTitleChanged && l.DivideByTitle && l.State == running) || (isAreaChanged && !l.AreaLock && l.State == running) {
+	if (isTitleChanged && l.DivideByTitle && l.State == running) || (isAreaChanged && !l.AreaLock && l.State == running && l.Platform != "douyin") {
 		if l.downloadCmd.Process != nil {
 			l.downloadCmd.Process.Kill()
 		}
